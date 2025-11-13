@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\StudentController;
 
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 
@@ -14,15 +15,16 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 
 Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware('auth')->name('dashboard');
+Route::get('/dashboard', [StudentController::class, 'index'])
+    ->middleware('auth')
+    ->name('dashboard');
 
 
 Route::get('/assignments', function () {
     return view('assignments');
 })->middleware('auth')->name('assignments');
 
+<<<<<<< HEAD
 Route::get('/summary', function () {
     return view('summary');
 })->name('summary');
@@ -40,6 +42,11 @@ Route::get('/evaluation', function () {
 })->name('evaluation');
 
 
+=======
+Route::post('/students', [StudentController::class, 'store'])
+    ->middleware('auth')
+    ->name('students.store');
+>>>>>>> 2d5b2eb (บันทึกข้อมูลได้)
 
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
