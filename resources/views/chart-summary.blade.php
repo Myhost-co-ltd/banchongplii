@@ -37,22 +37,22 @@
   <div class="w-40 bg-pink-500 text-white flex flex-col items-center justify-start p-4 space-y-4 rounded-l-3xl shadow-lg sticky top-0 h-[calc(100vh-5rem)]">
     <button onclick="window.location.href='/dashboard'" 
       class="w-full bg-pink-600 hover:bg-pink-700 rounded-lg py-2 transition">
-      🏠 กลับหน้าหลัก
+      กลับหน้าหลัก
     </button>
 
     <button onclick="window.print()" 
       class="w-full bg-pink-600 hover:bg-pink-700 rounded-lg py-2 transition">
-      🖨️ พิมพ์ทั้งหมด
+      พิมพ์ทั้งหมด
     </button>
 
     <button onclick="window.print()" 
       class="w-full bg-pink-600 hover:bg-pink-700 rounded-lg py-2 transition">
-      🔎 พรีวิวก่อนพิมพ์
+       พรีวิวก่อนพิมพ์
     </button>
 
     <button id="saveCharts" 
       class="w-full bg-pink-600 hover:bg-pink-700 rounded-lg py-2 transition">
-      💾 บันทึก
+       บันทึก
     </button>
   </div>
 </div>
