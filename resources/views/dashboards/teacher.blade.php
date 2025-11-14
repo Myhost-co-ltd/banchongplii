@@ -108,8 +108,7 @@
     </button>
     <h3 class="text-lg font-semibold text-gray-800 mb-4">เพิ่มข้อมูลนักเรียน</h3>
 
-    {{-- action="{{ route('students.store') }}" --}}
-    <form method="POST" a class="space-y-4">
+    <form method="POST" action="{{ route('students.store') }}" class="space-y-4">
       @csrf
 
       <div>
