@@ -29,19 +29,4 @@
 
 </div>
 
-{{-- ปุ่มลัด --}}
-{{-- <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
-
-    <a href="/dashboard/teacher"
-       class="p-6 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 block text-center shadow">
-       ➕ เพิ่มนักเรียน
-    </a>
-
-    <a href="/admin/users"
-       class="p-6 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 block text-center shadow">
-       👥 จัดการบัญชีผู้ใช้งาน
-    </a>
-
-</div> --}}
-
 @endsection

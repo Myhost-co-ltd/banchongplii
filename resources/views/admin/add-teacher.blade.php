@@ -6,30 +6,23 @@
 
 <h1 class="text-3xl font-bold text-gray-800 mb-6">จัดการข้อมูลครู</h1>
 
-<!-- ปุ่มเพิ่มครู และ Import -->
 <div class="flex justify-between items-center mb-6">
 
     <div class="flex gap-3">
         <button onclick="openAddTeacher()"
             class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-5 rounded-xl shadow">
-             เพิ่มครู
+            เพิ่มครู
         </button>
-
-        {{-- <button onclick="openImportModal()"
-            class="bg-green-600 hover:bg-green-700 text-white py-2 px-5 rounded-xl shadow">
-            📥 Import Excel
-        </button> --}}
     </div>
 
     <div class="bg-white border-2 border-blue-600 rounded-xl p-3">
         <input type="text" id="searchInput"
-               onkeyup="searchTeacher()"
-               placeholder="ค้นหาชื่อ / อีเมล / เบอร์โทร..."
-               class="w-full border-0 outline-none">
+                onkeyup="searchTeacher()"
+                placeholder="ค้นหาชื่อ / อีเมล / เบอร์โทร..."
+                class="w-full border-0 outline-none">
     </div>
 </div>
 
-<!-- Filter บทบาท -->
 <div class="mb-6">
     <label class="font-semibold text-gray-700">เลือกบทบาท:</label>
     <select id="roleFilter" onchange="filterRole()" class="input w-48 ml-3">
@@ -39,7 +32,6 @@
     </select>
 </div>
 
-<!-- ตารางครู -->
 <div class="bg-white p-6 rounded-2xl shadow-md border overflow-x-auto">
     <table class="w-full border-collapse">
         <thead>
@@ -49,6 +41,7 @@
             <th class="p-3">อีเมล</th>
             <th class="p-3">เบอร์โทร</th>
             <th class="p-3">บทบาท</th>
+            <th class="p-3">ห้องเรียน</th>
             <th class="p-3 text-center">จัดการ</th>
         </tr>
         </thead>
@@ -69,20 +62,27 @@
                 $role = $roles[array_rand($roles)];
                 $email = strtolower($fname.$i).'@school.com';
                 $phone = '08'.rand(10000000,99999999);
+
+                // random classroom
+                $classroom = 'ป.'.rand(1,6).'/'.rand(1,3);
             @endphp
 
             <tr class="border-b teacher-row"
                 data-name="{{ strtolower($fname.' '.$lname) }}"
                 data-role="{{ $role }}"
                 data-email="{{ strtolower($email) }}"
-                data-phone="{{ $phone }}">
+                data-phone="{{ $phone }}"
+                data-classroom="{{ strtolower($classroom) }}">
+
                 <td class="p-3 text-center">{{ $i }}</td>
                 <td class="p-3">{{ $fname.' '.$lname }}</td>
                 <td class="p-3">{{ $email }}</td>
-                <td class="p-3">{{ substr($phone, 0, 3) }}{{ str_repeat('x', 3) }}{{ substr($phone, -4) }}</td>
+                <td class="p-3">{{ substr($phone,0,3) }}xxx{{ substr($phone,-4) }}</td>
                 <td class="p-3 text-blue-600 font-semibold text-center">
                     {{ $role == 'teacher' ? 'ครู' : 'ผู้ช่วยครู' }}
                 </td>
+
+                <td class="p-3 text-center">{{ $classroom }}</td>
 
                 <td class="p-3 text-center">
                     <button onclick="alert('แก้ไข (Mock)')" class="text-yellow-600 font-semibold">แก้ไข</button> |
@@ -100,7 +100,7 @@
 
 
 {{-- ========================================= --}}
-{{--  POPUP เพิ่มครู --}}
+{{-- POPUP เพิ่มครู --}}
 {{-- ========================================= --}}
 <div id="addTeacherModal"
      class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
@@ -113,27 +113,40 @@
 
         <div class="mb-3">
             <label class="font-semibold">ชื่อ</label>
-            <input type="text" id="tFirstName" class="input w-full" placeholder="ชื่อจริง">
+            <input type="text" id="tFirstName" class="input w-full border border-gray-300 shadow-sm" placeholder="ชื่อจริง">
         </div>
 
         <div class="mb-3">
             <label class="font-semibold">นามสกุล</label>
-            <input type="text" id="tLastName" class="input w-full" placeholder="นามสกุล">
+            <input type="text" id="tLastName" class="input w-full border border-gray-300 shadow-sm" placeholder="นามสกุล">
         </div>
 
         <div class="mb-3">
             <label class="font-semibold">อีเมล</label>
-            <input type="email" id="tEmail" class="input w-full" placeholder="example@mail.com">
+            <input type="email" id="tEmail" class="input w-full border border-gray-300 shadow-sm" placeholder="example@mail.com">
         </div>
 
         <div class="mb-3">
             <label class="font-semibold">เบอร์โทร</label>
-            <input type="text" id="tPhone" class="input w-full" placeholder="0812345678">
+            <input type="text" id="tPhone" class="input w-full border border-gray-300 shadow-sm" placeholder="0812345678">
         </div>
+
+       <div class="mb-3">
+            <label class="font-semibold">ห้องเรียนประจำชั้น</label>
+            <select id="tClassroom" class="input w-full border border-gray-300 shadow-sm">
+                <option value="">-- เลือกห้องเรียน --</option>
+                @for ($c = 1; $c <= 6; $c++)
+                    @for ($r = 1; $r <= 3; $r++)
+                        <option value="ป.{{ $c }}/{{ $r }}">ป.{{ $c }}/{{ $r }}</option>
+                    @endfor
+                @endfor
+            </select>
+        </div>
+
 
         <div class="mb-3">
             <label class="font-semibold">บทบาท</label>
-            <select id="tRole" class="input w-full">
+            <select id="tRole" class="input w-full border border-gray-300 shadow-sm">
                 <option value="teacher">ครู</option>
                 <option value="assistant">ผู้ช่วยครู</option>
             </select>
@@ -143,28 +156,9 @@
             class="bg-blue-600 hover:bg-blue-700 w-full text-white py-2 rounded-xl">
             ➕ เพิ่มข้อมูล
         </button>
+
     </div>
 </div>
-
-
-{{-- ========================================= --}}
-{{-- POPUP Import --}}
-{{-- ========================================= --}}
-<div id="importModal"
-     class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-
-    <div class="bg-white rounded-2xl w-[90%] max-w-md p-6 shadow-xl relative">
-        <button onclick="closeImportModal()"
-            class="absolute top-3 right-3 text-gray-500 text-xl">&times;</button>
-
-        <h2 class="text-xl font-bold text-gray-800 mb-4">นำเข้ารายชื่อครู (Excel)</h2>
-
-        <input type="file" class="input w-full mb-4">
-
-        
-    </div>
-</div>
-
 
 
 {{-- ========================================= --}}
@@ -179,9 +173,13 @@ function searchTeacher() {
         let name = row.dataset.name;
         let email = row.dataset.email;
         let phone = row.dataset.phone;
+        let classroom = row.dataset.classroom;
 
         row.style.display =
-            name.includes(value) || email.includes(value) || phone.includes(value)
+            name.includes(value) ||
+            email.includes(value) ||
+            phone.includes(value) ||
+            classroom.includes(value)
             ? "" : "none";
     });
 }
@@ -210,9 +208,10 @@ function addTeacher() {
     let lname = document.getElementById("tLastName").value.trim();
     let email = document.getElementById("tEmail").value.trim();
     let phone = document.getElementById("tPhone").value.trim();
+    let classroom = document.getElementById("tClassroom").value.trim();
     let role = document.getElementById("tRole").value;
 
-    if (!fname || !lname || !email || !phone) {
+    if (!fname || !lname || !email || !phone || !classroom) {
         alert("กรุณากรอกข้อมูลให้ครบ");
         return;
     }
@@ -220,8 +219,7 @@ function addTeacher() {
     let table = document.getElementById("teacherTable");
 
     let roleText = role === "teacher" ? "ครู" : "ผู้ช่วยครู";
-    
-    // Format phone number to 093xxxxxxx
+    // Mask phone number for display: 081xxx5678
     let maskedPhone = phone.substring(0, 3) + "xxx" + phone.substring(6);
 
     let row = `
@@ -229,12 +227,16 @@ function addTeacher() {
             data-name="${(fname + ' ' + lname).toLowerCase()}"
             data-role="${role}"
             data-email="${email.toLowerCase()}"
-            data-phone="${phone}">
+            data-phone="${phone}"
+            data-classroom="${classroom.toLowerCase()}">
+
             <td class="p-3 text-center">ใหม่</td>
             <td class="p-3">${fname} ${lname}</td>
             <td class="p-3">${email}</td>
             <td class="p-3">${maskedPhone}</td>
             <td class="p-3 text-center text-blue-600 font-semibold">${roleText}</td>
+            <td class="p-3 text-center">${classroom}</td>
+
             <td class="p-3 text-center">
                 <button onclick="alert('แก้ไข (mock)')" class="text-yellow-600 font-semibold">แก้ไข</button> |
                 <button onclick="this.parentElement.parentElement.remove()" class="text-red-600 font-semibold">ลบ</button>
@@ -246,15 +248,6 @@ function addTeacher() {
 
     closeAddTeacher();
     alert("เพิ่มข้อมูลครูสำเร็จ (mock)");
-}
-
-
-/* === Import Modal === */
-function openImportModal() {
-    document.getElementById("importModal").classList.remove("hidden");
-}
-function closeImportModal() {
-    document.getElementById("importModal").classList.add("hidden");
 }
 
 </script>
