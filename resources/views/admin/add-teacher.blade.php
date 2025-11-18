@@ -28,7 +28,6 @@
     <select id="roleFilter" onchange="filterRole()" class="input w-48 ml-3">
         <option value="all">ทั้งหมด</option>
         <option value="teacher">ครู</option>
-        <option value="assistant">ผู้ช่วยครู</option>
     </select>
 </div>
 
@@ -79,7 +78,7 @@
                 <td class="p-3">{{ $email }}</td>
                 <td class="p-3">{{ substr($phone,0,3) }}xxx{{ substr($phone,-4) }}</td>
                 <td class="p-3 text-blue-600 font-semibold text-center">
-                    {{ $role == 'teacher' ? 'ครู' : 'ผู้ช่วยครู' }}
+                    {{ $role == 'teacher' ? 'ครู' : 'ครู' }}
                 </td>
 
                 <td class="p-3 text-center">{{ $classroom }}</td>
@@ -148,13 +147,12 @@
             <label class="font-semibold">บทบาท</label>
             <select id="tRole" class="input w-full border border-gray-300 shadow-sm">
                 <option value="teacher">ครู</option>
-                <option value="assistant">ผู้ช่วยครู</option>
             </select>
         </div>
 
         <button onclick="addTeacher()"
             class="bg-blue-600 hover:bg-blue-700 w-full text-white py-2 rounded-xl">
-            ➕ เพิ่มข้อมูล
+             เพิ่มข้อมูล
         </button>
 
     </div>

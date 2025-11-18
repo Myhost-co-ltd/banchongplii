@@ -19,15 +19,10 @@
     </nav>
   </div>
 
-
-
-
-
-
   <!-- เพิ่ม mt-6 หรือ mt-8 เพื่อดันปุ่มลง -->
  <div class="mt-6 space-y-3">
         <button onclick="openProfileModal()" 
-            class="w-full py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition text-left pl-4">
+            class="w-full py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition text-center pl-4">
             จัดการโปรไฟล์
         </button>
 

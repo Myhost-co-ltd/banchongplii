@@ -40,7 +40,6 @@
 
 <div class="bg-white p-6 rounded-2xl shadow-md overflow-x-auto">
     
-    {{-- ✅ แก้ไข: ใช้ max-h-fit หรือ max-h-screen/2 และใช้ overflow-y-auto --}}
     <div class="max-h-[50vh] overflow-y-auto relative">
         <table class="w-full border-collapse">
             <thead>
@@ -56,7 +55,7 @@
             </thead>
 
             <tbody id="studentTable">
-            {{-- MOCK DATA --}}
+
             @php
                 $rooms = ['ป1/1', 'ป1/2', 'ป1/3'];
                 $firstNames = ['กิตติ','อนันต์','ศิริชัย','นภัสกร','สุรเดช','ธีรภัทร','ชญาน์ทิพย์','กมลชนก','ธนพร'];
@@ -100,7 +99,7 @@
 
 
 {{-- ===================================================================== --}}
-{{-- POPUP #1 เลือกห้อง (แบบใหม่ ป.1–ป.6 + ห้อง 1–3 + ห้องพิเศษ) --}}
+{{-- POPUP #1 เลือกห้อง --}}
 {{-- ===================================================================== --}}
 <div id="roomSelectorModal"
      class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
@@ -112,7 +111,6 @@
 
         <h2 class="text-xl font-bold text-black mb-4">เลือกห้องเรียน</h2>
 
-        {{-- เลือกชั้น --}}
         <label class="font-semibold text-black">ชั้นเรียน</label>
         <select id="gradeSelect" onchange="updateRooms()" class="input w-full mb-4">
             <option value="">-- เลือกชั้น --</option>
@@ -121,13 +119,11 @@
             @endfor
         </select>
 
-        {{-- เลือกห้อง --}}
         <label class="font-semibold text-black">ห้อง</label>
         <select id="roomSelect" class="input w-full mb-4" disabled>
             <option value="">-- เลือกห้อง --</option>
         </select>
 
-        {{-- เลือกประเภทห้อง --}}
         <label class="font-semibold text-black">ประเภทห้อง</label>
         <select id="roomType" class="input w-full mb-6" disabled>
             <option value="">-- เลือกประเภท --</option>
@@ -143,11 +139,9 @@
 </div>
 
 
-
-
-{{-- ========================================= --}}
+{{-- ===================================================================== --}}
 {{-- POPUP #2 Import Excel --}}
-{{-- ========================================= --}}
+{{-- ===================================================================== --}}
 <div id="importModal"
      class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
 
@@ -157,21 +151,9 @@
 
         <h2 class="text-xl font-bold text-black mb-4">นำเข้ารายชื่อนักเรียน (Excel)</h2>
         
-        <div class="mb-4">
-            <p class="text-sm text-gray-600 mb-2">
-                ดาวน์โหลดไฟล์ Excel ตัวอย่างเพื่อดูรูปแบบข้อมูลที่ถูกต้อง
-            </p>
-            <a href="/templates/student_import_template.xlsx" download
-                class="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                ดาวน์โหลดไฟล์ตัวอย่าง (.xlsx)
-            </a>
-        </div>
         <input type="file" class="input w-full mb-4">
 
-        <button onclick="alert('Import Excel แบบ Mock')"
+        <button onclick="alert('Import Excel (Mock)')"
             class="bg-black hover:bg-gray-900 w-full text-white py-2 rounded-xl">
             อัปโหลดไฟล์
         </button>
@@ -179,10 +161,9 @@
 </div>
 
 
-
-{{-- ========================================= --}}
-{{-- POPUP #3 ฟอร์มเพิ่มนักเรียน --}}
-{{-- ========================================= --}}
+{{-- ===================================================================== --}}
+{{-- POPUP #3 เพิ่มนักเรียน --}}
+{{-- ===================================================================== --}}
 <div id="addStudentModal"
      class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
 
@@ -204,20 +185,24 @@
             <label class="font-semibold">นามสกุล</label>
             <input type="text" id="newLastName" class="input w-full" placeholder="นามสกุล">
         </div>
-        
+
+        {{-- ปุ่มย้อนกลับ --}}
+        <button onclick="backToRoomSelector()"
+            class="bg-gray-300 hover:bg-gray-400 text-black w-full py-2 rounded-xl mb-3">
+            ← ย้อนกลับ
+        </button>
+
         <button onclick="addStudent()"
             class="bg-black hover:bg-gray-900 text-white w-full py-2 rounded-xl">
-            ➕ เพิ่มนักเรียน
+             เพิ่มนักเรียน
         </button>
     </div>
 </div>
 
 
-
-
-{{-- ============================= --}}
+{{-- ===================================================================== --}}
 {{-- SCRIPT --}}
-{{-- ============================= --}}
+{{-- ===================================================================== --}}
 <script>
 
 function searchStudent() {
@@ -232,17 +217,11 @@ function searchStudent() {
 function filterRoom() {
     let selected = document.getElementById("roomFilter").value;
     document.querySelectorAll(".student-row").forEach(row => {
-        // ต้องจับคู่แค่ prefix 'ป1/1' โดยตัดข้อมูลประเภทห้องออก
         let roomData = row.dataset.room.split(' ')[0]; 
         row.style.display = (selected === "all" || roomData === selected) ? "" : "none";
     });
 }
 
-
-
-/* ========================= */
-/* UPDATE ROOM DROPDOWN      */
-/* ========================= */
 function updateRooms() {
     let grade = document.getElementById("gradeSelect").value;
     let roomSelect = document.getElementById("roomSelect");
@@ -254,7 +233,6 @@ function updateRooms() {
 
     if (!grade) return;
 
-    // สร้างตัวเลือกห้อง 1, 2, 3
     for (let i = 1; i <= 3; i++) {
         roomSelect.innerHTML += `<option value="${grade}/${i}">${grade}/${i}</option>`;
     }
@@ -265,11 +243,6 @@ function updateRooms() {
     };
 }
 
-
-
-/* ========================= */
-/* POPUP ROOM SELECTOR       */
-/* ========================= */
 function openRoomSelector() {
     document.getElementById("roomSelectorModal").classList.remove("hidden");
 }
@@ -278,11 +251,6 @@ function closeRoomSelector() {
     document.getElementById("roomSelectorModal").classList.add("hidden");
 }
 
-
-
-/* ========================= */
-/* CONFIRM ROOM → ADD FORM   */
-/* ========================= */
 function goToAddStudent() {
     let grade = document.getElementById("gradeSelect").value;
     let room = document.getElementById("roomSelect").value;
@@ -294,7 +262,7 @@ function goToAddStudent() {
     }
 
     let typeText = type === "normal" ? "ธรรมดา" : "พิเศษ";
-    let fullRoomName = room + " (" + typeText + ")"; // เช่น ป.1/1 (ธรรมดา)
+    let fullRoomName = room + " (" + typeText + ")";
 
     closeRoomSelector();
 
@@ -302,15 +270,14 @@ function goToAddStudent() {
     document.getElementById("addStudentModal").classList.remove("hidden");
 }
 
-
-
-/* ========================= */
-/* POPUP ADD STUDENT         */
-/* ========================= */
 function closeAddStudentModal() {
     document.getElementById("addStudentModal").classList.add("hidden");
 }
 
+function backToRoomSelector() {
+    document.getElementById("addStudentModal").classList.add("hidden");
+    document.getElementById("roomSelectorModal").classList.remove("hidden");
+}
 
 function addStudent() {
 
@@ -324,10 +291,8 @@ function addStudent() {
     }
 
     let table = document.getElementById("studentTable");
-
-    // Mock new data
     let newCode = Math.floor(10000 + Math.random() * 89999);
-    let gender = Math.random() < 0.5 ? 'ชาย' : 'หญิง'; // Mock Gender
+    let gender = Math.random() < 0.5 ? 'ชาย' : 'หญิง'; 
 
     let newRow = `
         <tr class="border-b student-row"
@@ -351,19 +316,12 @@ function addStudent() {
     table.insertAdjacentHTML('afterbegin', newRow);
 
     closeAddStudentModal();
-
-    // Clear form
     document.getElementById("newFirstName").value = "";
     document.getElementById("newLastName").value = "";
 
     alert("เพิ่มนักเรียนเรียบร้อย (Mock)");
 }
 
-
-
-/* ========================= */
-/* POPUP IMPORT EXCEL        */
-/* ========================= */
 function openImportModal() {
     document.getElementById("importModal").classList.remove("hidden");
 }
@@ -373,3 +331,5 @@ function closeImportModal() {
 }
 
 </script>
+
+

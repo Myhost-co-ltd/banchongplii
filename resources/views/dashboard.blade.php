@@ -75,12 +75,7 @@
         </table>
     </div>
 
-    <!-- Graph Section -->
-    <div class="bg-white rounded-3xl shadow-md p-8 border border-gray-100">
-        <h3 class="text-xl font-semibold text-gray-800 mb-4">กราฟคะแนนเฉลี่ยรายวิชา</h3>
-
-        <canvas id="scoreChart" height="120"></canvas>
-    </div>
+   
 
     <!-- Notifications -->
     <div class="bg-white rounded-3xl shadow-md p-8 border border-gray-100 mb-20">

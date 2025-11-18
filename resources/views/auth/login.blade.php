@@ -61,12 +61,12 @@
         </form>
 
         
-         <p class="text-gray-400 text-sm mt-6 text-center">
+         {{-- <p class="text-gray-400 text-sm mt-6 text-center">
             ยังไม่มีบัญชีผู้ใช้ใช่ไหม?
             <a href="{{ route('register') }}" class="text-blue-600 font-medium hover:underline">
                 ลงทะเบียนที่นี่
             </a>
-        </p> 
+        </p>  --}}
 
     </div>
 </body>

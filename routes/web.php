@@ -19,7 +19,7 @@ Route::get('/', function () {
 
     switch (Auth::user()->role) {
 
-        case 'superadmin':    // superadmin = admin ด้วย
+        case 'superadmin': // superadmin = admin ด้วย
             return redirect()->route('dashboard.admin');
 
         case 'teacher':
@@ -32,6 +32,7 @@ Route::get('/', function () {
             return redirect()->route('login');
     }
 });
+
 
 
 /*
@@ -48,59 +49,60 @@ Route::post('/register', [AuthController::class, 'register'])->name('register.su
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 
+
 /*
 |--------------------------------------------------------------------------
-| DASHBOARDS BY ROLE
+| DASHBOARDS (ALL AUTH USERS)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
 
-    // ✔ Superadmin (รวม admin เดิม)
+    // SUPERADMIN & ADMIN
     Route::get('/dashboard/admin', function () {
         return view('dashboards.admin');
     })->name('dashboard.admin');
 
-    // ✔ Teacher
+    // TEACHER
     Route::get('/dashboard/teacher', [StudentController::class, 'index'])
         ->name('dashboard.teacher');
 
     Route::get('/teacher/course/create', function () {
-    return view('teacher.course-create');
-})->name('teacher.course-create');
+        return view('teacher.course-create');
+    })->name('teacher.course-create');
 
-
-    // ✔ Director
+    // DIRECTOR
     Route::get('/dashboard/director', function () {
         return view('dashboards.director');
     })->name('dashboard.director');
 });
 
 
+
 /*
 |--------------------------------------------------------------------------
-| SUPERADMIN PAGES (เพิ่มนักเรียน/เพิ่มครู/จัดการผู้ใช้)
+| SUPERADMIN PAGES (จัดการนักเรียน / ครู / ผู้ใช้)
 |--------------------------------------------------------------------------
+|
+| *** แก้ให้เหลือ middleware ชั้นเดียว -> เสถียรที่สุด ***
+|
 */
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'role:superadmin'])->group(function () {
 
-    // เฉพาะ superadmin เท่านั้น
-    Route::middleware('role:superadmin')->group(function () {
+    Route::view('/admin/manage-users', 'admin.manage-users')
+        ->name('admin.manage-users');
 
-        Route::view('/admin/manage-users', 'admin.manage-users')
-            ->name('admin.manage-users');
+    Route::view('/admin/add-student', 'admin.add-student')
+        ->name('admin.add-student');
 
-        Route::view('/admin/add-student', 'admin.add-student')
-            ->name('admin.add-student');
-
-        Route::view('/admin/add-teacher', 'admin.add-teacher')
-            ->name('admin.add-teacher');
-    });
+    Route::view('/admin/add-teacher', 'admin.add-teacher')
+        ->name('admin.add-teacher');
 });
 
 
+
 /*
 |--------------------------------------------------------------------------
-| OTHER PAGES (ของครู/ผู้บริหาร)
+| OTHER GENERAL PAGES (สำหรับครู/ผู้บริหาร)
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {

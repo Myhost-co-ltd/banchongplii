@@ -9,19 +9,19 @@
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-    <!-- MOCK จำนวนผู้ใช้งาน -->
+    <!-- จำนวนผู้ใช้งาน -->
     <div class="p-6 bg-blue-100 border border-blue-200 rounded-2xl shadow-sm">
         <h3 class="text-gray-600 mb-1">จำนวนผู้ใช้งานทั้งหมด</h3>
         <p class="text-4xl font-bold text-blue-700">-</p>
     </div>
 
-    <!-- MOCK จำนวนครู -->
+    <!-- จำนวนครู -->
     <div class="p-6 bg-green-100 border border-green-200 rounded-2xl shadow-sm">
         <h3 class="text-gray-600 mb-1">จำนวนครูทั้งหมด</h3>
         <p class="text-4xl font-bold text-green-700">-</p>
     </div>
 
-    <!-- MOCK จำนวนห้อง -->
+    <!--จำนวนห้อง -->
     <div class="p-6 bg-purple-100 border border-purple-200 rounded-2xl shadow-sm">
         <h3 class="text-gray-600 mb-1">จำนวนห้องเรียน</h3>
         <p class="text-4xl font-bold text-purple-700">-</p>
