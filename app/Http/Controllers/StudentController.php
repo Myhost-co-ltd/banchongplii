@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -15,10 +16,15 @@ class StudentController extends Controller
     {
         $students = Student::orderByDesc('created_at')->get();
 
+        $teacherRoleId = Role::where('name', 'teacher')->value('id');
+        $teacherCount = $teacherRoleId
+            ? User::where('role_id', $teacherRoleId)->count()
+            : 0;
+
         return view('dashboard', [
             'students' => $students,
             'studentCount' => $students->count(),
-            'teacherCount' => User::where('role', 'teacher')->count(),
+            'teacherCount' => $teacherCount,
             'newToday' => Student::whereDate('created_at', today())->count(),
         ]);
     }

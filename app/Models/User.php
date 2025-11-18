@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Role;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -14,8 +16,9 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
-        'role', // ✅ เพิ่ม role
+        'role_id',
     ];
 
     protected $hidden = [
@@ -28,17 +31,19 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    // ----------------------------------------------------
-    //  ฟังก์ชันตรวจสอบ role
-    // ----------------------------------------------------
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
     public function hasRole($roles)
     {
-        // ถ้าเป็น array เช่น ['admin', 'superadmin']
+        $roleName = optional($this->role)->name;
+
         if (is_array($roles)) {
-            return in_array($this->role, $roles);
+            return in_array($roleName, $roles);
         }
 
-        // ถ้าเป็น role เดี่ยว เช่น 'admin'
-        return $this->role === $roles;
+        return $roleName === $roles;
     }
 }

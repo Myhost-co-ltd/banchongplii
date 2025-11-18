@@ -17,7 +17,9 @@ Route::get('/', function () {
         return redirect()->route('login');
     }
 
-    switch (Auth::user()->role) {
+    $roleName = optional(Auth::user()->role)->name;
+
+    switch ($roleName) {
 
         case 'superadmin': // superadmin = admin ด้วย
             return redirect()->route('dashboard.admin');

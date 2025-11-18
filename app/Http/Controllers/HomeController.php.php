@@ -8,7 +8,7 @@ class HomeController extends Controller
 {
     public function dashboard()
     {
-        $role = Auth::user()->role;
+        $role = optional(Auth::user()->role)->name;
 
         return match ($role) {
             'superadmin' => view('dashboard.superadmin'),

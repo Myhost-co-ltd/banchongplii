@@ -11,7 +11,15 @@
 
   {{-- ⭐ เลือก Sidebar ตาม role --}}
   @auth
-    @include('layouts.sidebars.' . Auth::user()->role)
+    @php
+      $roleName = optional(Auth::user()->role)->name ?? Auth::user()->role;
+      $sidebarView = $roleName ? 'layouts.sidebars.' . $roleName : null;
+    @endphp
+    @if ($sidebarView && view()->exists($sidebarView))
+      @include($sidebarView)
+    @else
+      @include('layouts.sidebars.teacher')
+    @endif
   @endauth
 
   <!-- Main -->
