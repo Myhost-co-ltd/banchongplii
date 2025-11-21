@@ -12,7 +12,7 @@
   {{-- ⭐ เลือก Sidebar ตาม role --}}
   @auth
     @php
-      $roleName = optional(Auth::user()->role)->name ?? Auth::user()->role;
+      $roleName = Auth::user()->role_name;
       $sidebarView = $roleName ? 'layouts.sidebars.' . $roleName : null;
     @endphp
     @if ($sidebarView && view()->exists($sidebarView))

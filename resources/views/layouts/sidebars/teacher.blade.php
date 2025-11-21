@@ -50,14 +50,35 @@
                 สร้างหลักสูตร
             </a>
 
-            <!-- NEW: Course Detail -->
-            <a href="{{ route('course.detail', session('current_course_id', 1)) }}"
-   class="nav-item
-   {{ request()->routeIs('course.detail') ? 'active' : '' }}">
-    รายละเอียดหลักสูตร
-</a>
 
+            <!-- =============================== -->
+            <!-- Dropdown รายละเอียดหลักสูตร -->
+            <!-- =============================== -->
 
+            <button onclick="toggleCourseList()"
+                class="nav-item w-full text-left
+                {{ request()->routeIs('course.detail') ? 'active' : '' }}">
+                รายละเอียดหลักสูตร ▼
+            </button>
+
+            <div id="courseListDropdown" class="hidden ml-4 mt-2 space-y-2">
+
+                @php
+                    // mock data (เปลี่ยนได้ภายหลังเป็น db จริง)
+                    $myCourses = [
+                        ['id' => 0, 'name' => 'คณิตศาสตร์พื้นฐาน ป.1'],
+                        ['id' => 1, 'name' => 'ภาษาไทยเพื่อการสื่อสาร ป.1'],
+                    ];
+                @endphp
+
+                @foreach ($myCourses as $course)
+                    <a href="{{ route('course.detail', $course['id']) }}"
+                       class="block bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-xl text-sm">
+                        {{ $course['name'] }}
+                    </a>
+                @endforeach
+
+            </div>
 
         </nav>
     </div>
@@ -65,13 +86,11 @@
     <!-- Buttons -->
     <div class="mt-6 space-y-3">
 
-        <!-- Profile Modal Button -->
         <button onclick="openProfileModal()"
             class="w-full py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition text-center">
             จัดการโปรไฟล์
         </button>
 
-        <!-- Logout -->
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit"
@@ -81,3 +100,10 @@
         </form>
     </div>
 </aside>
+
+
+<script>
+function toggleCourseList() {
+    document.getElementById('courseListDropdown').classList.toggle('hidden');
+}
+</script>

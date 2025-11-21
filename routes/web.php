@@ -17,7 +17,7 @@ Route::get('/', function () {
         return redirect()->route('login');
     }
 
-    $roleName = optional(Auth::user()->role)->name;
+    $roleName = Auth::user()->role_name;
 
     switch ($roleName) {
 
@@ -59,31 +59,65 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 */
 Route::middleware(['auth'])->group(function () {
 
-    // SUPERADMIN & ADMIN
+    /*
+    |--------------------------------------------------------------------------
+    | TEACHER (ครู)
+    |--------------------------------------------------------------------------
+    */
+
+    // dashboard ครู
+    Route::get('/dashboard/teacher', [StudentController::class, 'index'])
+        ->name('dashboard.teacher');
+
+    // หน้า: สร้างหลักสูตร
+    Route::get('/teacher/course/create', function () {
+        return view('teacher.course-create');
+    })->name('teacher.course-create');
+
+    // หน้า: รายการหลักสูตรทั้งหมด (เหมือนหน้าเลือกหลักสูตร)
+    Route::get('/teacher/courses', function () {
+        return view('teacher.course-list');   // ✔ แยกจาก create
+    })->name('teacher.courses');
+
+    // หน้า: เลือกหลักสูตร ก่อนดูรายละเอียด
+    Route::get('/teacher/course/select', function () {
+
+        // mock data
+        $courses = [
+            ['id' => 0, 'name' => 'คณิตศาสตร์พื้นฐาน ป.1'],
+            ['id' => 1, 'name' => 'ภาษาไทยเพื่อการสื่อสาร ป.1'],
+        ];
+
+        return view('teacher.course-select', compact('courses'));
+    })->name('course.select');
+
+    // หน้า: แสดงรายละเอียดหลักสูตร
+    Route::get('/teacher/course/{id}', function ($id) {
+        return view('teacher.course-detail', compact('id'));
+    })->name('course.detail');
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | DIRECTOR (ผอ.)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/dashboard/director', function () {
+        return view('dashboards.director');
+    })->name('dashboard.director');
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN / SUPERADMIN
+    |--------------------------------------------------------------------------
+    */
     Route::get('/dashboard/admin', function () {
         return view('dashboards.admin');
     })->name('dashboard.admin');
 
-    // TEACHER
-    Route::get('/dashboard/teacher', [StudentController::class, 'index'])
-        ->name('dashboard.teacher');
-
-    Route::get('/teacher/course/create', function () {
-        return view('teacher.course-create');
-    })->name('teacher.course-create');
-    Route::get('/teacher/course/{id}', function ($id) {
-    return view('teacher.course-detail');  // หน้าแสดงรายละเอียดหลักสูตร
-})->name('course.detail');
-    Route::get('/teacher/courses', function () {
-    return view('teacher.course-create');
-})->name('teacher.courses');
-
-
-
-    // DIRECTOR
-    Route::get('/dashboard/director', function () {
-        return view('dashboards.director');
-    })->name('dashboard.director');
 });
 
 
@@ -92,9 +126,6 @@ Route::middleware(['auth'])->group(function () {
 |--------------------------------------------------------------------------
 | SUPERADMIN PAGES (จัดการนักเรียน / ครู / ผู้ใช้)
 |--------------------------------------------------------------------------
-|
-| *** แก้ให้เหลือ middleware ชั้นเดียว -> เสถียรที่สุด ***
-|
 */
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
 
@@ -112,7 +143,7 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| OTHER GENERAL PAGES (สำหรับครู/ผู้บริหาร)
+| OTHER GENERAL PAGES (ครู + ผู้บริหาร)
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
