@@ -57,9 +57,30 @@ class TeacherCourseController extends Controller
             $course = $courses->first();
         }
 
+        $selectedTerm = request('term');
+        $selectedTerm = in_array($selectedTerm, ['1', '2'], true)
+            ? $selectedTerm
+            : (string) ($course->term ?? '1');
+
+        $hours = collect($course->teaching_hours ?? [])
+            ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $selectedTerm)
+            ->values();
+
+        $lessons = collect($course->lessons ?? [])
+            ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $selectedTerm)
+            ->values();
+
+        $assignments = collect($course->assignments ?? [])
+            ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $selectedTerm)
+            ->values();
+
         return view('teacher.course-detail', [
-            'course'  => $course,
-            'courses' => $courses,
+            'course'        => $course,
+            'courses'       => $courses,
+            'selectedTerm'  => $selectedTerm,
+            'hours'         => $hours,
+            'lessons'       => $lessons,
+            'assignments'   => $assignments,
         ]);
     }
 
@@ -121,6 +142,7 @@ class TeacherCourseController extends Controller
         $this->authorizeCourse($course);
 
         $data = $request->validate([
+            'term'     => 'required|in:1,2',
             'category' => 'required|string|max:255',
             'hours'    => 'required|numeric|min:0.1',
             'unit'     => 'required|string|max:50',
@@ -130,6 +152,7 @@ class TeacherCourseController extends Controller
         $hours = $course->teaching_hours ?? [];
         $hours[] = [
             'id'       => (string) Str::uuid(),
+            'term'     => $data['term'],
             'category' => $data['category'],
             'hours'    => $data['hours'],
             'unit'     => $data['unit'],
@@ -146,6 +169,7 @@ class TeacherCourseController extends Controller
         $this->authorizeCourse($course);
 
         $data = $request->validate([
+            'term'     => 'required|in:1,2',
             'category' => 'required|string|max:255',
             'hours'    => 'required|numeric|min:0.1',
             'unit'     => 'required|string|max:50',
@@ -158,6 +182,7 @@ class TeacherCourseController extends Controller
         foreach ($hours as $index => $item) {
             if (($item['id'] ?? null) === $hour) {
                 $hours[$index] = array_merge($item, [
+                    'term'     => $data['term'],
                     'category' => $data['category'],
                     'hours'    => $data['hours'],
                     'unit'     => $data['unit'],
@@ -196,6 +221,7 @@ class TeacherCourseController extends Controller
         $this->authorizeCourse($course);
 
         $data = $request->validate([
+            'term'    => 'required|in:1,2',
             'title'   => 'required|string|max:255',
             'hours'   => 'required|numeric|min:0.1',
             'period'  => 'required|string|max:100',
@@ -205,6 +231,7 @@ class TeacherCourseController extends Controller
         $lessons = $course->lessons ?? [];
         $lessons[] = [
             'id'      => (string) Str::uuid(),
+            'term'    => $data['term'],
             'title'   => $data['title'],
             'hours'   => $data['hours'],
             'period'  => $data['period'],
@@ -235,6 +262,7 @@ class TeacherCourseController extends Controller
         $this->authorizeCourse($course);
 
         $data = $request->validate([
+            'term'    => 'required|in:1,2',
             'title'   => 'required|string|max:255',
             'hours'   => 'required|numeric|min:0.1',
             'period'  => 'required|string|max:100',
@@ -247,6 +275,7 @@ class TeacherCourseController extends Controller
         foreach ($lessons as $index => $item) {
             if (($item['id'] ?? null) === $lesson) {
                 $lessons[$index] = array_merge($item, [
+                    'term'    => $data['term'],
                     'title'   => $data['title'],
                     'hours'   => $data['hours'],
                     'period'  => $data['period'],
@@ -271,15 +300,17 @@ class TeacherCourseController extends Controller
         $this->authorizeCourse($course);
 
         $data = $request->validate([
-            'title'   => 'required|string|max:255',
-            'due_date'=> 'nullable|date',
-            'score'   => 'nullable|numeric|min:0',
-            'notes'   => 'nullable|string|max:2000',
+            'term'     => 'required|in:1,2',
+            'title'    => 'required|string|max:255',
+            'due_date' => 'nullable|date',
+            'score'    => 'nullable|numeric|min:0',
+            'notes'    => 'nullable|string|max:2000',
         ]);
 
         $assignments = $course->assignments ?? [];
         $assignments[] = [
             'id'       => (string) Str::uuid(),
+            'term'     => $data['term'],
             'title'    => $data['title'],
             'due_date' => $data['due_date'] ?? null,
             'score'    => $data['score'] ?? null,
@@ -296,6 +327,7 @@ class TeacherCourseController extends Controller
         $this->authorizeCourse($course);
 
         $data = $request->validate([
+            'term'     => 'required|in:1,2',
             'title'    => 'required|string|max:255',
             'due_date' => 'nullable|date',
             'score'    => 'nullable|numeric|min:0',
@@ -308,6 +340,7 @@ class TeacherCourseController extends Controller
         foreach ($assignments as $index => $item) {
             if (($item['id'] ?? null) === $assignment) {
                 $assignments[$index] = array_merge($item, [
+                    'term'     => $data['term'],
                     'title'    => $data['title'],
                     'due_date' => $data['due_date'] ?? null,
                     'score'    => $data['score'] ?? null,
