@@ -59,20 +59,27 @@
                     เลือกห้องเรียน (เลือกได้หลายห้อง)
                 </label>
                 <div id="roomCheckboxes" class="space-y-2 text-sm text-gray-700">
-                    <p class="text-gray-400">-- เลือกระดับชั้นเรียนก่อน --</p>
+                    @forelse(old('rooms', []) as $room)
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="rooms[]" value="{{ $room }}" checked class="w-4 h-4 text-blue-600">
+                            {{ $room }}
+                        </label>
+                    @empty
+                        <p class="text-gray-400">-- เลือกระดับชั้นเรียนก่อน --</p>
+                    @endforelse
                 </div>
             </div>
 
             {{-- ภาคเรียน + ปีการศึกษา --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- <div>
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">ภาคเรียน</label>
                     <select name="term" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400">
                         <option value="">-- เลือกภาคเรียน --</option>
                         <option value="1" @selected(old('term') == 1)>ภาคเรียนที่ 1</option>
                         <option value="2" @selected(old('term') == 2)>ภาคเรียนที่ 2</option>
                     </select>
-                </div> -->
+                </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">ปีการศึกษา</label>
                     <input type="number" name="year"
@@ -165,13 +172,11 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const gradeSelect    = document.getElementById('gradeSelect');
-    const roomContainer  = document.getElementById('roomCheckboxes');
+    const gradeSelect = document.getElementById('gradeSelect');
+    const roomContainer = document.getElementById('roomCheckboxes');
+    const previousRooms = @json(old('rooms', []));
 
-    const oldGrade = @json(old('grade'));
-    const oldRooms = @json(old('rooms', []));
-
-    function renderRoomOptions(grade, selectedRooms = []) {
+    function renderRoomOptions(grade) {
         roomContainer.innerHTML = '';
 
         if (!grade) {
@@ -181,32 +186,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (let i = 1; i <= 10; i++) {
             const value = `${grade}/${i}`;
-            const isChecked = selectedRooms.includes(value);
+            const isChecked = previousRooms.includes(value);
 
             roomContainer.insertAdjacentHTML('beforeend', `
                 <label class="flex items-center gap-2 text-sm">
-                    <input type="checkbox" name="rooms[]" value="${value}"
-                           class="w-4 h-4 text-blue-600"
-                           ${isChecked ? 'checked' : ''}>
+                    <input type="checkbox" name="rooms[]" value="${value}" class="w-4 h-4 text-blue-600"
+                        ${isChecked ? 'checked' : ''}>
                     ${value}
                 </label>
             `);
         }
     }
 
-    // โหลดครั้งแรก: ถ้ามีค่าเก่าจากการ validate ไม่ผ่าน ให้ set คืน
-    if (oldGrade) {
-        gradeSelect.value = oldGrade;
-        renderRoomOptions(oldGrade, oldRooms);
-    } else {
-        renderRoomOptions('', []);
-    }
-
-    // เวลาเปลี่ยนชั้นเรียน → สร้างห้องใหม่ให้เลือก
-    gradeSelect.addEventListener('change', (event) => {
-        const grade = event.target.value;
-        renderRoomOptions(grade, []);   // reset การเลือกห้องเมื่อเปลี่ยนชั้น
-    });
+    renderRoomOptions(gradeSelect.value);
+    gradeSelect.addEventListener('change', (event) => renderRoomOptions(event.target.value));
 });
 </script>
 @endpush

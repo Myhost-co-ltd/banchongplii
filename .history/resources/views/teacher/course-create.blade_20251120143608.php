@@ -65,14 +65,14 @@
 
             {{-- ภาคเรียน + ปีการศึกษา --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- <div>
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">ภาคเรียน</label>
                     <select name="term" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400">
                         <option value="">-- เลือกภาคเรียน --</option>
                         <option value="1" @selected(old('term') == 1)>ภาคเรียนที่ 1</option>
                         <option value="2" @selected(old('term') == 2)>ภาคเรียนที่ 2</option>
                     </select>
-                </div> -->
+                </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">ปีการศึกษา</label>
                     <input type="number" name="year"

@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\TeacherCourseController;
 
 
 /*
@@ -69,15 +70,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/teacher', [StudentController::class, 'index'])
         ->name('dashboard.teacher');
 
-    // หน้า: สร้างหลักสูตร
     Route::get('/teacher/course/create', function () {
         return view('teacher.course-create');
     })->name('teacher.course-create');
-
-    // หน้า: รายการหลักสูตรทั้งหมด (เหมือนหน้าเลือกหลักสูตร)
+    Route::get('/teacher/course/{id}', function ($id) {
+    return view('teacher.course-detail');  // หน้าแสดงรายละเอียดหลักสูตร
+})->name('course.detail');
     Route::get('/teacher/courses', function () {
-        return view('teacher.course-list');   // ✔ แยกจาก create
-    })->name('teacher.courses');
+    return view('teacher.course-create');
+})->name('teacher.courses');
 
     // หน้า: เลือกหลักสูตร ก่อนดูรายละเอียด
     Route::get('/teacher/course/select', function () {

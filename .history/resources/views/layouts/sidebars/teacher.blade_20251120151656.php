@@ -32,21 +32,14 @@
                 สร้างหลักสูตรการสอน
             </a>
 
-            <!-- NEW: Course Detail -->
-            <a href="{{ route('course.detail', session('current_course_id', 1)) }}"
-   class="nav-item
-   {{ request()->routeIs('course.detail') ? 'active' : '' }}">
-    รายละเอียดหลักสูตร
-</a>
-
-
-
+            <a href="{{ route('course.detail') }}"
+               class="nav-item {{ request()->routeIs('course.detail') ? 'active' : '' }}">
+                รายละเอียดหลักสูตร
+            </a>
         </nav>
     </div>
 
     <div class="mt-6 space-y-3">
-
-        <!-- Profile Modal Button -->
         <button onclick="openProfileModal()"
             class="w-full py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition text-center">
             จัดการโปรไฟล์
@@ -56,15 +49,8 @@
             @csrf
             <button type="submit"
                     class="w-full py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition">
-                ออกจากระบบ
+                อ
             </button>
         </form>
     </div>
 </aside>
-
-
-<script>
-function toggleCourseList() {
-    document.getElementById('courseListDropdown').classList.toggle('hidden');
-}
-</script>
