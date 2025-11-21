@@ -12,7 +12,7 @@
         <nav class="space-y-2">
             <a href="{{ route('dashboard.teacher') }}"
                class="nav-item {{ request()->routeIs('dashboard.teacher') ? 'active' : '' }}">
-                แดชบอร์ด
+                ????????
             </a>
 
             <a href="/attendance" class="nav-item {{ request()->is('attendance') ? 'active' : '' }}">
@@ -42,14 +42,14 @@
     <div class="mt-6 space-y-3">
         <button onclick="openProfileModal()"
             class="w-full py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition text-center">
-            จัดการโปรไฟล์
+            ?????????????
         </button>
 
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit"
                     class="w-full py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition">
-                ออกจากระบบ
+                ??????????
             </button>
         </form>
     </div>

@@ -1,8 +1,8 @@
-﻿<aside class="w-64 bg-gray-800 text-white shadow-xl rounded-r-3xl p-6 flex flex-col justify-between">
+<aside class="w-64 bg-gray-800 text-white shadow-xl rounded-r-3xl p-6 flex flex-col justify-between">
     <div>
         <div class="mb-6">
             <h1 id="sidebarTeacherName" class="text-lg font-bold">
-                {{ auth()->user()->name ?? '?????????' }}
+                {{ auth()->user()->name ?? 'คุณครู' }}
             </h1>
             <div id="sidebarTeacherCode" class="text-sm text-gray-300">
                 {{ auth()->user()->teacher_code ?? 'T0001' }}
@@ -15,26 +15,29 @@
                 แดชบอร์ด
             </a>
 
-            <a href="/attendance" class="nav-item {{ request()->is('attendance') ? 'active' : '' }}">
+            <a href="/attendance"
+               class="nav-item {{ request()->is('attendance') ? 'active' : '' }}">
                 บันทึกเวลาเรียน
             </a>
 
-            <a href="/assignments" class="nav-item {{ request()->is('assignments') ? 'active' : '' }}">
-                กำหนดชิ้นงาน
+            <a href="/assignments"
+               class="nav-item {{ request()->is('assignments') ? 'active' : '' }}">
+                งานมอบหมาย
             </a>
 
-            <a href="/evaluation" class="nav-item {{ request()->is('evaluation') ? 'active' : '' }}">
-                บันทึกผลการเรียน
+            <a href="/evaluation"
+               class="nav-item {{ request()->is('evaluation') ? 'active' : '' }}">
+                ประเมินผล
             </a>
 
             <a href="{{ route('teacher.course-create') }}"
                class="nav-item {{ request()->routeIs('teacher.course-create') ? 'active' : '' }}">
-                สร้างหลักสูตรการสอน
+                สร้างหลักสูตร
             </a>
 
-            <a href="{{ route('course.detail') }}"
+            <a href="{{ route('course.detail', ['id' => 1]) }}"
                class="nav-item {{ request()->routeIs('course.detail') ? 'active' : '' }}">
-                รายละเอียดหลักสูตร
+                ห
             </a>
         </nav>
     </div>

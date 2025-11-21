@@ -49,7 +49,7 @@
             @csrf
             <button type="submit"
                     class="w-full py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition">
-                ออกจากระบบ
+                อ
             </button>
         </form>
     </div>

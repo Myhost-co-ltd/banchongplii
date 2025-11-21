@@ -5,11 +5,27 @@
 @section('content')
 @php
     $courseOptions = collect($courses ?? []);
-    $currentTerm = $selectedTerm ?? request('term');
+    $currentTerm = request('term'); // '', '1', '2'
 
-    $hoursByTerm = collect($hours ?? []);
-    $lessonsByTerm = collect($lessons ?? []);
-    $assignmentsByTerm = collect($assignments ?? []);
+    // ถ้ามี $course ค่อยกรองข้อมูลตามภาคเรียน
+    $hoursByTerm = $course
+        ? collect($course->teaching_hours ?? [])->filter(
+            fn ($h) => ($h['term'] ?? null) === $currentTerm
+          )
+        : collect();
+
+    $lessonsByTerm = $course
+        ? collect($course->lessons ?? [])->filter(
+            fn ($l) => ($l['term'] ?? null) === $currentTerm
+          )
+        : collect();
+
+    $assignmentsByTerm = $course
+        ? collect($course->assignments ?? [])->filter(
+            fn ($a) => ($a['term'] ?? null) === $currentTerm
+          )
+        : collect();
+
     $lessonTitles = $lessonsByTerm->pluck('title')->filter()->values();
 @endphp
 

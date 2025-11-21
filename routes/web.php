@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\TeacherCourseController;
 
 
 /*
@@ -68,15 +69,36 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/teacher', [StudentController::class, 'index'])
         ->name('dashboard.teacher');
 
-    Route::get('/teacher/course/create', function () {
-        return view('teacher.course-create');
-    })->name('teacher.course-create');
-    Route::get('/teacher/course/{id}', function ($id) {
-    return view('teacher.course-detail');  // หน้าแสดงรายละเอียดหลักสูตร
-})->name('course.detail');
-    Route::get('/teacher/courses', function () {
-    return view('teacher.course-create');
-})->name('teacher.courses');
+    Route::get('/teacher/course/create', [TeacherCourseController::class, 'index'])
+        ->name('teacher.course-create');
+    Route::post('/teacher/course', [TeacherCourseController::class, 'store'])
+        ->name('teacher.courses.store');
+    Route::get('/teacher/course/{course?}', [TeacherCourseController::class, 'show'])
+        ->name('course.detail');
+    Route::get('/teacher/course/{course}/edit', [TeacherCourseController::class, 'edit'])
+        ->name('teacher.courses.edit');
+    Route::put('/teacher/course/{course}', [TeacherCourseController::class, 'update'])
+        ->name('teacher.courses.update');
+    Route::delete('/teacher/course/{course}', [TeacherCourseController::class, 'destroy'])
+        ->name('teacher.courses.destroy');
+    Route::post('/teacher/course/{course}/hours', [TeacherCourseController::class, 'storeTeachingHour'])
+        ->name('teacher.courses.hours.store');
+    Route::put('/teacher/course/{course}/hours/{hour}', [TeacherCourseController::class, 'updateTeachingHour'])
+        ->name('teacher.courses.hours.update');
+    Route::delete('/teacher/course/{course}/hours/{hour}', [TeacherCourseController::class, 'destroyTeachingHour'])
+        ->name('teacher.courses.hours.destroy');
+    Route::post('/teacher/course/{course}/lessons', [TeacherCourseController::class, 'storeLesson'])
+        ->name('teacher.courses.lessons.store');
+    Route::put('/teacher/course/{course}/lessons/{lesson}', [TeacherCourseController::class, 'updateLesson'])
+        ->name('teacher.courses.lessons.update');
+    Route::delete('/teacher/course/{course}/lessons/{lesson}', [TeacherCourseController::class, 'destroyLesson'])
+        ->name('teacher.courses.lessons.destroy');
+    Route::post('/teacher/course/{course}/assignments', [TeacherCourseController::class, 'storeAssignment'])
+        ->name('teacher.courses.assignments.store');
+    Route::put('/teacher/course/{course}/assignments/{assignment}', [TeacherCourseController::class, 'updateAssignment'])
+        ->name('teacher.courses.assignments.update');
+    Route::delete('/teacher/course/{course}/assignments/{assignment}', [TeacherCourseController::class, 'destroyAssignment'])
+        ->name('teacher.courses.assignments.destroy');
 
 
 
