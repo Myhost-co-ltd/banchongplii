@@ -12,6 +12,35 @@
         <p class="text-gray-600">ยินดีต้อนรับ {{ Auth::user()->name }}</p>
     </div>
 
+    {{-- Courses available from admin --}}
+    @php($unassigned = collect($unassignedCourses ?? []))
+    @if($unassigned->isNotEmpty())
+        <div class="bg-blue-50 border border-blue-200 rounded-3xl p-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div>
+                    <p class="text-sm text-blue-700">หลักสูตรที่ผู้ดูแลสร้างไว้ให้ครูรับไปจัดการ</p>
+                    <h3 class="text-xl font-semibold text-gray-900">เลือกหลักสูตรเพื่อรับไปดูแล</h3>
+                </div>
+            </div>
+
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach($unassigned as $course)
+                    <div class="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm">
+                        <p class="text-sm text-gray-500 mb-1">ชื่อหลักสูตร</p>
+                        <p class="text-lg font-semibold text-gray-900">{{ $course->name }}</p>
+                        <p class="text-xs text-gray-500 mt-1">ภาคเรียน: {{ $course->term ?? '-' }} | ปี {{ $course->year ?? '-' }}</p>
+                        <form method="POST" action="{{ route('teacher.courses.claim', $course) }}" class="mt-3">
+                            @csrf
+                            <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700">
+                                รับหลักสูตรนี้
+                            </button>
+                        </form>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     {{-- Create Course Form --}}
     <div class="bg-white rounded-3xl shadow-md p-8 border border-gray-100">
         <h3 class="text-xl font-semibold text-gray-800 mb-6">เพิ่มหลักสูตรใหม่</h3>

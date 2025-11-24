@@ -3,32 +3,40 @@
 namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
     public function run()
     {
-        User::create([
-            'name' => 'Super Admin',
-            'email' => 'superadmin@gmail.com',
-            'password' => Hash::make('12345678'),
-            'role_id' => 1
-        ]);
+        $roles = Role::pluck('id', 'name');
 
-        User::create([
-            'name' => 'ครูทดสอบ',
-            'email' => 'teacher@gmail.com',
-            'password' => Hash::make('12345678'),
-            'role_id' => 2
-        ]);
+        User::firstOrCreate(
+            ['email' => 'superadmin@gmail.com'],
+            [
+                'name' => 'Super Admin',
+                'password' => Hash::make('12345678'),
+                'role_id' => $roles['superadmin'] ?? null,
+            ]
+        );
 
-        User::create([
-            'name' => 'ผอ.โรงเรียน',
-            'email' => 'director@gmail.com',
-            'password' => Hash::make('12345678'),
-            'role_id' => 3
-        ]);
+        User::firstOrCreate(
+            ['email' => 'teacher@gmail.com'],
+            [
+                'name' => 'ครูทดสอบ',
+                'password' => Hash::make('12345678'),
+                'role_id' => $roles['teacher'] ?? null,
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'director@gmail.com'],
+            [
+                'name' => 'ผอ.โรงเรียน',
+                'password' => Hash::make('12345678'),
+                'role_id' => $roles['director'] ?? null,
+            ]
+        );
     }
 }
-

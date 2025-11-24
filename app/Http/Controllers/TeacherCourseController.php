@@ -15,7 +15,14 @@ class TeacherCourseController extends Controller
             ->latest()
             ->get();
 
-        return view('teacher.course-create', compact('courses'));
+        $unassignedCourses = Course::whereNull('user_id')
+            ->latest()
+            ->get();
+
+        return view('teacher.course-create', [
+            'courses' => $courses,
+            'unassignedCourses' => $unassignedCourses,
+        ]);
     }
 
     public function store(Request $request)
@@ -45,17 +52,36 @@ class TeacherCourseController extends Controller
             ->with('status', 'สร้างหลักสูตรเรียบร้อยแล้ว');
     }
 
-    public function show(?Course $course = null)
+    public function claim(Request $request, Course $course)
+    {
+        if ($course->user_id) {
+            abort(403, 'หลักสูตรนี้มีเจ้าของแล้ว');
+        }
+
+        $course->update(['user_id' => Auth::id()]);
+
+        return redirect()
+            ->route('teacher.course-create')
+            ->with('status', 'เพิ่มหลักสูตรเข้าบัญชีของคุณแล้ว');
+    }
+
+    public function show(?int $courseId = null)
     {
         $courses = Course::where('user_id', Auth::id())
             ->latest()
             ->get();
 
-        if ($course) {
-            $this->authorizeCourse($course);
-        } else {
-            $course = $courses->first();
+        // Pick the requested course (must belong to the user)
+        $course = $courses->firstWhere('id', $courseId) ?? $courses->first();
+
+        // ถ้ายังไม่มีหลักสูตรเลย ให้พาไปสร้างก่อน
+        if (! $course) {
+            return redirect()
+                ->route('teacher.course-create')
+                ->with('status', 'ยังไม่มีหลักสูตร กรุณาสร้างหลักสูตรก่อนเข้าหน้ารายละเอียด');
         }
+
+        $this->authorizeCourse($course);
 
         $selectedTerm = request('term');
         $selectedTerm = in_array($selectedTerm, ['1', '2'], true)

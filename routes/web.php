@@ -3,8 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AdminCourseController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherCourseController;
+use App\Http\Controllers\ProfileController;
 
 
 /*
@@ -22,7 +24,7 @@ Route::get('/', function () {
 
     switch ($roleName) {
 
-        case 'superadmin': // superadmin = admin ด้วย
+        case 'superadmin':
             return redirect()->route('dashboard.admin');
 
         case 'teacher':
@@ -35,7 +37,6 @@ Route::get('/', function () {
             return redirect()->route('login');
     }
 });
-
 
 
 /*
@@ -52,56 +53,78 @@ Route::post('/register', [AuthController::class, 'register'])->name('register.su
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 
-
 /*
 |--------------------------------------------------------------------------
-| DASHBOARDS (ALL AUTH USERS)
+| DASHBOARDS (AUTH USERS)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | TEACHER (ครู)
+    | TEACHER ROUTES
     |--------------------------------------------------------------------------
     */
 
-    // dashboard ครู
+    // Dashboard teacher
     Route::get('/dashboard/teacher', [StudentController::class, 'index'])
         ->name('dashboard.teacher');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    Route::get('/teacher/course/create', function () {
-        return view('teacher.course-create');
-    })->name('teacher.course-create');
-    Route::get('/teacher/course/{id}', function ($id) {
-    return view('teacher.course-detail');  // หน้าแสดงรายละเอียดหลักสูตร
-})->name('course.detail');
-    Route::get('/teacher/courses', function () {
-    return view('teacher.course-create');
-})->name('teacher.courses');
+    // Course create + list
+    Route::get('/teacher/course/create', [TeacherCourseController::class, 'index'])
+        ->name('teacher.course-create');
+    Route::get('/teacher/courses', [TeacherCourseController::class, 'index'])
+        ->name('teacher.courses');
+    Route::post('/teacher/courses', [TeacherCourseController::class, 'store'])
+        ->name('teacher.courses.store');
+    Route::post('/teacher/courses/{course}/claim', [TeacherCourseController::class, 'claim'])
+        ->name('teacher.courses.claim');
+    Route::get('/teacher/courses/{course}/edit', [TeacherCourseController::class, 'edit'])
+        ->name('teacher.courses.edit');
+    Route::put('/teacher/courses/{course}', [TeacherCourseController::class, 'update'])
+        ->name('teacher.courses.update');
+    Route::delete('/teacher/courses/{course}', [TeacherCourseController::class, 'destroy'])
+        ->name('teacher.courses.destroy');
 
-    // หน้า: เลือกหลักสูตร ก่อนดูรายละเอียด
+    // Course nested resources
+    Route::post('/teacher/courses/{course}/hours', [TeacherCourseController::class, 'storeTeachingHour'])
+        ->name('teacher.courses.hours.store');
+    Route::put('/teacher/courses/{course}/hours/{hour}', [TeacherCourseController::class, 'updateTeachingHour'])
+        ->name('teacher.courses.hours.update');
+    Route::delete('/teacher/courses/{course}/hours/{hour}', [TeacherCourseController::class, 'destroyTeachingHour'])
+        ->name('teacher.courses.hours.destroy');
+
+    Route::post('/teacher/courses/{course}/lessons', [TeacherCourseController::class, 'storeLesson'])
+        ->name('teacher.courses.lessons.store');
+    Route::put('/teacher/courses/{course}/lessons/{lesson}', [TeacherCourseController::class, 'updateLesson'])
+        ->name('teacher.courses.lessons.update');
+    Route::delete('/teacher/courses/{course}/lessons/{lesson}', [TeacherCourseController::class, 'destroyLesson'])
+        ->name('teacher.courses.lessons.destroy');
+
+    Route::post('/teacher/courses/{course}/assignments', [TeacherCourseController::class, 'storeAssignment'])
+        ->name('teacher.courses.assignments.store');
+    Route::put('/teacher/courses/{course}/assignments/{assignment}', [TeacherCourseController::class, 'updateAssignment'])
+        ->name('teacher.courses.assignments.update');
+    Route::delete('/teacher/courses/{course}/assignments/{assignment}', [TeacherCourseController::class, 'destroyAssignment'])
+        ->name('teacher.courses.assignments.destroy');
+
+    // Select course page
     Route::get('/teacher/course/select', function () {
-
-        // mock data
         $courses = [
             ['id' => 0, 'name' => 'คณิตศาสตร์พื้นฐาน ป.1'],
             ['id' => 1, 'name' => 'ภาษาไทยเพื่อการสื่อสาร ป.1'],
         ];
-
         return view('teacher.course-select', compact('courses'));
     })->name('course.select');
 
-    // หน้า: แสดงรายละเอียดหลักสูตร
-    Route::get('/teacher/course/{id}', function ($id) {
-        return view('teacher.course-detail', compact('id'));
-    })->name('course.detail');
-
-
+    // ⭐⭐ Correct: Show course detail (via Controller)
+    Route::get('/teacher/course/{course?}', [TeacherCourseController::class, 'show'])
+        ->name('course.detail');
 
     /*
     |--------------------------------------------------------------------------
-    | DIRECTOR (ผอ.)
+    | DIRECTOR ROUTES
     |--------------------------------------------------------------------------
     */
     Route::get('/dashboard/director', function () {
@@ -109,42 +132,54 @@ Route::middleware(['auth'])->group(function () {
     })->name('dashboard.director');
 
 
-
     /*
     |--------------------------------------------------------------------------
-    | ADMIN / SUPERADMIN
+    | ADMIN ROUTES
     |--------------------------------------------------------------------------
     */
     Route::get('/dashboard/admin', function () {
         return view('dashboards.admin');
     })->name('dashboard.admin');
 
+    // Admin manage courses for teachers
+    Route::middleware('role:superadmin')
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+            Route::get('/courses', [AdminCourseController::class, 'index'])
+                ->name('courses.index');
+            Route::post('/courses', [AdminCourseController::class, 'store'])
+                ->name('courses.store');
+            Route::put('/courses/{course}', [AdminCourseController::class, 'update'])
+                ->name('courses.update');
+            Route::delete('/courses/{course}', [AdminCourseController::class, 'destroy'])
+                ->name('courses.destroy');
+            Route::post('/courses/{course}/hours', [AdminCourseController::class, 'storeTeachingHour'])
+                ->name('courses.hours.store');
+            Route::put('/courses/{course}/hours/{hour}', [AdminCourseController::class, 'updateTeachingHour'])
+                ->name('courses.hours.update');
+            Route::delete('/courses/{course}/hours/{hour}', [AdminCourseController::class, 'destroyTeachingHour'])
+                ->name('courses.hours.destroy');
+        });
 });
-
 
 
 /*
 |--------------------------------------------------------------------------
-| SUPERADMIN PAGES (จัดการนักเรียน / ครู / ผู้ใช้)
+| SUPERADMIN PAGES
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
 
-    Route::view('/admin/manage-users', 'admin.manage-users')
-        ->name('admin.manage-users');
-
-    Route::view('/admin/add-student', 'admin.add-student')
-        ->name('admin.add-student');
-
-    Route::view('/admin/add-teacher', 'admin.add-teacher')
-        ->name('admin.add-teacher');
+    Route::view('/admin/manage-users', 'admin.manage-users')->name('admin.manage-users');
+    Route::view('/admin/add-student', 'admin.add-student')->name('admin.add-student');
+    Route::view('/admin/add-teacher', 'admin.add-teacher')->name('admin.add-teacher');
 });
-
 
 
 /*
 |--------------------------------------------------------------------------
-| OTHER GENERAL PAGES (ครู + ผู้บริหาร)
+| GENERAL PAGES (Teacher + Director)
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {

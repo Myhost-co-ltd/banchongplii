@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::dropIfExists('courses');
         Schema::create('courses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('name');
             $table->string('grade', 20);
             $table->json('rooms');
