@@ -191,7 +191,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/director/courses/{course}', [DirectorController::class, 'courseDetail'])
         ->name('director.course-detail');
-
+=======
     // Admin manage courses for teachers
     Route::middleware('role:superadmin')
         ->prefix('admin')

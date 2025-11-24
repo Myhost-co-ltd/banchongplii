@@ -36,7 +36,7 @@
                 <select id="nameSelect"
                         name="name"
                         class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
-                    <option value="">-- เลือกหลักสูตร --</option>
+                    <option value="">-- เลือกหลักสูตรที่แอดมินสร้าง --</option>
                     @foreach(($adminCourseOptions ?? collect()) as $adminCourse)
                         <option value="{{ $adminCourse->name }}"
                                 data-grade="{{ $adminCourse->grade }}"
@@ -127,7 +127,7 @@
                             <th class="py-3 px-4 text-center">ห้อง</th>
                             <th class="py-3 px-4 text-center">ภาคเรียน</th>
                             <th class="py-3 px-4 text-center">ปีการศึกษา</th>
-                            <th class="py-3 px-4 text-center">จัดการ</th>
+                            <th class="py-3 px-4 text-center"></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 bg-white">

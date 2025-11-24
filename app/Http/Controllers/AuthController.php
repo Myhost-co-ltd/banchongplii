@@ -54,7 +54,7 @@ class AuthController extends Controller
             ])->withInput();
         }
 
-        $roleName = optional(Auth::user()->role)->name;
+        $roleName = Auth::user()->role_name;
 
         return match ($roleName) {
             'superadmin', 'admin' => redirect()->route('dashboard.admin'),

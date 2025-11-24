@@ -47,6 +47,15 @@
                     จัดการข้อมูลครู
                 </a>
 
+                <!-- Course -->
+                <a href="{{ route('admin.courses.index') }}"
+                   class="block py-2.5 px-4 rounded-xl transition-all duration-200
+                   {{ request()->routeIs('admin.courses.*') 
+                        ? 'bg-gray-700 font-semibold shadow-inner' 
+                        : 'hover:bg-gray-700' }}">
+                    จัดการหลักสูตร
+                </a>
+
             </nav>
         </div>
 
@@ -71,5 +80,6 @@
 
     </main>
 
+    @stack('scripts')
 </body>
 </html>

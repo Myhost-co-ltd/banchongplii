@@ -166,7 +166,7 @@
                         <div class="border border-gray-100 rounded-2xl p-4 space-y-2">
                             <p class="font-semibold text-gray-900">{{ $hour['category'] ?? '-' }}</p>
                             <p class="text-sm text-gray-600">
-                                {{ $hour['hours'] ?? 0 }} ชั่วโมง
+                                {{ $hour['hours'] ?? 0 }} {{ $hour['unit'] ?? 'ชั่วโมง' }}
                             </p>
                             @if(!empty($hour['note']))
                                 <p class="text-sm text-gray-500">{{ $hour['note'] }}</p>
@@ -198,66 +198,16 @@
 
                 <div class="space-y-4">
                     @forelse($lessonsByTerm as $lesson)
-                        @php($lessonId = $lesson['id'] ?? null)
                         <div class="border border-gray-100 rounded-2xl p-4 space-y-3">
-                            <div class="flex justify-between items-start gap-4">
-                                <div>
-                                    <p class="font-semibold text-gray-900">{{ $lesson['title'] ?? '-' }}</p>
-                                    <p class="text-sm text-gray-600">
-                                        {{ $lesson['category'] ?? '-' }} • {{ $lesson['hours'] ?? 0 }} ชั่วโมง
-                                    </p>
-                                    @if(!empty($lesson['details']))
-                                        <p class="text-sm text-gray-500 mt-1">{{ $lesson['details'] }}</p>
-                                    @endif
-                                </div>
-                                @if($lessonId)
-                                    <div class="flex items-center gap-3 text-sm">
-                                        <button type="button"
-                                                class="text-blue-600 hover:underline"
-                                                onclick="toggleEditForm('lesson-edit-{{ $lessonId }}')">
-                                            แก้ไข
-                                        </button>
-                                        <form method="POST"
-                                              action="{{ route('teacher.courses.lessons.destroy', ['course' => $course, 'lesson' => $lessonId]) }}"
-                                              onsubmit="return confirm('ยืนยันการลบหัวข้อนี้หรือไม่?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button class="text-red-600 hover:underline" type="submit">ลบ</button>
-                                        </form>
-                                    </div>
+                            <div>
+                                <p class="font-semibold text-gray-900">{{ $lesson['title'] ?? '-' }}</p>
+                                <p class="text-sm text-gray-600">
+                                    {{ $lesson['category'] ?? '-' }} • {{ $lesson['hours'] ?? 0 }} ชั่วโมง • {{ $lesson['period'] ?? '-' }}
+                                </p>
+                                @if(!empty($lesson['details']))
+                                    <p class="text-sm text-gray-500 mt-1">{{ $lesson['details'] }}</p>
                                 @endif
                             </div>
-
-                            @if($lessonId)
-                                <form id="lesson-edit-{{ $lessonId }}" method="POST"
-                                      action="{{ route('teacher.courses.lessons.update', ['course' => $course, 'lesson' => $lessonId]) }}"
-                                      class="hidden space-y-3 mt-2">
-                                    @csrf
-                                    @method('PUT')
-                                    <input type="hidden" name="term" value="{{ $currentTerm }}">
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                        <select name="category" class="border rounded-xl px-3 py-2" required>
-                                            @foreach(($lessonCapacity ?? []) as $cat => $summary)
-                                                <option value="{{ $cat }}" @selected(($lesson['category'] ?? '') === $cat)>
-                                                    {{ $cat }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        <input type="text" name="title"
-                                               class="border rounded-xl px-3 py-2"
-                                               value="{{ $lesson['title'] ?? '' }}" required>
-                                        <input type="number" step="0.1" min="0.1" name="hours"
-                                               class="border rounded-xl px-3 py-2"
-                                               value="{{ $lesson['hours'] ?? '' }}" required>
-                                    </div>
-                                    <textarea name="details" rows="2"
-                                              class="w-full border rounded-xl px-3 py-2"
-                                              placeholder="รายละเอียดเพิ่มเติม">{{ $lesson['details'] ?? '' }}</textarea>
-                                    <div class="text-right">
-                                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-xl">บันทึก</button>
-                                    </div>
-                                </form>
-                            @endif
                         </div>
                     @empty
                         <p class="text-gray-500 text-sm text-center">
@@ -273,7 +223,7 @@
                         @csrf
                         <input type="hidden" name="term" value="{{ $currentTerm }}">
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <select name="category" id="lessonCategory"
                                     class="border rounded-xl px-3 py-2" required>
                                 <option value="">เลือกหมวด (ทฤษฎี / ปฏิบัติ)</option>
@@ -282,12 +232,16 @@
                                 @endforeach
                             </select>
                             <input type="text" name="title"
-                                   class="border rounded-xl px-3 py-2"
+                                   class="border rounded-xl px-3 py-2 md:col-span-2"
                                    placeholder="หัวข้อบทเรียน" required>
                             <input type="number" step="0.1" min="0.1" name="hours"
                                    id="lessonHours"
                                    class="border rounded-xl px-3 py-2"
                                    placeholder="ชั่วโมงที่ใช้" required>
+                            <select name="period" class="border rounded-xl px-3 py-2" required>
+                               
+                                <option value="3-4 เดือน">3–4 เดือน</option>
+                            </select>
                         </div>
                         <div class="text-sm text-gray-600" id="lessonRemaining">
                             @foreach(($lessonCapacity ?? []) as $cat => $summary)
@@ -479,19 +433,6 @@
             categorySelect.addEventListener('change', refreshRemaining);
             refreshRemaining();
         }
-
-        // Custom Thai validation message for hour inputs
-        document.querySelectorAll('input[name="hours"]').forEach((input) => {
-            input.addEventListener('input', () => input.setCustomValidity(''));
-            input.addEventListener('invalid', () => {
-                if (input.validity.rangeOverflow) {
-                    const max = input.getAttribute('max');
-                    input.setCustomValidity(max ? `กรุณากรอกไม่เกิน ${max} ชั่วโมง` : 'ค่าที่กรอกเกินกำหนด');
-                } else if (input.validity.rangeUnderflow || input.validity.stepMismatch || input.validity.valueMissing) {
-                    input.setCustomValidity('กรุณากรอกจำนวนชั่วโมงให้ถูกต้อง');
-                }
-            });
-        });
     });
 
     function toggleForm(id) {

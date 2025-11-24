@@ -1,4 +1,4 @@
-﻿<aside class="w-64 bg-gray-800 text-white shadow-xl rounded-r-3xl p-6 flex flex-col justify-between">
+<aside class="w-64 bg-gray-800 text-white shadow-xl rounded-r-3xl p-6 flex flex-col justify-between">
     <div>
         <div class="mb-6">
             <h1 id="sidebarTeacherName" class="text-lg font-bold">
@@ -12,11 +12,11 @@
         <nav class="space-y-2">
             <a href="{{ route('dashboard.teacher') }}"
                class="nav-item {{ request()->routeIs('dashboard.teacher') ? 'active' : '' }}">
-                แดชบอร์ด
+               แดชบอร์ดครู
             </a>
 
             <a href="/attendance" class="nav-item {{ request()->is('attendance') ? 'active' : '' }}">
-                บันทึกเวลาเรียน
+               บันทึกเวลาเรียน
             </a>
 
             <a href="/assignments" class="nav-item {{ request()->is('assignments') ? 'active' : '' }}">
@@ -24,22 +24,25 @@
             </a>
 
             <a href="/evaluation" class="nav-item {{ request()->is('evaluation') ? 'active' : '' }}">
-                บันทึกผลการเรียน
+               แบบบันทึกผลการเรียน 
             </a>
 
             <a href="{{ route('teacher.course-create') }}"
                class="nav-item {{ request()->routeIs('teacher.course-create') ? 'active' : '' }}">
-                สร้างหลักสูตรการสอน
+               สร้างหลักสูตรการสอน
             </a>
 
+            <!-- Course Detail -->
             <a href="{{ route('course.detail') }}"
                class="nav-item {{ request()->routeIs('course.detail') ? 'active' : '' }}">
-                รายละเอียดหลักสูตร
+               รายละเอียดหลักสูตร
             </a>
         </nav>
     </div>
 
     <div class="mt-6 space-y-3">
+
+        <!-- Profile Modal Button -->
         <button onclick="openProfileModal()"
             class="w-full py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition text-center">
             จัดการโปรไฟล์
@@ -54,3 +57,10 @@
         </form>
     </div>
 </aside>
+
+
+<script>
+function toggleCourseList() {
+    document.getElementById('courseListDropdown').classList.toggle('hidden');
+}
+</script>
