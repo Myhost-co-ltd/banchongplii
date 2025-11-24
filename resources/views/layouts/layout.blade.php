@@ -112,11 +112,10 @@
       const modal = document.getElementById('profileModal');
       if (modal) modal.classList.add('hidden');
     }
-    // Auto-open if there are validation errors or success status related to profile
+    // Auto-open only when specifically requested (session flag)
     document.addEventListener('DOMContentLoaded', () => {
-      const hasErrors = {{ $errors->any() ? 'true' : 'false' }};
-      const hasStatus = {!! session()->has('status') ? 'true' : 'false' !!};
-      if (hasErrors || hasStatus) {
+      const shouldOpenProfile = {!! session()->pull('profile_modal', false) ? 'true' : 'false' !!};
+      if (shouldOpenProfile) {
         openProfileModal();
       }
     });

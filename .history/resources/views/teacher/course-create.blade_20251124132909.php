@@ -36,7 +36,7 @@
                 <select id="nameSelect"
                         name="name"
                         class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
-                    <option value="">-- เลือกหลักสูตร --</option>
+                    <option value="">-- เลือกหลักสูตรที่แอดมินสร้าง --</option>
                     @foreach(($adminCourseOptions ?? collect()) as $adminCourse)
                         <option value="{{ $adminCourse->name }}"
                                 data-grade="{{ $adminCourse->grade }}"

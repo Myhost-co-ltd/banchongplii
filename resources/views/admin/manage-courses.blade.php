@@ -235,7 +235,7 @@
                                                                 <div>
                                                                     <p class="font-medium text-gray-900">{{ $hour['category'] ?? '-' }}</p>
                                                                     <p class="text-sm text-gray-600">
-                                                                        {{ $hour['hours'] ?? 0 }} {{ $hour['unit'] ?? 'ชั่วโมง' }}
+                                                                        {{ $hour['hours'] ?? 0 }} ชั่วโมง
                                                                     </p>
                                                                     @if(!empty($hour['note']))
                                                                         <p class="text-xs text-gray-500 mt-1">{{ $hour['note'] }}</p>
@@ -277,14 +277,7 @@
                                                                     <input type="number" step="0.1" name="hours"
                                                                            class="border rounded-lg px-2 py-2"
                                                                            value="{{ $hour['hours'] ?? '' }}" required>
-                                                                    <select name="unit" class="border rounded-lg px-2 py-2" required>
-                                                                        <option value="ชั่วโมง/สัปดาห์" @selected(($hour['unit'] ?? '') === 'ชั่วโมง/สัปดาห์')>
-                                                                            ชั่วโมง/สัปดาห์
-                                                                        </option>
-                                                                        <option value="ชั่วโมง/ภาคเรียน" @selected(($hour['unit'] ?? '') === 'ชั่วโมง/ภาคเรียน')>
-                                                                            ชั่วโมง/ภาคเรียน
-                                                                        </option>
-                                                                    </select>
+                                        <input type="hidden" name="unit" value="ชั่วโมง/สัปดาห์">
                                                                     <textarea name="note" rows="2"
                                                                               class="md:col-span-4 border rounded-lg px-2 py-2"
                                                                               placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)">{{ $hour['note'] ?? '' }}</textarea>
@@ -310,7 +303,7 @@
                                       action="{{ route('admin.courses.hours.store', $course) }}"
                                       class="space-y-3 text-sm">
                                     @csrf
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                                         <select name="term" class="border rounded-lg px-2 py-2" required>
                                             <option value="1" @selected($defaultTerm == '1')>ภาคเรียนที่ 1</option>
                                             <option value="2" @selected($defaultTerm == '2')>ภาคเรียนที่ 2</option>
@@ -323,11 +316,8 @@
                                         <input type="number" step="0.1" name="hours"
                                                class="border rounded-lg px-2 py-2"
                                                placeholder="จำนวนชั่วโมง" required>
-                                        <select name="unit" class="border rounded-lg px-2 py-2" required>
-                                            <option value="ชั่วโมง/สัปดาห์">ชั่วโมง/สัปดาห์</option>
-                                            <option value="ชั่วโมง/ภาคเรียน">ชั่วโมง/ภาคเรียน</option>
-                                        </select>
                                     </div>
+                                    <input type="hidden" name="unit" value="ชั่วโมง/สัปดาห์">
                                     <textarea name="note" rows="2"
                                               class="w-full border rounded-lg px-2 py-2"
                                               placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"></textarea>

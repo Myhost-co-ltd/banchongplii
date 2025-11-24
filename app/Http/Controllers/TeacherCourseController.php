@@ -6,6 +6,7 @@ use App\Models\Course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class TeacherCourseController extends Controller
 {
@@ -15,13 +16,14 @@ class TeacherCourseController extends Controller
             ->latest()
             ->get();
 
-        $unassignedCourses = Course::whereNull('user_id')
-            ->latest()
+        $adminCourseOptions = Course::query()
+            ->select('id', 'name', 'grade', 'term', 'year')
+            ->orderBy('name')
             ->get();
 
         return view('teacher.course-create', [
             'courses' => $courses,
-            'unassignedCourses' => $unassignedCourses,
+            'adminCourseOptions' => $adminCourseOptions,
         ]);
     }
 
@@ -100,6 +102,20 @@ class TeacherCourseController extends Controller
             ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $selectedTerm)
             ->values();
 
+        $lessonCapacity = [];
+        $hourTargets = $hours->groupBy('category')->map(fn ($group) => (float) $group->sum('hours'));
+        $lessonUsed = $lessons->groupBy('category')->map(fn ($group) => (float) $group->sum('hours'));
+
+        foreach ($hourTargets as $category => $allowedHours) {
+            $usedHours = $lessonUsed[$category] ?? 0.0;
+            $remaining = max(0, $allowedHours - $usedHours);
+            $lessonCapacity[$category] = [
+                'allowed'   => $allowedHours,
+                'used'      => $usedHours,
+                'remaining' => $remaining,
+            ];
+        }
+
         return view('teacher.course-detail', [
             'course'        => $course,
             'courses'       => $courses,
@@ -107,6 +123,7 @@ class TeacherCourseController extends Controller
             'hours'         => $hours,
             'lessons'       => $lessons,
             'assignments'   => $assignments,
+            'lessonCapacity'=> $lessonCapacity,
         ]);
     }
 
@@ -247,21 +264,25 @@ class TeacherCourseController extends Controller
         $this->authorizeCourse($course);
 
         $data = $request->validate([
-            'term'    => 'required|in:1,2',
-            'title'   => 'required|string|max:255',
-            'hours'   => 'required|numeric|min:0.1',
-            'period'  => 'required|string|max:100',
-            'details' => 'nullable|string|max:2000',
+            'term'     => 'required|in:1,2',
+            'category' => 'required|string|in:ทฤษฎี,ปฏิบัติ',
+            'title'    => 'required|string|max:255',
+            'hours'    => 'required|numeric|min:0.1',
+            'period'   => 'nullable|string|max:100',
+            'details'  => 'nullable|string|max:2000',
         ]);
+
+        $this->guardLessonHours($course, $data['term'], $data['category'], $data['hours']);
 
         $lessons = $course->lessons ?? [];
         $lessons[] = [
-            'id'      => (string) Str::uuid(),
-            'term'    => $data['term'],
-            'title'   => $data['title'],
-            'hours'   => $data['hours'],
-            'period'  => $data['period'],
-            'details' => $data['details'] ?? null,
+            'id'       => (string) Str::uuid(),
+            'term'     => $data['term'],
+            'category' => $data['category'],
+            'title'    => $data['title'],
+            'hours'    => $data['hours'],
+            'period'   => $data['period'] ?? null,
+            'details'  => $data['details'] ?? null,
         ];
 
         $course->update(['lessons' => $lessons]);
@@ -288,11 +309,12 @@ class TeacherCourseController extends Controller
         $this->authorizeCourse($course);
 
         $data = $request->validate([
-            'term'    => 'required|in:1,2',
-            'title'   => 'required|string|max:255',
-            'hours'   => 'required|numeric|min:0.1',
-            'period'  => 'required|string|max:100',
-            'details' => 'nullable|string|max:2000',
+            'term'     => 'required|in:1,2',
+            'category' => 'required|string|in:ทฤษฎี,ปฏิบัติ',
+            'title'    => 'required|string|max:255',
+            'hours'    => 'required|numeric|min:0.1',
+            'period'   => 'nullable|string|max:100',
+            'details'  => 'nullable|string|max:2000',
         ]);
 
         $lessons = $course->lessons ?? [];
@@ -300,12 +322,22 @@ class TeacherCourseController extends Controller
 
         foreach ($lessons as $index => $item) {
             if (($item['id'] ?? null) === $lesson) {
+                $this->guardLessonHours(
+                    $course,
+                    $data['term'],
+                    $data['category'],
+                    $data['hours'],
+                    (float) ($item['hours'] ?? 0),
+                    (string) ($item['category'] ?? '')
+                );
+
                 $lessons[$index] = array_merge($item, [
-                    'term'    => $data['term'],
-                    'title'   => $data['title'],
-                    'hours'   => $data['hours'],
-                    'period'  => $data['period'],
-                    'details' => $data['details'] ?? null,
+                    'term'     => $data['term'],
+                    'category' => $data['category'],
+                    'title'    => $data['title'],
+                    'hours'    => $data['hours'],
+                    'period'   => $data['period'] ?? null,
+                    'details'  => $data['details'] ?? null,
                 ]);
                 $updated = true;
                 break;
@@ -313,12 +345,48 @@ class TeacherCourseController extends Controller
         }
 
         if (! $updated) {
-            return back()->withErrors(['lesson' => '�1,�,��1^�,z�,s�,,�1%�,-�,��,1�,��,��,�,��,-�1?�,T�,��1%�,-�,��,��1?�,?�1%�1,�,,']);
+            return back()->withErrors(['lesson' => 'ไม่พบหัวข้อบทเรียนที่ต้องการอัปเดต']);
         }
 
         $course->update(['lessons' => $lessons]);
 
-        return back()->with('status', '�,-�,�,>�1?�,"�,�,��,�,�,,�1%�,-�1?�,T�,��1%�,-�,��,��1?�,��,�,��,s�,��1%�,-�,��1?�,��1%�,');
+        return back()->with('status', 'อัปเดตหัวข้อเรียบร้อยแล้ว');
+    }
+
+    private function guardLessonHours(
+        Course $course,
+        string $term,
+        string $category,
+        float $incomingHours,
+        float $existingHours = 0,
+        string $existingCategory = ''
+    ): void {
+        $targetHours = collect($course->teaching_hours ?? [])
+            ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $term)
+            ->where('category', $category)
+            ->sum('hours');
+
+        if ($targetHours <= 0) {
+            throw ValidationException::withMessages([
+                'lesson' => 'ชั่วโมงสอนหมวดนี้ยังไม่ถูกกำหนดในภาคเรียนที่เลือก',
+            ]);
+        }
+
+        $usedHours = collect($course->lessons ?? [])
+            ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $term)
+            ->filter(fn ($item) => ($item['category'] ?? '') === $category)
+            ->sum('hours');
+
+        // remove existing hours when editing same category
+        if ($existingCategory === $category) {
+            $usedHours -= $existingHours;
+        }
+
+        if ($usedHours + $incomingHours > $targetHours + 1e-6) {
+            throw ValidationException::withMessages([
+                'lesson' => 'ชั่วโมงรวมเกินกว่าที่กำหนดในหมวดนี้',
+            ]);
+        }
     }
 
     public function storeAssignment(Request $request, Course $course)
