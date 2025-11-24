@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherCourseController;
+use App\Http\Controllers\DirectorController;
 
 
 /*
@@ -103,9 +104,14 @@ Route::middleware(['auth'])->group(function () {
 
 
     // DIRECTOR
-    Route::get('/dashboard/director', function () {
-        return view('dashboards.director');
-    })->name('dashboard.director');
+    Route::get('/dashboard/director', [DirectorController::class, 'dashboard'])
+        ->name('dashboard.director');
+
+    Route::get('/director/teacher-plans', [DirectorController::class, 'teacherPlans'])
+        ->name('director.teacher-plans');
+
+    Route::get('/director/courses/{course}', [DirectorController::class, 'courseDetail'])
+        ->name('director.course-detail');
 });
 
 

@@ -1,6 +1,6 @@
 ﻿<aside class="w-64 bg-gray-800 text-white shadow-xl rounded-r-3xl p-6 flex flex-col justify-between">
   <div>
-    <h1 class="text-lg font-bold mb-8">ผอ .</h1>
+    <h1 class="text-lg font-bold mb-8">à¸œà¸¹à¹‰à¸­à¸³à¸™à¸§à¸¢à¸à¸²à¸£</h1>
 
     <nav class="space-y-2">
       <a href="/dashboard/director" class="nav-item {{ request()->is('dashboard/director') ? 'active' : '' }}">แดชบอร์ดผู้อำนวยการ</a>
@@ -15,7 +15,7 @@
   <form method="POST" action="{{ route('logout') }}" class="mt-8">
   @csrf
   <button type="submit" class="w-full py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition">
-    ออกจากระบบ
+    à¸­à¸­à¸à¸ˆà¸²à¸à¸£à¸°à¸šà¸š
   </button>
   </form>
 
