@@ -6,6 +6,7 @@
 @php
     $courseOptions = collect($courses ?? []);
     $currentTerm = $selectedTerm ?? request('term');
+    $tz = config('app.timezone', 'Asia/Bangkok');
 
     $hoursByTerm = collect($hours ?? []);
     $lessonsByTerm = collect($lessons ?? []);
@@ -20,10 +21,8 @@
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div class="space-y-3">
                 <p class="text-sm text-slate-500 uppercase tracking-widest">รายละเอียดหลักสูตร</p>
-                <h1 class="text-3xl font-bold text-gray-900">จัดการข้อมูลหลักสูตรที่สอนอยู่</h1>
-                <p class="text-gray-600">
-                    เลือกหลักสูตรและภาคเรียนด้านขวา เพื่อดูข้อมูลพื้นฐาน ชั่วโมงสอน บทเรียน และชิ้นงาน
-                </p>
+                <h1 class="text-3xl font-bold text-gray-900">จัดการหลักสูตร</h1>
+
                 <div class="flex flex-wrap gap-3">
                     <a href="{{ route('teacher.course-create') }}"
                        class="px-4 py-2 bg-gray-100 rounded-xl text-gray-700 text-sm">
@@ -32,7 +31,7 @@
                     @if($course)
                         <a href="{{ route('teacher.courses.edit', $course) }}"
                            class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm">
-                            แก้ไขข้อมูลหลักสูตร
+                            แก้ไขหลักสูตร
                         </a>
                     @endif
                 </div>
@@ -57,7 +56,7 @@
                     </div>
                 @else
                     <div class="border border-dashed border-gray-200 rounded-2xl p-4 text-sm text-gray-500">
-                        ยังไม่มีหลักสูตรที่สร้างไว้
+                        ยังไม่มีข้อมูลหลักสูตรที่สร้างไว้ในระบบ
                     </div>
                 @endif
 
@@ -77,7 +76,7 @@
                             </select>
                         </form>
                         <p class="text-xs text-gray-400 mt-1">
-                            * ค่าเริ่มต้นเป็นว่าง ต้องเลือกภาคเรียนก่อนจึงจะแสดง/เพิ่มข้อมูลได้
+                            * ค่าเริ่มต้นเป็นว่าง ต้องเลือกภาคเรียนก่อนจึงจะสามารถดู/เพิ่มข้อมูลในภาคเรียนนั้นได้
                         </p>
                     </div>
                 @endif
@@ -86,11 +85,12 @@
     </div>
 
     @unless($course)
-        {{-- กรณียังไม่มีหลักสูตร --}}
+        {{-- ยังไม่ได้เลือกหลักสูตร --}}
         <div class="bg-white rounded-3xl shadow-md p-10 border border-gray-100 text-center">
-            <h3 class="text-2xl font-semibold text-gray-900 mb-2">ยังไม่มีหลักสูตรที่จะแสดง</h3>
+            <h3 class="text-2xl font-semibold text-gray-900 mb-2">ยังไม่ได้เลือกหลักสูตร</h3>
             <p class="text-gray-600 mb-6 max-w-3xl mx-auto">
-                กรุณาสร้างหลักสูตรใหม่หรือเลือกจากรายการด้านบน
+                กรุณาเลือกหลักสูตรที่ต้องการจัดการจากหน้าสร้างหลักสูตร หรือสร้างหลักสูตรใหม่ก่อน
+                จึงจะสามารถดูรายละเอียดภาคเรียน ชั่วโมงสอน และงาน/คะแนนเก็บของหลักสูตรนั้นได้
             </p>
             <a href="{{ route('teacher.course-create') }}"
                class="inline-flex items-center px-5 py-3 bg-blue-600 text-white rounded-2xl shadow hover:bg-blue-500 transition">
@@ -99,7 +99,7 @@
         </div>
     @else
 
-        {{-- ข้อมูลหลักสูตรพื้นฐาน --}}
+        {{-- ข้อมูลสรุปหลักสูตร --}}
         <div class="bg-white rounded-3xl shadow-md p-8 border border-gray-100">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -107,17 +107,17 @@
                     <p class="text-2xl font-semibold text-gray-900">{{ $course->name }}</p>
                 </div>
                 <div>
-                    <p class="text-sm text-gray-500">ห้องเรียนที่สอน</p>
+                    <p class="text-sm text-gray-500">ใช้กับห้องเรียน</p>
                     <div class="flex flex-wrap gap-2 mt-1">
                         @forelse($course->rooms ?? [] as $room)
                             <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-xl text-sm">{{ $room }}</span>
                         @empty
-                            <span class="text-gray-400 text-sm">ยังไม่ได้กำหนดห้องเรียน</span>
+                            <span class="text-gray-400 text-sm">ยังไม่ได้กำหนดห้องเรียนสำหรับหลักสูตรนี้</span>
                         @endforelse
                     </div>
                 </div>
                 <div>
-                    <p class="text-sm text-gray-500">ภาคเรียนที่กำลังดู</p>
+                    <p class="text-sm text-gray-500">ภาคเรียนที่กำลังดูข้อมูล</p>
                     <p class="text-lg font-semibold text-gray-900">
                         @if($currentTerm === '1')
                             ภาคเรียนที่ 1
@@ -133,32 +133,58 @@
                     <p class="text-lg font-semibold text-gray-900">{{ $course->year ?? '-' }}</p>
                 </div>
                 <div class="md:col-span-2">
-                    <p class="text-sm text-gray-500">รายละเอียดหลักสูตร</p>
+                    <p class="text-sm text-gray-500">รายละเอียดเพิ่มเติมของหลักสูตร</p>
                     <p class="text-gray-700 mt-1 leading-relaxed">
-                        {{ $course->description ?? 'ยังไม่มีรายละเอียด' }}
+                        {{ $course->description ?? 'ยังไม่ได้กรอกรายละเอียดเพิ่มเติมของหลักสูตร' }}
                     </p>
                 </div>
             </div>
         </div>
 
-        {{-- ถ้ายังไม่เลือกภาคเรียน ให้เตือน --}}
+        {{-- แจ้งเตือนหากยังไม่เลือกภาคเรียน --}}
         @if(!$currentTerm)
             <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-3xl p-6">
                 <p class="font-semibold mb-1">ยังไม่ได้เลือกภาคเรียน</p>
                 <p class="text-sm">
-                    กรุณาเลือก <strong>ภาคเรียนที่ 1</strong> หรือ <strong>ภาคเรียนที่ 2</strong> จากกล่องด้านขวาบนก่อน
-                    จึงจะสามารถดู/เพิ่มข้อมูล ชั่วโมงสอน เนื้อหา และการบ้าน ได้
+                    กรุณาเลือก <strong>ภาคเรียนที่ 1</strong> หรือ <strong>ภาคเรียนที่ 2</strong> ก่อน
+                    เพื่อให้ระบบแสดงและให้จัดการข้อมูลต่าง ๆ ของภาคเรียนนั้น เช่น ชั่วโมงสอน บทเรียน และงาน/คะแนนเก็บ
                 </p>
             </div>
         @else
 
-            {{-- ชั่วโมงที่สอน (ภาพรวม) แสดงอย่างเดียว --}}
+            {{-- สรุปชั่วโมงสอนตามหมวดหมู่ --}}
             <section class="bg-white rounded-3xl shadow-md p-6 border border-gray-100">
                 <div class="mb-6">
-                    <h3 class="text-xl font-semibold text-gray-900">ชั่วโมงที่สอน (ภาพรวม)</h3>
+                    <h3 class="text-xl font-semibold text-gray-900">ชั่วโมงสอน (สรุปตามหมวดหมู่)</h3>
                     <p class="text-sm text-gray-500">
-                        หมวดหมู่และจำนวนชั่วโมง — สำหรับภาคเรียนที่ {{ $currentTerm }}
+                        ตรวจสอบการใช้ชั่วโมงสอนแยกตามหมวดหมู่ ตามเกณฑ์ชั่วโมงสูงสุดของหลักสูตรในภาคเรียนนี้
                     </p>
+                    <div class="text-sm mt-2">
+                        <span class="inline-flex items-center px-2 py-1 rounded-lg bg-blue-50 text-blue-700">
+                            รวมภาคเรียนนี้: {{ number_format($lessonUsedTotal ?? 0, 1) }} / {{ number_format($lessonAllowedTotal ?? 0, 1) }} ชั่วโมง
+                        </span>
+                        <span class="inline-flex items-center px-2 py-1 rounded-lg bg-green-50 text-green-700 ml-2">
+                            เหลือให้จัดสรร: {{ number_format($lessonRemainingTotal ?? 0, 1) }} ชั่วโมง
+                        </span>
+                        @if(($lessonRemainingTotal ?? 0) <= 0)
+                            <div class="text-red-600 text-xs mt-1">
+                                ชั่วโมงรวมครบแล้ว หากต้องการเพิ่มให้แก้ไขจำนวนชั่วโมงสอนหรือปรับบทเรียนเดิม
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="text-sm mb-4">
+                    <span class="inline-flex items-center px-2 py-1 rounded-lg bg-green-50 text-green-700 ml-2">
+                        ชั่วโมงสอนที่ยังเหลือให้จัดสรร: {{ number_format($lessonRemainingTotal ?? 0, 1) }} ชั่วโมง
+                    </span>
+
+                    @if(($lessonRemainingTotal ?? 0) <= 0)
+                        <div class="text-red-600 text-xs mt-1">
+                            ชั่วโมงสอนในภาคเรียนนี้เต็มจำนวนแล้ว หากต้องการเพิ่มชั่วโมงสอน
+                            กรุณาปรับชั่วโมงในหมวดอื่นหรือแก้ไขโครงสร้างชั่วโมงของหลักสูตร
+                        </div>
+                    @endif
                 </div>
 
                 <div class="space-y-4">
@@ -174,25 +200,51 @@
                         </div>
                     @empty
                         <p class="text-gray-500 text-sm text-center">
-                            ยังไม่มีข้อมูลชั่วโมงสอนสำหรับภาคเรียนที่ {{ $currentTerm }}
+                            ยังไม่มีการตั้งค่าจำนวนชั่วโมงสอนแยกตามหมวดหมู่สำหรับหลักสูตรนี้ในภาคเรียนที่เลือก
                         </p>
+                        <div class="text-sm mt-2 text-center">
+                            <span class="inline-flex items-center px-2 py-1 rounded-lg bg-blue-50 text-blue-700">
+                                รวมภาคเรียนนี้: {{ number_format($lessonUsedTotal ?? 0, 1) }} / {{ number_format($lessonAllowedTotal ?? 0, 1) }} ชั่วโมง
+                            </span>
+                            <span class="inline-flex items-center px-2 py-1 rounded-lg bg-green-50 text-green-700 ml-2">
+                                เหลือให้จัดสรร: {{ number_format($lessonRemainingTotal ?? 0, 1) }} ชั่วโมง
+                            </span>
+                            @if(($lessonRemainingTotal ?? 0) <= 0)
+                                <div class="text-red-600 text-xs mt-1">
+                                    ชั่วโมงรวมครบแล้ว หากต้องการเพิ่มให้แก้ไขชั่วโมงสอนหรือปรับบทเรียนเดิม
+                                </div>
+                            @endif
+                        </div>
                     @endforelse
                 </div>
             </section>
 
-            {{-- เนื้อหาที่สอน + ระยะเวลา แยกตามภาคเรียน --}}
+            {{-- รายการบทเรียน + ชั่วโมงสอนรายบท --}}
             <section class="bg-white rounded-3xl shadow-md p-6 border border-gray-100">
                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h3 class="text-xl font-semibold text-gray-900">เนื้อหาที่สอน + ระยะเวลา</h3>
+                        <h3 class="text-xl font-semibold text-gray-900">รายการบทเรียน + ชั่วโมงสอนรายบท</h3>
                         <p class="text-sm text-gray-500">
-                            หัวข้อบทเรียนสำหรับภาคเรียนที่ {{ $currentTerm }}
+                            จัดการบทเรียนแต่ละหัวข้อ พร้อมกำหนดหมวดหมู่และจำนวนชั่วโมงที่ใช้ในแต่ละภาคเรียน
                         </p>
+                        <div class="text-sm mt-2">
+                            <span class="inline-flex items-center px-2 py-1 rounded-lg bg-blue-50 text-blue-700">
+                                รวมภาคเรียนนี้: {{ number_format($lessonUsedTotal ?? 0, 1) }} / {{ number_format($lessonAllowedTotal ?? 0, 1) }} ชั่วโมง
+                            </span>
+                            <span class="inline-flex items-center px-2 py-1 rounded-lg bg-green-50 text-green-700 ml-2">
+                                เหลือให้จัดสรร: {{ number_format($lessonRemainingTotal ?? 0, 1) }} ชั่วโมง
+                            </span>
+                            @if(($lessonRemainingTotal ?? 0) <= 0)
+                                <div class="text-red-600 text-xs mt-1">
+                                    ชั่วโมงรวมครบแล้ว หากต้องการเพิ่มให้แก้ไขชั่วโมงสอนหรือปรับบทเรียนเดิม
+                                </div>
+                            @endif
+                        </div>
                     </div>
                     <button type="button"
                             class="px-4 py-2 bg-blue-600 text-white rounded-xl"
                             onclick="toggleForm('lessonForm')">
-                        เพิ่มหัวข้อ
+                        เพิ่มบทเรียน
                     </button>
                 </div>
 
@@ -204,8 +256,13 @@
                                 <div>
                                     <p class="font-semibold text-gray-900">{{ $lesson['title'] ?? '-' }}</p>
                                     <p class="text-sm text-gray-600">
-                                        {{ $lesson['category'] ?? '-' }} • {{ $lesson['hours'] ?? 0 }} ชั่วโมง
+                                        {{ $lesson['category'] ?? '-' }} · {{ $lesson['hours'] ?? 0 }} ชั่วโมง
                                     </p>
+                                    @if(!empty($lesson['created_at']))
+                                        <p class="text-xs text-gray-500 mt-0.5">
+                                            เพิ่มเมื่อ: {{ \Illuminate\Support\Carbon::parse($lesson['created_at'])->timezone($tz)->locale('th')->isoFormat('D MMM YYYY HH:mm') }}
+                                        </p>
+                                    @endif
                                     @if(!empty($lesson['details']))
                                         <p class="text-sm text-gray-500 mt-1">{{ $lesson['details'] }}</p>
                                     @endif
@@ -219,7 +276,7 @@
                                         </button>
                                         <form method="POST"
                                               action="{{ route('teacher.courses.lessons.destroy', ['course' => $course, 'lesson' => $lessonId]) }}"
-                                              onsubmit="return confirm('ยืนยันการลบหัวข้อนี้หรือไม่?')">
+                                              onsubmit="return confirm('ต้องการลบบทเรียนนี้ใช่หรือไม่?')">
                                             @csrf
                                             @method('DELETE')
                                             <button class="text-red-600 hover:underline" type="submit">ลบ</button>
@@ -252,17 +309,30 @@
                                     </div>
                                     <textarea name="details" rows="2"
                                               class="w-full border rounded-xl px-3 py-2"
-                                              placeholder="รายละเอียดเพิ่มเติม">{{ $lesson['details'] ?? '' }}</textarea>
+                                              placeholder="รายละเอียดเพิ่มเติมเกี่ยวกับบทเรียน (ถ้ามี)">{{ $lesson['details'] ?? '' }}</textarea>
                                     <div class="text-right">
-                                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-xl">บันทึก</button>
+                                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-xl">บันทึกการแก้ไข</button>
                                     </div>
                                 </form>
                             @endif
                         </div>
                     @empty
                         <p class="text-gray-500 text-sm text-center">
-                            ยังไม่มีหัวข้อบทเรียนสำหรับภาคเรียนที่ {{ $currentTerm }}
+                            ยังไม่มีบทเรียนสำหรับหลักสูตรนี้ในภาคเรียนที่เลือก
                         </p>
+                        <div class="text-sm mt-2 text-center">
+                            <span class="inline-flex items-center px-2 py-1 rounded-lg bg-blue-50 text-blue-700">
+                                รวมภาคเรียนนี้: {{ number_format($lessonUsedTotal ?? 0, 1) }} / {{ number_format($lessonAllowedTotal ?? 0, 1) }} ชั่วโมง
+                            </span>
+                            <span class="inline-flex items-center px-2 py-1 rounded-lg bg-green-50 text-green-700 ml-2">
+                                เหลือให้จัดสรร: {{ number_format($lessonRemainingTotal ?? 0, 1) }} ชั่วโมง
+                            </span>
+                            @if(($lessonRemainingTotal ?? 0) <= 0)
+                                <div class="text-red-600 text-xs mt-1">
+                                    ชั่วโมงรวมครบแล้ว หากต้องการเพิ่มให้แก้ไขชั่วโมงสอนหรือปรับบทเรียนเดิม
+                                </div>
+                            @endif
+                        </div>
                     @endforelse
                 </div>
 
@@ -276,7 +346,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <select name="category" id="lessonCategory"
                                     class="border rounded-xl px-3 py-2" required>
-                                <option value="">เลือกหมวด (ทฤษฎี / ปฏิบัติ)</option>
+                                <option value="">เลือกหมวดหมู่ (เช่น เนื้อหาหลัก / ทบทวน / กิจกรรม)</option>
                                 @foreach(($lessonCapacity ?? []) as $category => $summary)
                                     <option value="{{ $category }}">{{ $category }}</option>
                                 @endforeach
@@ -287,47 +357,69 @@
                             <input type="number" step="0.1" min="0.1" name="hours"
                                    id="lessonHours"
                                    class="border rounded-xl px-3 py-2"
-                                   placeholder="ชั่วโมงที่ใช้" required>
+                                   placeholder="ชั่วโมงที่ใช้จริง" required>
                         </div>
                         <div class="text-sm text-gray-600" id="lessonRemaining">
                             @foreach(($lessonCapacity ?? []) as $cat => $summary)
                                 <span class="inline-flex items-center px-2 py-1 rounded-lg bg-gray-100 mr-2"
                                       data-remaining="{{ $cat }}">
-                                    {{ $cat }} คงเหลือ {{ number_format($summary['remaining'], 1) }} ชั่วโมง จาก {{ number_format($summary['allowed'], 1) }}
+                                    {{ $cat }} เหลือได้อีก {{ number_format($summary['remaining'], 1) }} ชั่วโมง จากทั้งหมด {{ number_format($summary['allowed'], 1) }}
                                 </span>
                             @endforeach
                         </div>
                         <textarea name="details" rows="3"
                                   class="w-full border rounded-xl px-3 py-2"
-                                  placeholder="รายละเอียดเพิ่มเติม"></textarea>
+                                  placeholder="รายละเอียดเพิ่มเติมเกี่ยวกับบทเรียน (ถ้ามี)"></textarea>
                         <div class="text-right">
                             <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-xl">
-                                บันทึกหัวข้อ
+                                บันทึกบทเรียน
                             </button>
                         </div>
                     </form>
                 @else
                     <div class="mt-4 text-sm text-red-600">
-                        ยังไม่มีการกำหนดชั่วโมงสอนในภาคเรียนนี้ จึงไม่สามารถเพิ่มหัวข้อได้
+                        ยังไม่ได้ตั้งค่าจำนวนชั่วโมงสูงสุดของแต่ละหมวดในหลักสูตรนี้
+                        กรุณากลับไปแก้ไขข้อมูลหลักสูตรเพื่อกำหนดโครงสร้างชั่วโมงก่อน
                     </div>
                 @endif
             </section>
 
-            {{-- การบ้าน / ชิ้นงาน แยกตามภาคเรียน --}}
+            {{-- งาน / คะแนนเก็บ --}}
             <section class="bg-white rounded-3xl shadow-md p-6 border border-gray-100 mb-10">
                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h3 class="text-xl font-semibold text-gray-900">การบ้าน / ชิ้นงาน</h3>
+                        <h3 class="text-xl font-semibold text-gray-900">งาน / คะแนนเก็บ</h3>
                         <p class="text-sm text-gray-500">
-                            การมอบหมายงานสำหรับภาคเรียนที่ {{ $currentTerm }}
+                            กำหนดงาน คะแนนเต็ม และสัดส่วนคะแนนเก็บรวมของภาคเรียนนี้ (ไม่เกิน 70 คะแนน)
                         </p>
+                        <div class="text-sm mt-2">
+                            <span class="inline-flex items-center px-2 py-1 rounded-lg bg-blue-50 text-blue-700">
+                                คะแนนเก็บรวมภาคเรียนนี้: {{ $assignmentTotal ?? 0 }} / 70
+                            </span>
+                            <span class="inline-flex items-center px-2 py-1 rounded-lg bg-green-50 text-green-700 ml-2">
+                                คะแนนเก็บที่ยังเหลือให้กำหนด: {{ $assignmentRemaining ?? 70 }}
+                            </span>
+                            @if(($assignmentRemaining ?? 0) <= 0)
+                                <div class="text-red-600 text-xs mt-1">
+                                    คะแนนเก็บรวมครบ 70 แล้ว หากต้องการเพิ่มงานใหม่
+                                    กรุณาลดคะแนนจากงานเดิมหรือปรับโครงสร้างคะแนนเก็บก่อน
+                                </div>
+                            @endif
+                        </div>
                     </div>
                     <button type="button"
                             class="px-4 py-2 bg-blue-600 text-white rounded-xl"
                             onclick="toggleForm('assignmentForm')">
-                        เพิ่มการบ้าน
+                        เพิ่มงาน / คะแนนเก็บ
                     </button>
                 </div>
+
+                @if(($assignmentRemaining ?? 70) <= 0)
+                    <div class="mb-4 border border-red-200 bg-red-50 text-red-700 rounded-2xl p-3 text-sm">
+                        คะแนนเก็บรวมครบ 70 แล้ว หากต้องการเพิ่มงานใหม่
+                        กรุณาปรับลดคะแนนของงานเดิมก่อน
+                    </div>
+                @endif
 
                 <div class="space-y-4">
                     @forelse($assignmentsByTerm as $assignment)
@@ -337,15 +429,20 @@
                                 <div>
                                     <p class="font-semibold text-gray-900">{{ $assignment['title'] ?? '-' }}</p>
                                     <p class="text-sm text-gray-600">
-                                        คะแนนรวม: {{ $assignment['score'] ?? '-' }}
+                                        คะแนนเต็ม: {{ $assignment['score'] ?? '-' }}
                                         @if(!empty($assignment['due_date']))
                                             <span class="mx-2 text-gray-300">|</span>
                                             กำหนดส่ง:
-                                            {{ \Illuminate\Support\Carbon::parse($assignment['due_date'])->locale('th')->isoFormat('D MMM YYYY') }}
+                                            {{ \Illuminate\Support\Carbon::parse($assignment['due_date'])->timezone($tz)->locale('th')->isoFormat('D MMM YYYY') }}
                                         @endif
                                     </p>
                                     @if(!empty($assignment['notes']))
                                         <p class="text-sm text-gray-500 mt-1">{{ $assignment['notes'] }}</p>
+                                    @endif>
+                                    @if(!empty($assignment['created_at']))
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            เพิ่มเมื่อ: {{ \Illuminate\Support\Carbon::parse($assignment['created_at'])->timezone($tz)->locale('th')->isoFormat('D MMM YYYY HH:mm') }}
+                                        </p>
                                     @endif
                                 </div>
                                 <div class="flex items-center gap-4">
@@ -358,7 +455,7 @@
                                     @endif
                                     <form method="POST"
                                           action="{{ route('teacher.courses.assignments.destroy', ['course' => $course, 'assignment' => $assignmentId ?? '']) }}"
-                                          onsubmit="return confirm('ยืนยันการลบการบ้านนี้หรือไม่?')">
+                                          onsubmit="return confirm('ต้องการลบงาน/คะแนนเก็บนี้ใช่หรือไม่?')">
                                         @csrf
                                         @method('DELETE')
                                         <button class="text-red-600 text-sm hover:underline">ลบ</button>
@@ -389,10 +486,10 @@
                                            value="{{ $assignment['score'] ?? '' }}" required>
                                     <textarea name="notes" rows="1"
                                               class="border rounded-xl px-3 py-2"
-                                              placeholder="รายละเอียดงานเพิ่มเติม">{{ $assignment['notes'] ?? '' }}</textarea>
+                                              placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)">{{ $assignment['notes'] ?? '' }}</textarea>
                                     <div class="md:col-span-4 text-right">
                                         <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-xl">
-                                            บันทึก
+                                            บันทึกการแก้ไข
                                         </button>
                                     </div>
                                 </form>
@@ -400,8 +497,22 @@
                         </div>
                     @empty
                         <p class="text-gray-500 text-sm text-center">
-                            ยังไม่มีการมอบหมายการบ้านสำหรับภาคเรียนที่ {{ $currentTerm }}
+                            ยังไม่มีการกำหนดงาน/คะแนนเก็บสำหรับหลักสูตรนี้ในภาคเรียนที่เลือก
                         </p>
+                        <div class="text-sm mt-2 text-center">
+                            <span class="inline-flex items-center px-2 py-1 rounded-lg bg-blue-50 text-blue-700">
+                                คะแนนเก็บรวมภาคเรียนนี้: {{ $assignmentTotal ?? 0 }} / 70
+                            </span>
+                            <span class="inline-flex items-center px-2 py-1 rounded-lg bg-green-50 text-green-700 ml-2">
+                                คะแนนเก็บที่ยังเหลือให้กำหนด: {{ $assignmentRemaining ?? 70 }}
+                            </span>
+                            @if(($assignmentRemaining ?? 0) <= 0)
+                                <div class="text-red-600 text-xs mt-1">
+                                    คะแนนเก็บรวมครบ 70 แล้ว หากต้องการเพิ่มงานใหม่
+                                    กรุณาปรับลดคะแนนของงานเดิมก่อน
+                                </div>
+                            @endif
+                        </div>
                     @endforelse
                 </div>
 
@@ -412,7 +523,7 @@
                     <input type="hidden" name="term" value="{{ $currentTerm }}">
                     <select name="title" class="border rounded-xl px-3 py-2"
                             required {{ $lessonTitles->isEmpty() ? 'disabled' : '' }}>
-                        <option value="">เลือกหัวข้อจากบทเรียน</option>
+                        <option value="">เลือกบทเรียนที่งานนี้เชื่อมโยง</option>
                         @foreach($lessonTitles as $title)
                             <option value="{{ $title }}">{{ $title }}</option>
                         @endforeach
@@ -421,15 +532,21 @@
                            class="border rounded-xl px-3 py-2">
                     <input type="number" step="0.1" name="score"
                            class="border rounded-xl px-3 py-2"
-                           placeholder="คะแนนรวม" required>
+                           placeholder="คะแนนเต็มของงาน (คะแนนเก็บรวมทุกงานไม่ควรเกิน 70)" required>
+                    @if(($assignmentRemaining ?? 70) <= 0)
+                        <p class="text-xs text-red-600 md:col-span-4">
+                            คะแนนเก็บรวมครบ 70 แล้ว ไม่สามารถเพิ่มคะแนนเก็บใหม่ได้
+                            กรุณาปรับคะแนนของงานเดิมก่อน
+                        </p>
+                    @endif
                     <textarea name="notes" rows="1"
                               class="border rounded-xl px-3 py-2"
-                              placeholder="รายละเอียดงานเพิ่มเติม"></textarea>
+                              placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"></textarea>
                     <div class="md:col-span-4 text-right">
                         <button type="submit"
                                 class="px-5 py-2 bg-blue-600 text-white rounded-xl"
                                 {{ $lessonTitles->isEmpty() ? 'disabled' : '' }}>
-                            บันทึกการบ้าน
+                            บันทึกงาน / คะแนนเก็บ
                         </button>
                     </div>
                 </form>
@@ -461,11 +578,11 @@
             const info = capacity[cat];
             if (info) {
                 hoursInput.max = info.remaining;
-                hoursInput.placeholder = `ชั่วโมงที่ใช้ (เหลือ ${info.remaining.toFixed(1)} / ${info.allowed.toFixed(1)})`;
+                hoursInput.placeholder = `ชั่วโมงที่ใช้จริง (ไม่เกิน ${info.remaining.toFixed(1)} / ${info.allowed.toFixed(1)})`;
                 hoursInput.disabled = info.remaining <= 0;
             } else {
                 hoursInput.removeAttribute('max');
-                hoursInput.placeholder = 'ชั่วโมงที่ใช้';
+                hoursInput.placeholder = 'ชั่วโมงที่ใช้จริง';
                 hoursInput.disabled = true;
             }
             if (remainingDisplay) {
@@ -480,13 +597,13 @@
             refreshRemaining();
         }
 
-        // Custom Thai validation message for hour inputs
+        // ข้อความแจ้งเตือนภาษาไทยสำหรับการกรอกชั่วโมง
         document.querySelectorAll('input[name="hours"]').forEach((input) => {
             input.addEventListener('input', () => input.setCustomValidity(''));
             input.addEventListener('invalid', () => {
                 if (input.validity.rangeOverflow) {
                     const max = input.getAttribute('max');
-                    input.setCustomValidity(max ? `กรุณากรอกไม่เกิน ${max} ชั่วโมง` : 'ค่าที่กรอกเกินกำหนด');
+                    input.setCustomValidity(max ? `กรุณากรอกชั่วโมงไม่เกิน ${max} ชั่วโมง` : 'กรุณากรอกจำนวนชั่วโมงให้ไม่เกินค่าที่กำหนด');
                 } else if (input.validity.rangeUnderflow || input.validity.stepMismatch || input.validity.valueMissing) {
                     input.setCustomValidity('กรุณากรอกจำนวนชั่วโมงให้ถูกต้อง');
                 }

@@ -102,6 +102,9 @@ class TeacherCourseController extends Controller
             ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $selectedTerm)
             ->values();
 
+        $assignmentTotal = $assignments->sum(fn ($item) => $item['score'] ?? 0);
+        $assignmentRemaining = max(0, 70 - $assignmentTotal);
+
         $lessonCapacity = [];
         $hourTargets = $hours->groupBy('category')->map(fn ($group) => (float) $group->sum('hours'));
         $lessonUsed = $lessons->groupBy('category')->map(fn ($group) => (float) $group->sum('hours'));
@@ -116,6 +119,10 @@ class TeacherCourseController extends Controller
             ];
         }
 
+        $lessonAllowedTotal = (float) $hourTargets->sum();
+        $lessonUsedTotal = (float) $lessonUsed->sum();
+        $lessonRemainingTotal = max(0, $lessonAllowedTotal - $lessonUsedTotal);
+
         return view('teacher.course-detail', [
             'course'        => $course,
             'courses'       => $courses,
@@ -124,6 +131,11 @@ class TeacherCourseController extends Controller
             'lessons'       => $lessons,
             'assignments'   => $assignments,
             'lessonCapacity'=> $lessonCapacity,
+            'assignmentTotal' => $assignmentTotal,
+            'assignmentRemaining' => $assignmentRemaining,
+            'lessonAllowedTotal' => $lessonAllowedTotal,
+            'lessonUsedTotal' => $lessonUsedTotal,
+            'lessonRemainingTotal' => $lessonRemainingTotal,
         ]);
     }
 
@@ -283,6 +295,7 @@ class TeacherCourseController extends Controller
             'hours'    => $data['hours'],
             'period'   => $data['period'] ?? null,
             'details'  => $data['details'] ?? null,
+            'created_at' => now(config('app.timezone'))->toDateTimeString(),
         ];
 
         $course->update(['lessons' => $lessons]);
@@ -338,6 +351,7 @@ class TeacherCourseController extends Controller
                     'hours'    => $data['hours'],
                     'period'   => $data['period'] ?? null,
                     'details'  => $data['details'] ?? null,
+                    'updated_at' => now(config('app.timezone'))->toDateTimeString(),
                 ]);
                 $updated = true;
                 break;
@@ -402,6 +416,18 @@ class TeacherCourseController extends Controller
         ]);
 
         $assignments = $course->assignments ?? [];
+
+        $currentTotal = collect($assignments)
+            ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $data['term'])
+            ->sum(fn ($item) => $item['score'] ?? 0);
+
+        $newScore = $data['score'] ?? 0;
+        if (($currentTotal + $newScore) > 70) {
+            return back()->withErrors([
+                'score' => 'คะแนนรวมของชิ้นงานในภาคเรียนนี้ต้องไม่เกิน 70 (ปัจจุบันรวม ' . $currentTotal . ')',
+            ])->withInput();
+        }
+
         $assignments[] = [
             'id'       => (string) Str::uuid(),
             'term'     => $data['term'],
@@ -409,6 +435,7 @@ class TeacherCourseController extends Controller
             'due_date' => $data['due_date'] ?? null,
             'score'    => $data['score'] ?? null,
             'notes'    => $data['notes'] ?? null,
+            'created_at' => now(config('app.timezone'))->toDateTimeString(),
         ];
 
         $course->update(['assignments' => $assignments]);
@@ -430,6 +457,34 @@ class TeacherCourseController extends Controller
 
         $assignments = $course->assignments ?? [];
         $updated = false;
+        $targetItem = null;
+
+        foreach ($assignments as $index => $item) {
+            if (($item['id'] ?? null) === $assignment) {
+                $targetItem = $item;
+                break;
+            }
+        }
+
+        if (! $targetItem) {
+            return back()->withErrors(['assignment' => 'ไม่พบการบ้านที่ต้องการแก้ไข']);
+        }
+
+        $currentTotal = collect($assignments)
+            ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $data['term'])
+            ->sum(fn ($item) => $item['score'] ?? 0);
+
+        // ถ้าอยู่ภาคเรียนเดิม ให้หักคะแนนเดิมออกก่อนคำนวณ
+        if (($targetItem['term'] ?? null) === $data['term']) {
+            $currentTotal -= $targetItem['score'] ?? 0;
+        }
+
+        $newScore = $data['score'] ?? 0;
+        if (($currentTotal + $newScore) > 70) {
+            return back()->withErrors([
+                'score' => 'คะแนนรวมของชิ้นงานในภาคเรียนนี้ต้องไม่เกิน 70 (ปัจจุบันรวม ' . $currentTotal . ')',
+            ])->withInput();
+        }
 
         foreach ($assignments as $index => $item) {
             if (($item['id'] ?? null) === $assignment) {
@@ -439,6 +494,7 @@ class TeacherCourseController extends Controller
                     'due_date' => $data['due_date'] ?? null,
                     'score'    => $data['score'] ?? null,
                     'notes'    => $data['notes'] ?? null,
+                    'updated_at' => now(config('app.timezone'))->toDateTimeString(),
                 ]);
                 $updated = true;
                 break;
