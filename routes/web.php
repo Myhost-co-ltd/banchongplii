@@ -3,9 +3,12 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminCourseController;
+use App\Http\Controllers\AdminTeacherController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherCourseController;
+use App\Http\Controllers\AdminStudentController;
 
 use App\Http\Controllers\DirectorController;
 
@@ -140,9 +143,7 @@ Route::middleware(['auth'])->group(function () {
     | ADMIN ROUTES
     |--------------------------------------------------------------------------
     */
-    Route::get('/dashboard/admin', function () {
-        return view('dashboards.admin');
-    })->name('dashboard.admin');
+    Route::get('/dashboard/admin', AdminDashboardController::class)->name('dashboard.admin');
 
 
     // TEACHER
@@ -224,8 +225,15 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
 
     Route::view('/admin/manage-users', 'admin.manage-users')->name('admin.manage-users');
-    Route::view('/admin/add-student', 'admin.add-student')->name('admin.add-student');
-    Route::view('/admin/add-teacher', 'admin.add-teacher')->name('admin.add-teacher');
+    Route::get('/admin/add-student', [AdminStudentController::class, 'index'])->name('admin.add-student');
+    Route::post('/admin/students', [AdminStudentController::class, 'store'])->name('admin.students.store');
+    Route::post('/admin/students/import', [AdminStudentController::class, 'import'])->name('admin.students.import');
+    Route::put('/admin/students/{student}', [AdminStudentController::class, 'update'])->name('admin.students.update');
+    Route::delete('/admin/students/{student}', [AdminStudentController::class, 'destroy'])->name('admin.students.destroy');
+    Route::get('/admin/add-teacher', [AdminTeacherController::class, 'index'])->name('admin.add-teacher');
+    Route::post('/admin/teachers', [AdminTeacherController::class, 'store'])->name('admin.teachers.store');
+    Route::put('/admin/teachers/{teacher}', [AdminTeacherController::class, 'update'])->name('admin.teachers.update');
+    Route::delete('/admin/teachers/{teacher}', [AdminTeacherController::class, 'destroy'])->name('admin.teachers.destroy');
 });
 
 

@@ -3,8 +3,25 @@
 @section('title', 'จัดการข้อมูลครู')
 
 @section('content')
+@php($tz = config('app.timezone', 'Asia/Bangkok'))
 
 <h1 class="text-3xl font-bold text-gray-800 mb-6">จัดการข้อมูลครู</h1>
+
+@if (session('status'))
+    <div class="mb-4 rounded-xl bg-green-50 text-green-700 border border-green-200 px-4 py-3 text-sm shadow">
+        {{ session('status') }}
+    </div>
+@endif
+
+@if ($errors->any())
+    <div class="mb-4 rounded-xl bg-red-50 text-red-700 border border-red-200 px-4 py-3 text-sm shadow">
+        <ul class="list-disc pl-5 space-y-1">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
 
 <div class="flex justify-between items-center mb-6">
 
@@ -47,49 +64,59 @@
 
         <tbody id="teacherTable">
 
-        {{-- Mock data --}}
-        @php
-            $names = ['สมชาย','สายฝน','วรภัทร','กันยา','ศิริพร','อภิชัย','ชุติมา','วราภรณ์','ทศพล'];
-            $last = ['ใจดี','ทองมาก','พัฒนะ','ศรีวรณ์','บัวแก้ว','พงศ์ไชย','จันทร์คำ'];
-            $roles = ['teacher','assistant'];
-        @endphp
-
-        @for ($i=1;$i<=25;$i++)
+        @forelse (($teachers ?? []) as $index => $teacher)
             @php
-                $fname = $names[array_rand($names)];
-                $lname = $last[array_rand($last)];
-                $role = $roles[array_rand($roles)];
-                $email = strtolower($fname.$i).'@school.com';
-                $phone = '08'.rand(10000000,99999999);
-
-                // random classroom
-                $classroom = 'ป.'.rand(1,6).'/'.rand(1,3);
+                $phone = $teacher->phone;
+                $maskedPhone = $phone ? substr($phone,0,3) . 'xxx' . substr($phone,-4) : '-';
+                [$firstName, $lastName] = array_pad(explode(' ', $teacher->name, 2), 2, '');
             @endphp
-
             <tr class="border-b teacher-row"
-                data-name="{{ strtolower($fname.' '.$lname) }}"
-                data-role="{{ $role }}"
-                data-email="{{ strtolower($email) }}"
-                data-phone="{{ $phone }}"
-                data-classroom="{{ strtolower($classroom) }}">
+                data-name="{{ mb_strtolower($teacher->name ?? '') }}"
+                data-role="{{ $teacher->role->name ?? 'teacher' }}"
+                data-email="{{ strtolower($teacher->email ?? '') }}"
+                data-phone="{{ $teacher->phone ?? '' }}"
+                data-classroom="{{ mb_strtolower($teacher->homeroom ?? '') }}"
+                data-homeroom="{{ $teacher->homeroom ?? '' }}"
+                data-first="{{ $firstName }}"
+                data-last="{{ $lastName }}"
+                data-id="{{ $teacher->id }}">
 
-                <td class="p-3 text-center">{{ $i }}</td>
-                <td class="p-3">{{ $fname.' '.$lname }}</td>
-                <td class="p-3">{{ $email }}</td>
-                <td class="p-3">{{ substr($phone,0,3) }}xxx{{ substr($phone,-4) }}</td>
-                <td class="p-3 text-blue-600 font-semibold text-center">
-                    {{ $role == 'teacher' ? 'ครู' : 'ครู' }}
+                <td class="p-3 text-center">{{ $index + 1 }}</td>
+                <td class="p-3">
+                    <p>{{ $teacher->name }}</p>
+                    @if($teacher->created_at)
+                        <p class="text-xs text-gray-400 mt-1">
+                            สร้างเมื่อ: {{ \Illuminate\Support\Carbon::parse($teacher->created_at)->timezone($tz)->locale('th')->isoFormat('D MMM YYYY HH:mm') }}
+                        </p>
+                    @endif
                 </td>
-
-                <td class="p-3 text-center">{{ $classroom }}</td>
+                <td class="p-3">{{ $teacher->email }}</td>
+                <td class="p-3">{{ $teacher->phone ? $maskedPhone : '-' }}</td>
+                <td class="p-3 text-blue-600 font-semibold text-center">
+                    {{ $teacher->role->name === 'teacher' ? 'ครู' : $teacher->role->name }}
+                </td>
+                <td class="p-3 text-center">{{ $teacher->homeroom ?? '-' }}</td>
 
                 <td class="p-3 text-center">
-                    <button onclick="alert('แก้ไข (Mock)')" class="text-yellow-600 font-semibold">แก้ไข</button> |
-                    <button onclick="alert('ลบ (Mock)')" class="text-red-600 font-semibold">ลบ</button>
+                    <button type="button"
+                            class="text-yellow-600 font-semibold hover:underline"
+                            onclick="openEditTeacher(this)">
+                        แก้ไข
+                    </button>
+                    <span class="mx-1 text-gray-300">|</span>
+                    <form action="{{ route('admin.teachers.destroy', $teacher) }}" method="POST" class="inline"
+                          onsubmit="return confirm('ต้องการลบครูคนนี้หรือไม่?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="text-red-600 font-semibold hover:underline">ลบ</button>
+                    </form>
                 </td>
             </tr>
-
-        @endfor
+        @empty
+            <tr>
+                <td colspan="7" class="p-4 text-center text-gray-500">ยังไม่มีข้อมูลครู</td>
+            </tr>
+        @endforelse
 
         </tbody>
     </table>
@@ -110,50 +137,103 @@
 
         <h2 class="text-xl font-bold text-gray-800 mb-4">เพิ่มข้อมูลครู</h2>
 
-        <div class="mb-3">
-            <label class="font-semibold">ชื่อ</label>
-            <input type="text" id="tFirstName" class="input w-full border border-gray-300 shadow-sm" placeholder="ชื่อจริง">
-        </div>
+        <form method="POST" action="{{ route('admin.teachers.store') }}" class="space-y-3">
+            @csrf
+            <div class="mb-3">
+                <label class="font-semibold">ชื่อ</label>
+                <input type="text" name="first_name" class="input w-full border border-gray-300 shadow-sm" placeholder="ชื่อจริง" required>
+            </div>
 
-        <div class="mb-3">
-            <label class="font-semibold">นามสกุล</label>
-            <input type="text" id="tLastName" class="input w-full border border-gray-300 shadow-sm" placeholder="นามสกุล">
-        </div>
+            <div class="mb-3">
+                <label class="font-semibold">นามสกุล</label>
+                <input type="text" name="last_name" class="input w-full border border-gray-300 shadow-sm" placeholder="นามสกุล" required>
+            </div>
 
-        <div class="mb-3">
-            <label class="font-semibold">อีเมล</label>
-            <input type="email" id="tEmail" class="input w-full border border-gray-300 shadow-sm" placeholder="example@mail.com">
-        </div>
+            <div class="mb-3">
+                <label class="font-semibold">อีเมล</label>
+                <input type="email" name="email" class="input w-full border border-gray-300 shadow-sm" placeholder="example@mail.com" required>
+            </div>
 
-        <div class="mb-3">
-            <label class="font-semibold">เบอร์โทร</label>
-            <input type="text" id="tPhone" class="input w-full border border-gray-300 shadow-sm" placeholder="0812345678">
-        </div>
+            <div class="mb-3">
+                <label class="font-semibold">เบอร์โทร</label>
+                <input type="text" name="phone" class="input w-full border border-gray-300 shadow-sm" placeholder="0812345678">
+            </div>
 
-       <div class="mb-3">
-            <label class="font-semibold">ห้องเรียนประจำชั้น</label>
-            <select id="tClassroom" class="input w-full border border-gray-300 shadow-sm">
-                <option value="">-- เลือกห้องเรียน --</option>
-                @for ($c = 1; $c <= 6; $c++)
-                    @for ($r = 1; $r <= 3; $r++)
-                        <option value="ป.{{ $c }}/{{ $r }}">ป.{{ $c }}/{{ $r }}</option>
+            <div class="mb-3">
+                <label class="font-semibold">ห้องเรียนประจำชั้น</label>
+                <select name="homeroom" class="input w-full border border-gray-300 shadow-sm">
+                    <option value="">-- เลือกห้องเรียน --</option>
+                    @for ($c = 1; $c <= 6; $c++)
+                        @for ($r = 1; $r <= 3; $r++)
+                            <option value="ป.{{ $c }}/{{ $r }}">ป.{{ $c }}/{{ $r }}</option>
+                        @endfor
                     @endfor
-                @endfor
-            </select>
-        </div>
+                </select>
+            </div>
 
+            <p class="text-xs text-gray-500">รหัสผ่านเริ่มต้น: 12345678 (กรุณาให้ครูเปลี่ยนเองภายหลัง)</p>
 
-        <div class="mb-3">
-            <label class="font-semibold">บทบาท</label>
-            <select id="tRole" class="input w-full border border-gray-300 shadow-sm">
-                <option value="teacher">ครู</option>
-            </select>
-        </div>
+            <button type="submit"
+                class="bg-blue-600 hover:bg-blue-700 w-full text-white py-2 rounded-xl">
+                 เพิ่มข้อมูล
+            </button>
+        </form>
 
-        <button onclick="addTeacher()"
-            class="bg-blue-600 hover:bg-blue-700 w-full text-white py-2 rounded-xl">
-             เพิ่มข้อมูล
-        </button>
+    </div>
+</div>
+
+{{-- ========================================= --}}
+{{-- POPUP แก้ไขครู --}}
+{{-- ========================================= --}}
+<div id="editTeacherModal"
+     class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+
+    <div class="bg-white rounded-2xl w-[90%] max-w-md p-6 shadow-xl relative">
+        <button onclick="closeEditTeacher()"
+            class="absolute top-3 right-3 text-gray-500 text-xl">&times;</button>
+
+        <h2 class="text-xl font-bold text-gray-800 mb-4">แก้ไขข้อมูลครู</h2>
+
+        <form method="POST" id="editTeacherForm" class="space-y-3">
+            @csrf
+            @method('PUT')
+            <div class="mb-3">
+                <label class="font-semibold">ชื่อ</label>
+                <input type="text" name="first_name" class="input w-full border border-gray-300 shadow-sm" placeholder="ชื่อจริง" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="font-semibold">นามสกุล</label>
+                <input type="text" name="last_name" class="input w-full border border-gray-300 shadow-sm" placeholder="นามสกุล" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="font-semibold">อีเมล</label>
+                <input type="email" name="email" class="input w-full border border-gray-300 shadow-sm" placeholder="example@mail.com" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="font-semibold">เบอร์โทร</label>
+                <input type="text" name="phone" class="input w-full border border-gray-300 shadow-sm" placeholder="0812345678">
+            </div>
+
+            <div class="mb-3">
+                <label class="font-semibold">ห้องเรียนประจำชั้น</label>
+                <select name="homeroom" class="input w-full border border-gray-300 shadow-sm">
+                    <option value="">-- เลือกห้องเรียน --</option>
+                    @for ($c = 1; $c <= 6; $c++)
+                        @for ($r = 1; $r <= 3; $r++)
+                            <option value="ป.{{ $c }}/{{ $r }}">ป.{{ $c }}/{{ $r }}</option>
+                        @endfor
+                    @endfor
+                </select>
+            </div>
+
+            <button type="submit"
+                class="bg-blue-600 hover:bg-blue-700 w-full text-white py-2 rounded-xl">
+                 บันทึกการแก้ไข
+            </button>
+        </form>
 
     </div>
 </div>
@@ -200,52 +280,23 @@ function closeAddTeacher() {
     document.getElementById("addTeacherModal").classList.add("hidden");
 }
 
-function addTeacher() {
+const editTeacherModal = document.getElementById("editTeacherModal");
+const editTeacherForm = document.getElementById("editTeacherForm");
+const updateTeacherUrlTemplate = "{{ url('/admin/teachers/__ID__') }}";
 
-    let fname = document.getElementById("tFirstName").value.trim();
-    let lname = document.getElementById("tLastName").value.trim();
-    let email = document.getElementById("tEmail").value.trim();
-    let phone = document.getElementById("tPhone").value.trim();
-    let classroom = document.getElementById("tClassroom").value.trim();
-    let role = document.getElementById("tRole").value;
+function openEditTeacher(button) {
+    const ds = button.closest('tr').dataset;
+    editTeacherForm.action = updateTeacherUrlTemplate.replace('__ID__', ds.id);
+    editTeacherForm.first_name.value = ds.first || '';
+    editTeacherForm.last_name.value = ds.last || '';
+    editTeacherForm.email.value = ds.email || '';
+    editTeacherForm.phone.value = ds.phone || '';
+    editTeacherForm.homeroom.value = ds.homeroom || '';
+    editTeacherModal.classList.remove('hidden');
+}
 
-    if (!fname || !lname || !email || !phone || !classroom) {
-        alert("กรุณากรอกข้อมูลให้ครบ");
-        return;
-    }
-
-    let table = document.getElementById("teacherTable");
-
-    let roleText = role === "teacher" ? "ครู" : "ผู้ช่วยครู";
-    // Mask phone number for display: 081xxx5678
-    let maskedPhone = phone.substring(0, 3) + "xxx" + phone.substring(6);
-
-    let row = `
-        <tr class="border-b teacher-row"
-            data-name="${(fname + ' ' + lname).toLowerCase()}"
-            data-role="${role}"
-            data-email="${email.toLowerCase()}"
-            data-phone="${phone}"
-            data-classroom="${classroom.toLowerCase()}">
-
-            <td class="p-3 text-center">ใหม่</td>
-            <td class="p-3">${fname} ${lname}</td>
-            <td class="p-3">${email}</td>
-            <td class="p-3">${maskedPhone}</td>
-            <td class="p-3 text-center text-blue-600 font-semibold">${roleText}</td>
-            <td class="p-3 text-center">${classroom}</td>
-
-            <td class="p-3 text-center">
-                <button onclick="alert('แก้ไข (mock)')" class="text-yellow-600 font-semibold">แก้ไข</button> |
-                <button onclick="this.parentElement.parentElement.remove()" class="text-red-600 font-semibold">ลบ</button>
-            </td>
-        </tr>
-    `;
-
-    table.insertAdjacentHTML("afterbegin", row);
-
-    closeAddTeacher();
-    alert("เพิ่มข้อมูลครูสำเร็จ (mock)");
+function closeEditTeacher() {
+    editTeacherModal.classList.add("hidden");
 }
 
 </script>

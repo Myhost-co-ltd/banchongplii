@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Role;
+use App\Models\Course;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class StudentController extends Controller
 {
@@ -15,17 +17,26 @@ class StudentController extends Controller
     public function index()
     {
         $students = Student::orderByDesc('created_at')->get();
+        $courses = Course::where('user_id', Auth::id())
+            ->latest()
+            ->get();
 
         $teacherRoleId = Role::where('name', 'teacher')->value('id');
         $teacherCount = $teacherRoleId
             ? User::where('role_id', $teacherRoleId)->count()
             : 0;
 
+        $attendanceToday = Student::whereDate('created_at', today())->count();
+
         return view('dashboard', [
             'students' => $students,
             'studentCount' => $students->count(),
+            'courses' => $courses,
+            'courseCount' => $courses->count(),
             'teacherCount' => $teacherCount,
-            'newToday' => Student::whereDate('created_at', today())->count(),
+            'attendanceToday' => $attendanceToday,
+            // newToday kept for backward compatibility
+            'newToday' => $attendanceToday,
         ]);
     }
 

@@ -7,28 +7,33 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 font-sans">
+<body class="min-h-screen flex items-center justify-center bg-[#cfd3db] font-sans">
+    @php($logo = asset('images/school-logo.png'))
 
     <!-- กล่องฟอร์ม -->
-    <div class="bg-white shadow-2xl rounded-2xl p-8 w-[90%] max-w-sm flex flex-col items-center border border-gray-100">
+    <div class="bg-white shadow-xl rounded-2xl p-8 w-[90%] max-w-md flex flex-col items-center border border-gray-300">
 
         <!-- โลโก้ -->
         <div class="flex flex-col items-center mb-6">
-            <h1 class="text-lg font-semibold text-red-500 mt-2">โรงเรียนบ้านช่องพลี</h1>
+            <div class="w-32 h-32 overflow-hidden flex items-center justify-center mb-3">
+                <img src="{{ $logo }}"
+                     alt="ตราโรงเรียน"
+                     class="w-full h-full object-contain"
+                     onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                <div class="hidden text-blue-700 text-sm font-semibold text-center leading-tight">
+                    โรงเรียนบ้านช่องพลี
+                </div>
+            </div>
+            <h1 class="text-2xl font-semibold text-orange-700">โรงเรียนบ้านช่องพลี</h1>
         </div>
 
-        <!-- หัวข้อ -->
-        <h2 class="text-2xl font-bold text-gray-800 mb-1 text-center">ยินดีต้อนรับ!</h2>
-        <p class="text-gray-500 text-sm mb-6 text-center">กรุณาเข้าสู่ระบบเพื่อใช้งานระบบ</p>
-
         <!-- ฟอร์ม -->
-        <form method="POST" action="{{ route('login.submit') }}" class="w-full space-y-4">
+        <form method="POST" action="{{ route('login.submit') }}" class="w-full space-y-3">
             @csrf
 
-            <!-- แสดง error ถ้ามี -->
             @if ($errors->any())
-              <div class="bg-red-100 text-red-700 text-sm p-2 rounded">
-                <ul class="list-disc ml-5">
+              <div class="bg-red-100 text-red-700 text-sm p-2 rounded border border-red-200">
+                <ul class="list-disc ml-5 space-y-1">
                   @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                   @endforeach
@@ -39,34 +44,43 @@
             <!-- อีเมล -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">อีเมล</label>
-                <input type="email" name="email" placeholder="กรอกอีเมล"
-                    value="{{ old('email') }}"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required>
+                <div class="flex items-center border border-gray-300 rounded">
+                    <span class="px-3 text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                    </span>
+                    <input type="email" name="email" placeholder="Username / Email"
+                        value="{{ old('email') }}"
+                        class="w-full border-0 focus:ring-0 text-sm py-2 pr-3"
+                        required>
+                </div>
             </div>
 
             <!-- รหัสผ่าน -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่าน</label>
-                <input type="password" name="password" placeholder="กรอกรหัสผ่าน"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required>
+                <div class="flex items-center border border-gray-300 rounded">
+                    <span class="px-3 text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 11c1.657 0 3-1.567 3-3.5S13.657 4 12 4s-3 1.567-3 3.5S10.343 11 12 11zM5.5 20a6.5 6.5 0 1113 0H5.5z" />
+                        </svg>
+                    </span>
+                    <input type="password" name="password" placeholder="Password"
+                        class="w-full border-0 focus:ring-0 text-sm py-2 pr-3"
+                        required>
+                </div>
             </div>
 
-            <!-- ปุ่มเข้าสู่ระบบ -->
-            <button type="submit"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg shadow-md transition duration-200">
-                เข้าสู่ระบบ
-            </button>
+            <!-- ปุ่ม -->
+            <div class="flex items-center justify-between pt-2">
+                <button type="submit"
+                    class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded shadow flex items-center gap-2">
+                    <span>➜</span>
+                    <span>เข้าสู่ระบบ</span>
+                </button>
+            </div>
         </form>
-
-        
-         {{-- <p class="text-gray-400 text-sm mt-6 text-center">
-            ยังไม่มีบัญชีผู้ใช้ใช่ไหม?
-            <a href="{{ route('register') }}" class="text-blue-600 font-medium hover:underline">
-                ลงทะเบียนที่นี่
-            </a>
-        </p>  --}}
 
     </div>
 </body>

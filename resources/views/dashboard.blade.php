@@ -14,43 +14,26 @@
     </div>
 
     <!-- Stats -->
-    @php
-        $studentCount = 40;
-        $courseCount  = 4;
-        $attendanceToday = 38;
-    @endphp
-
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
         <div class="p-6 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-2xl text-center shadow-sm">
             <h3 class="text-sm text-gray-600 mb-1">จำนวนนักเรียนในห้อง</h3>
-            <p class="text-4xl font-bold text-blue-700">{{ $studentCount }}</p>
+            <p class="text-4xl font-bold text-blue-700">{{ number_format($studentCount ?? 0) }}</p>
         </div>
 
         <div class="p-6 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-2xl text-center shadow-sm">
-            <h3 class="text-sm text-gray-600 mb-1">หลักสูตรที่สร้างแล้ว</h3>
-            <p class="text-4xl font-bold text-green-700">{{ $courseCount }}</p>
+            <h3 class="text-sm text-gray-600 mb-1">หลักสูตรที่รับผิดชอบ</h3>
+            <p class="text-4xl font-bold text-green-700">{{ number_format($courseCount ?? 0) }}</p>
         </div>
 
-        <div class="p-6 bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 rounded-2xl text-center shadow-sm">
+        {{-- <div class="p-6 bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 rounded-2xl text-center shadow-sm">
             <h3 class="text-sm text-gray-600 mb-1">มาเรียนวันนี้</h3>
-            <p class="text-4xl font-bold text-yellow-700">{{ $attendanceToday }}</p>
-        </div>
-
+            <p class="text-4xl font-bold text-yellow-700">{{ number_format($attendanceToday ?? 0) }}</p>
+        </div> --}}
     </div>
 
     <!-- Course List -->
     <div class="bg-white rounded-3xl shadow-md p-8 border border-gray-100">
         <h3 class="text-xl font-semibold text-gray-800 mb-4">หลักสูตรที่รับผิดชอบ</h3>
-
-        @php
-            $courses = [
-                ['name' => 'คณิตศาสตร์พื้นฐาน ป.1', 'room'=>'ป1/1'],
-                ['name' => 'วิทยาศาสตร์ ป.1', 'room'=>'ป1/1'],
-                ['name' => 'ภาษาไทย ป.1', 'room'=>'ป1/1'],
-                ['name' => 'สังคมศึกษา ป.1', 'room'=>'ป1/1'],
-            ];
-        @endphp
 
         <table class="min-w-full border border-gray-200 rounded-xl overflow-hidden text-sm">
             <thead class="bg-blue-600 text-white">
@@ -61,16 +44,30 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
-                @foreach ($courses as $c)
+                @forelse ($courses ?? [] as $course)
+                @php($roomsText = collect($course->rooms ?? [])->filter()->join(', '))
                 <tr class="hover:bg-blue-50">
-                    <td class="py-2 px-4">{{ $c['name'] }}</td>
-                    <td class="py-2 px-4 text-center">{{ $c['room'] }}</td>
+                    <td class="py-2 px-4">{{ $course->name }}</td>
+                    <td class="py-2 px-4 text-center">{{ $roomsText !== '' ? $roomsText : '-' }}</td>
                     <td class="py-2 px-4 text-center">
-                        <button class="text-yellow-600 hover:underline">แก้ไข</button> |
-                        <button class="text-red-600 hover:underline">ลบ</button>
+                        <a href="{{ route('teacher.courses.edit', $course) }}" class="text-yellow-600 hover:underline">แก้ไข</a>
+                        <span class="mx-1 text-gray-300">|</span>
+                        <form action="{{ route('teacher.courses.destroy', $course) }}" method="POST" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-600 hover:underline" onclick="return confirm('ต้องการลบหลักสูตรนี้หรือไม่?')">
+                                ลบ
+                            </button>
+                        </form>
                     </td>
                 </tr>
-                @endforeach
+                @empty
+                <tr>
+                    <td colspan="3" class="py-4 px-4 text-center text-gray-500">
+                        ยังไม่มีหลักสูตรที่คุณรับผิดชอบ
+                    </td>
+                </tr>
+                @endforelse
             </tbody>
         </table>
     </div>

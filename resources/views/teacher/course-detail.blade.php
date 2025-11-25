@@ -159,32 +159,6 @@
                     <p class="text-sm text-gray-500">
                         ตรวจสอบการใช้ชั่วโมงสอนแยกตามหมวดหมู่ ตามเกณฑ์ชั่วโมงสูงสุดของหลักสูตรในภาคเรียนนี้
                     </p>
-                    <div class="text-sm mt-2">
-                        <span class="inline-flex items-center px-2 py-1 rounded-lg bg-blue-50 text-blue-700">
-                            รวมภาคเรียนนี้: {{ number_format($lessonUsedTotal ?? 0, 1) }} / {{ number_format($lessonAllowedTotal ?? 0, 1) }} ชั่วโมง
-                        </span>
-                        <span class="inline-flex items-center px-2 py-1 rounded-lg bg-green-50 text-green-700 ml-2">
-                            เหลือให้จัดสรร: {{ number_format($lessonRemainingTotal ?? 0, 1) }} ชั่วโมง
-                        </span>
-                        @if(($lessonRemainingTotal ?? 0) <= 0)
-                            <div class="text-red-600 text-xs mt-1">
-                                ชั่วโมงรวมครบแล้ว หากต้องการเพิ่มให้แก้ไขจำนวนชั่วโมงสอนหรือปรับบทเรียนเดิม
-                            </div>
-                        @endif
-                    </div>
-                </div>
-
-                <div class="text-sm mb-4">
-                    <span class="inline-flex items-center px-2 py-1 rounded-lg bg-green-50 text-green-700 ml-2">
-                        ชั่วโมงสอนที่ยังเหลือให้จัดสรร: {{ number_format($lessonRemainingTotal ?? 0, 1) }} ชั่วโมง
-                    </span>
-
-                    @if(($lessonRemainingTotal ?? 0) <= 0)
-                        <div class="text-red-600 text-xs mt-1">
-                            ชั่วโมงสอนในภาคเรียนนี้เต็มจำนวนแล้ว หากต้องการเพิ่มชั่วโมงสอน
-                            กรุณาปรับชั่วโมงในหมวดอื่นหรือแก้ไขโครงสร้างชั่วโมงของหลักสูตร
-                        </div>
-                    @endif
                 </div>
 
                 <div class="space-y-4">
@@ -202,19 +176,6 @@
                         <p class="text-gray-500 text-sm text-center">
                             ยังไม่มีการตั้งค่าจำนวนชั่วโมงสอนแยกตามหมวดหมู่สำหรับหลักสูตรนี้ในภาคเรียนที่เลือก
                         </p>
-                        <div class="text-sm mt-2 text-center">
-                            <span class="inline-flex items-center px-2 py-1 rounded-lg bg-blue-50 text-blue-700">
-                                รวมภาคเรียนนี้: {{ number_format($lessonUsedTotal ?? 0, 1) }} / {{ number_format($lessonAllowedTotal ?? 0, 1) }} ชั่วโมง
-                            </span>
-                            <span class="inline-flex items-center px-2 py-1 rounded-lg bg-green-50 text-green-700 ml-2">
-                                เหลือให้จัดสรร: {{ number_format($lessonRemainingTotal ?? 0, 1) }} ชั่วโมง
-                            </span>
-                            @if(($lessonRemainingTotal ?? 0) <= 0)
-                                <div class="text-red-600 text-xs mt-1">
-                                    ชั่วโมงรวมครบแล้ว หากต้องการเพิ่มให้แก้ไขชั่วโมงสอนหรือปรับบทเรียนเดิม
-                                </div>
-                            @endif
-                        </div>
                     @endforelse
                 </div>
             </section>
@@ -227,19 +188,6 @@
                         <p class="text-sm text-gray-500">
                             จัดการบทเรียนแต่ละหัวข้อ พร้อมกำหนดหมวดหมู่และจำนวนชั่วโมงที่ใช้ในแต่ละภาคเรียน
                         </p>
-                        <div class="text-sm mt-2">
-                            <span class="inline-flex items-center px-2 py-1 rounded-lg bg-blue-50 text-blue-700">
-                                รวมภาคเรียนนี้: {{ number_format($lessonUsedTotal ?? 0, 1) }} / {{ number_format($lessonAllowedTotal ?? 0, 1) }} ชั่วโมง
-                            </span>
-                            <span class="inline-flex items-center px-2 py-1 rounded-lg bg-green-50 text-green-700 ml-2">
-                                เหลือให้จัดสรร: {{ number_format($lessonRemainingTotal ?? 0, 1) }} ชั่วโมง
-                            </span>
-                            @if(($lessonRemainingTotal ?? 0) <= 0)
-                                <div class="text-red-600 text-xs mt-1">
-                                    ชั่วโมงรวมครบแล้ว หากต้องการเพิ่มให้แก้ไขชั่วโมงสอนหรือปรับบทเรียนเดิม
-                                </div>
-                            @endif
-                        </div>
                     </div>
                     <button type="button"
                             class="px-4 py-2 bg-blue-600 text-white rounded-xl"
@@ -320,19 +268,6 @@
                         <p class="text-gray-500 text-sm text-center">
                             ยังไม่มีบทเรียนสำหรับหลักสูตรนี้ในภาคเรียนที่เลือก
                         </p>
-                        <div class="text-sm mt-2 text-center">
-                            <span class="inline-flex items-center px-2 py-1 rounded-lg bg-blue-50 text-blue-700">
-                                รวมภาคเรียนนี้: {{ number_format($lessonUsedTotal ?? 0, 1) }} / {{ number_format($lessonAllowedTotal ?? 0, 1) }} ชั่วโมง
-                            </span>
-                            <span class="inline-flex items-center px-2 py-1 rounded-lg bg-green-50 text-green-700 ml-2">
-                                เหลือให้จัดสรร: {{ number_format($lessonRemainingTotal ?? 0, 1) }} ชั่วโมง
-                            </span>
-                            @if(($lessonRemainingTotal ?? 0) <= 0)
-                                <div class="text-red-600 text-xs mt-1">
-                                    ชั่วโมงรวมครบแล้ว หากต้องการเพิ่มให้แก้ไขชั่วโมงสอนหรือปรับบทเรียนเดิม
-                                </div>
-                            @endif
-                        </div>
                     @endforelse
                 </div>
 
@@ -346,7 +281,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <select name="category" id="lessonCategory"
                                     class="border rounded-xl px-3 py-2" required>
-                                <option value="">เลือกหมวดหมู่ (เช่น เนื้อหาหลัก / ทบทวน / กิจกรรม)</option>
+                                <option value="">เลือกหมวดหมู่</option>
                                 @foreach(($lessonCapacity ?? []) as $category => $summary)
                                     <option value="{{ $category }}">{{ $category }}</option>
                                 @endforeach

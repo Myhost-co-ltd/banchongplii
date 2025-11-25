@@ -19,5 +19,7 @@ class Student extends Model
         'title',
         'first_name',
         'last_name',
+        'gender',
+        'room',
     ];
 }

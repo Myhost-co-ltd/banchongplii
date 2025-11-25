@@ -4,269 +4,283 @@
 
 @section('content')
 
-<h1 class="text-3xl font-bold text-gray-800 mb-6">จัดการข้อมูลนักเรียน</h1>
+<h1 class="text-3xl font-extrabold text-gray-900 mb-8 tracking-tight">
+    จัดการข้อมูลนักเรียน
+</h1>
 
-<div class="flex justify-between items-center mb-6">
+{{-- SUCCESS --}}
+@if (session('status'))
+    <div class="mb-4 rounded-xl bg-green-50 text-green-700 border border-green-200 px-4 py-3 text-sm shadow-sm">
+        {{ session('status') }}
+    </div>
+@endif
+
+{{-- ERROR --}}
+@if ($errors->any())
+    <div class="mb-4 rounded-xl bg-red-50 text-red-700 border border-red-200 px-4 py-3 text-sm shadow-sm">
+        <ul class="list-disc pl-5 space-y-1">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+{{-- TOP ACTION BAR --}}
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
 
     <div class="flex gap-3">
-        <button onclick="openRoomSelector()"
-            class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-5 rounded-xl shadow">
-            เพิ่มนักเรียน
+        <button onclick="openAddStudentModal()"
+            class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-5 rounded-xl shadow-md font-medium">
+            + เพิ่มนักเรียน
         </button>
 
-        <button onclick="openImportModal()"
-            class="bg-green-600 hover:bg-green-700 text-white py-2 px-5 rounded-xl shadow">
-            Import Excel
-        </button>
+        <form id="importForm" action="{{ route('admin.students.import') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <label class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2 px-5 rounded-xl shadow-md cursor-pointer font-medium">
+                Import CSV
+                <input type="file" name="file" accept=".csv,text/csv" class="hidden" onchange="document.getElementById('importForm').submit()">
+            </label>
+        </form>
     </div>
 
-    <div class="bg-white border-2 border-blue-600 rounded-xl p-3 shadow-sm">
-        <input type="text" id="searchInput"
-            onkeyup="searchStudent()"
-            placeholder="ค้นหาชื่อ หรือ รหัสนักเรียน..."
-            class="input w-72 border-0 focus:ring-0">
+    <div class="flex flex-col gap-2">
+        <div class="bg-white border border-gray-300 rounded-xl px-4 py-2 shadow-sm flex items-center gap-3">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-4.35-4.35M16.65 16.65A7.5 7.5 0 1016.65 2a7.5 7.5 0 000 14.65z" />
+            </svg>
+            <input type="text" id="searchInput"
+                   onkeyup="searchStudent()"
+                   placeholder="ค้นหาชื่อ / รหัสนักเรียน..."
+                   class="w-72 border-none focus:ring-0 placeholder-gray-400 text-gray-700">
+        </div>
+
+        <p class="text-xs text-gray-500">
+            * ไฟล์นำเข้าควรเป็น CSV: student_code, first_name, last_name, gender, room
+        </p>
     </div>
+
 </div>
 
-<div class="mb-6">
-    <label class="font-semibold text-black">เลือกห้องเรียน:</label>
-    <select id="roomFilter" onchange="filterRoom()" class="input w-48 ml-3">
+{{-- FILTER --}}
+<div class="mb-6 flex items-center gap-3">
+    <label class="font-semibold text-gray-700">เลือกห้องเรียน:</label>
+    <select id="roomFilter" onchange="filterRoom()"
+            class="border border-gray-300 rounded-xl px-3 py-2 shadow-sm w-48">
         <option value="all">ทั้งหมด</option>
-        <option value="ป1/1">ป.1/1</option>
-        <option value="ป1/2">ป.1/2</option>
-        <option value="ป1/3">ป.1/3</option>
+        @foreach(($rooms ?? []) as $room)
+            <option value="{{ $room }}">{{ $room }}</option>
+        @endforeach
     </select>
 </div>
 
-<div class="bg-white p-6 rounded-2xl shadow-md overflow-x-auto">
-    
-    <div class="max-h-[50vh] overflow-y-auto relative">
+{{-- TABLE CARD --}}
+<div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+
+    <div class="max-h-[55vh] overflow-y-auto relative rounded-xl">
         <table class="w-full border-collapse">
-            <thead>
-            <tr class="bg-blue-600 text-white sticky top-0">
-                <th class="p-3">#</th>
-                <th class="p-3">รหัส</th>
-                <th class="p-3">ชื่อ</th>
-                <th class="p-3">นามสกุล</th>
-                <th class="p-3">เพศ</th>
-                <th class="p-3">ห้อง</th>
+
+            {{-- HEADER --}}
+            <thead class="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-sm">
+            <tr class="text-sm uppercase tracking-wide">
+                <th class="p-3 text-left">#</th>
+                <th class="p-3 text-left">รหัส</th>
+                <th class="p-3 text-left">ชื่อ</th>
+                <th class="p-3 text-left">นามสกุล</th>
+                <th class="p-3 text-left">เพศ</th>
+                <th class="p-3 text-left">ห้อง</th>
                 <th class="p-3 text-center">จัดการ</th>
             </tr>
             </thead>
 
-            <tbody id="studentTable">
+            {{-- BODY --}}
+            <tbody id="studentTable" class="text-gray-700">
 
-            @php
-                $rooms = ['ป1/1', 'ป1/2', 'ป1/3'];
-                $firstNames = ['กิตติ','อนันต์','ศิริชัย','นภัสกร','สุรเดช','ธีรภัทร','ชญาน์ทิพย์','กมลชนก','ธนพร'];
-                $lastNames = ['บุญมี','ใจดี','แก้วดี','ทองดี','เพ็งดี','พรมมา','แก้วดวงดี','หมื่นไทย'];
-                $genders = ['ชาย','หญิง'];
-            @endphp
+            @forelse (($students ?? []) as $index => $student)
+                @php($fullName = trim(($student->title ? $student->title . ' ' : '') . $student->first_name . ' ' . $student->last_name))
 
-            @for ($i=1;$i<=60;$i++)
-                @php
-                    $room = $rooms[array_rand($rooms)];
-                    $fname = $firstNames[array_rand($firstNames)];
-                    $lname = $lastNames[array_rand($lastNames)];
-                    $gender = $genders[array_rand($genders)];
-                    $code = 11000 + $i;
-                @endphp
+                <tr class="border-b hover:bg-gray-50 transition student-row"
+                    data-room="{{ $student->room ?? '' }}"
+                    data-name="{{ mb_strtolower($fullName) }}"
+                    data-code="{{ $student->student_code }}">
 
-                <tr class="border-b student-row"
-                    data-room="{{ $room }}"
-                    data-name="{{ strtolower($fname.' '.$lname) }}"
-                    data-code="{{ $code }}">
-                    <td class="p-3 text-center">{{ $i }}</td>
-                    <td class="p-3 text-center font-semibold">{{ $code }}</td>
-                    <td class="p-3">{{ $fname }}</td>
-                    <td class="p-3">{{ $lname }}</td>
-                    <td class="p-3 text-center">{{ $gender }}</td>
-                    <td class="p-3 text-center text-blue-600 font-semibold">{{ $room }}</td>
+                    <td class="p-3">{{ $index + 1 }}</td>
+                    <td class="p-3 font-semibold text-blue-700">{{ $student->student_code }}</td>
+                    <td class="p-3">{{ $student->first_name }}</td>
+                    <td class="p-3">{{ $student->last_name }}</td>
+                    <td class="p-3">{{ $student->gender ?? 'ไม่ระบุ' }}</td>
+                    <td class="p-3 text-blue-600 font-semibold">{{ $student->room ?? '-' }}</td>
 
-                    <td class="p-3 text-center">
-                        <button onclick="alert('แก้ไข (Mock)')" class="text-yellow-600 font-semibold">แก้ไข</button> |
-                        <button onclick="alert('ลบ (Mock)')" class="text-red-600 font-semibold">ลบ</button>
+                    <td class="p-3 text-center text-gray-400">
+                        <button type="button"
+                                class="text-yellow-600 font-semibold hover:underline"
+                                onclick="openEditStudentModal(this)"
+                                data-id="{{ $student->id }}"
+                                data-code="{{ $student->student_code }}"
+                                data-title="{{ $student->title }}"
+                                data-first="{{ $student->first_name }}"
+                                data-last="{{ $student->last_name }}"
+                                data-gender="{{ $student->gender }}"
+                                data-room="{{ $student->room }}">
+                            แก้ไข
+                        </button>
+                        <span class="mx-1 text-gray-300">|</span>
+                        <form action="{{ route('admin.students.destroy', $student) }}" method="POST" class="inline"
+                              onsubmit="return confirm('ต้องการลบนักเรียนคนนี้หรือไม่?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-600 font-semibold hover:underline">ลบ</button>
+                        </form>
                     </td>
                 </tr>
-            @endfor
+
+            @empty
+                <tr>
+                    <td colspan="7" class="p-4 text-center text-gray-400">ยังไม่มีข้อมูลนักเรียน</td>
+                </tr>
+            @endforelse
 
             </tbody>
         </table>
     </div>
+
 </div>
 
-@endsection
-
-
-{{-- ===================================================================== --}}
-{{-- POPUP #1 เลือกห้อง --}}
-{{-- ===================================================================== --}}
-<div id="roomSelectorModal"
-     class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-
-    <div class="bg-white rounded-2xl w-[90%] max-w-md p-6 shadow-xl relative">
-
-        <button onclick="closeRoomSelector()"
-            class="absolute top-3 right-3 text-gray-500 text-xl">&times;</button>
-
-        <h2 class="text-xl font-bold text-black mb-4">เลือกห้องเรียน</h2>
-
-        <label class="font-semibold text-black">ชั้นเรียน</label>
-        <select id="gradeSelect" onchange="updateRooms()" class="input w-full mb-4">
-            <option value="">-- เลือกชั้น --</option>
-            @for ($g = 1; $g <= 6; $g++)
-                <option value="ป{{$g}}">ป.{{$g}}</option>
-            @endfor
-        </select>
-
-        <label class="font-semibold text-black">ห้อง</label>
-        <select id="roomSelect" class="input w-full mb-4" disabled>
-            <option value="">-- เลือกห้อง --</option>
-        </select>
-
-        <label class="font-semibold text-black">ประเภทห้อง</label>
-        <select id="roomType" class="input w-full mb-6" disabled>
-            <option value="">-- เลือกประเภท --</option>
-            <option value="normal">ห้องธรรมดา</option>
-            <option value="special">ห้องพิเศษ</option>
-        </select>
-
-        <button onclick="goToAddStudent()"
-            class="bg-black hover:bg-gray-900 text-white w-full py-2 rounded-xl">
-            ต่อไป ➜
-        </button>
-    </div>
-</div>
-
-
-{{-- ===================================================================== --}}
-{{-- POPUP #2 Import Excel --}}
-{{-- ===================================================================== --}}
-<div id="importModal"
-     class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-
-    <div class="bg-white rounded-2xl w-[90%] max-w-md p-6 shadow-xl relative">
-        <button onclick="closeImportModal()"
-            class="absolute top-3 right-3 text-gray-500 text-xl">&times;</button>
-
-        <h2 class="text-xl font-bold text-black mb-4">นำเข้ารายชื่อนักเรียน (Excel)</h2>
-        
-        <input type="file" class="input w-full mb-4">
-
-        <button onclick="alert('Import Excel (Mock)')"
-            class="bg-black hover:bg-gray-900 w-full text-white py-2 rounded-xl">
-            อัปโหลดไฟล์
-        </button>
-    </div>
-</div>
-
-
-{{-- ===================================================================== --}}
-{{-- POPUP #3 เพิ่มนักเรียน --}}
-{{-- ===================================================================== --}}
+{{-- MODALS --}}
 <div id="addStudentModal"
      class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-
     <div class="bg-white rounded-2xl w-[90%] max-w-md p-6 shadow-xl relative">
-
         <button onclick="closeAddStudentModal()"
-            class="absolute top-3 right-3 text-gray-500 text-xl">&times;</button>
+                class="absolute top-3 right-3 text-gray-500 text-xl">&times;</button>
 
-        <h2 class="text-xl font-bold text-black mb-4">
-            เพิ่มนักเรียน (ห้อง: <span id="selectedRoomText" class="text-black"></span>)
-        </h2>
+        <h2 class="text-xl font-bold text-gray-900 mb-4">เพิ่มนักเรียน</h2>
 
-        <div class="mb-4">
-            <label class="font-semibold">ชื่อนักเรียน</label>
-            <input type="text" id="newFirstName" class="input w-full" placeholder="ชื่อจริง">
-        </div>
-
-        <div class="mb-4">
-            <label class="font-semibold">นามสกุล</label>
-            <input type="text" id="newLastName" class="input w-full" placeholder="นามสกุล">
-        </div>
-
-        {{-- ปุ่มย้อนกลับ --}}
-        <button onclick="backToRoomSelector()"
-            class="bg-gray-300 hover:bg-gray-400 text-black w-full py-2 rounded-xl mb-3">
-            ← ย้อนกลับ
-        </button>
-
-        <button onclick="addStudent()"
-            class="bg-black hover:bg-gray-900 text-white w-full py-2 rounded-xl">
-             เพิ่มนักเรียน
-        </button>
+        <form id="addStudentForm" action="{{ route('admin.students.store') }}" method="POST" class="space-y-4">
+            @csrf
+            <div>
+                <label class="font-semibold text-gray-800">รหัสนักเรียน</label>
+                <input type="text" name="student_code" class="input w-full" placeholder="เช่น 11001" required>
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+                <div>
+                    <label class="font-semibold text-gray-800">คำนำหน้า</label>
+                    <input type="text" name="title" class="input w-full" placeholder="ด.ช. / ด.ญ. / นาย / นางสาว">
+                </div>
+                <div class="col-span-2">
+                    <label class="font-semibold text-gray-800">ชื่อ</label>
+                    <input type="text" name="first_name" class="input w-full" required>
+                </div>
+            </div>
+            <div>
+                <label class="font-semibold text-gray-800">นามสกุล</label>
+                <input type="text" name="last_name" class="input w-full" required>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="font-semibold text-gray-800">เพศ</label>
+                    <select name="gender" class="input w-full">
+                        <option value="">ไม่ระบุ</option>
+                        <option value="ชาย">ชาย</option>
+                        <option value="หญิง">หญิง</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="font-semibold text-gray-800">ห้อง</label>
+                    <input type="text" name="room" class="input w-full" placeholder="เช่น ป1/1">
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" onclick="closeAddStudentModal()"
+                        class="flex-1 bg-gray-300 hover:bg-gray-400 text-black py-2 rounded-xl">
+                    ยกเลิก
+                </button>
+                <button type="submit"
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl">
+                    บันทึก
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
+<div id="editStudentModal"
+     class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl w-[90%] max-w-md p-6 shadow-xl relative">
+        <button onclick="closeEditStudentModal()"
+                class="absolute top-3 right-3 text-gray-500 text-xl">&times;</button>
 
-{{-- ===================================================================== --}}
-{{-- SCRIPT --}}
-{{-- ===================================================================== --}}
+        <h2 class="text-xl font-bold text-gray-900 mb-4">แก้ไขข้อมูลนักเรียน</h2>
+
+        <form id="editStudentForm" method="POST" class="space-y-4">
+            @csrf
+            @method('PUT')
+            <div>
+                <label class="font-semibold text-gray-800">รหัสนักเรียน</label>
+                <input type="text" name="student_code" class="input w-full" required>
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+                <div>
+                    <label class="font-semibold text-gray-800">คำนำหน้า</label>
+                    <input type="text" name="title" class="input w-full" placeholder="ด.ช. / ด.ญ. / นาย / นางสาว">
+                </div>
+                <div class="col-span-2">
+                    <label class="font-semibold text-gray-800">ชื่อ</label>
+                    <input type="text" name="first_name" class="input w-full" required>
+                </div>
+            </div>
+            <div>
+                <label class="font-semibold text-gray-800">นามสกุล</label>
+                <input type="text" name="last_name" class="input w-full" required>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="font-semibold text-gray-800">เพศ</label>
+                    <select name="gender" class="input w-full">
+                        <option value="">ไม่ระบุ</option>
+                        <option value="ชาย">ชาย</option>
+                        <option value="หญิง">หญิง</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="font-semibold text-gray-800">ห้อง</label>
+                    <input type="text" name="room" class="input w-full" placeholder="เช่น ป1/1">
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" onclick="closeEditStudentModal()"
+                        class="flex-1 bg-gray-300 hover:bg-gray-400 text-black py-2 rounded-xl">
+                    ยกเลิก
+                </button>
+                <button type="submit"
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl">
+                    บันทึกการแก้ไข
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@push('scripts')
 <script>
-
 function searchStudent() {
-    let input = document.getElementById("searchInput").value.toLowerCase();
+    const input = document.getElementById("searchInput").value.toLowerCase();
     document.querySelectorAll(".student-row").forEach(row => {
-        let name = row.dataset.name;
-        let code = row.dataset.code;
+        const name = row.dataset.name || '';
+        const code = row.dataset.code || '';
         row.style.display = (name.includes(input) || code.includes(input)) ? "" : "none";
     });
 }
 
 function filterRoom() {
-    let selected = document.getElementById("roomFilter").value;
+    const selected = document.getElementById("roomFilter").value;
     document.querySelectorAll(".student-row").forEach(row => {
-        let roomData = row.dataset.room.split(' ')[0]; 
+        const roomData = (row.dataset.room || '').split(' ')[0];
         row.style.display = (selected === "all" || roomData === selected) ? "" : "none";
     });
 }
 
-function updateRooms() {
-    let grade = document.getElementById("gradeSelect").value;
-    let roomSelect = document.getElementById("roomSelect");
-    let roomType = document.getElementById("roomType");
-
-    roomSelect.innerHTML = `<option value="">-- เลือกห้อง --</option>`;
-    roomSelect.disabled = true;
-    roomType.disabled = true;
-
-    if (!grade) return;
-
-    for (let i = 1; i <= 3; i++) {
-        roomSelect.innerHTML += `<option value="${grade}/${i}">${grade}/${i}</option>`;
-    }
-
-    roomSelect.disabled = false;
-    roomSelect.onchange = () => {
-        roomType.disabled = roomSelect.value === "";
-    };
-}
-
-function openRoomSelector() {
-    document.getElementById("roomSelectorModal").classList.remove("hidden");
-}
-
-function closeRoomSelector() {
-    document.getElementById("roomSelectorModal").classList.add("hidden");
-}
-
-function goToAddStudent() {
-    let grade = document.getElementById("gradeSelect").value;
-    let room = document.getElementById("roomSelect").value;
-    let type = document.getElementById("roomType").value;
-
-    if (!grade || !room || !type) {
-        alert("กรุณาเลือกชั้น ห้อง และประเภทห้องให้ครบ");
-        return;
-    }
-
-    let typeText = type === "normal" ? "ธรรมดา" : "พิเศษ";
-    let fullRoomName = room + " (" + typeText + ")";
-
-    closeRoomSelector();
-
-    document.getElementById("selectedRoomText").innerText = fullRoomName;
+function openAddStudentModal() {
     document.getElementById("addStudentModal").classList.remove("hidden");
 }
 
@@ -274,62 +288,26 @@ function closeAddStudentModal() {
     document.getElementById("addStudentModal").classList.add("hidden");
 }
 
-function backToRoomSelector() {
-    document.getElementById("addStudentModal").classList.add("hidden");
-    document.getElementById("roomSelectorModal").classList.remove("hidden");
+const editForm = document.getElementById('editStudentForm');
+const editModal = document.getElementById('editStudentModal');
+const updateUrlTemplate = "{{ url('/admin/students/__ID__') }}";
+
+function openEditStudentModal(button) {
+    const ds = button.dataset;
+    editForm.action = updateUrlTemplate.replace('__ID__', ds.id);
+    editForm.student_code.value = ds.code || '';
+    editForm.title.value = ds.title || '';
+    editForm.first_name.value = ds.first || '';
+    editForm.last_name.value = ds.last || '';
+    editForm.gender.value = ds.gender || '';
+    editForm.room.value = ds.room || '';
+    editModal.classList.remove('hidden');
 }
 
-function addStudent() {
-
-    let fname = document.getElementById("newFirstName").value.trim();
-    let lname = document.getElementById("newLastName").value.trim();
-    let room = document.getElementById("selectedRoomText").innerText;
-
-    if (!fname || !lname) {
-        alert("กรุณากรอกข้อมูลให้ครบ");
-        return;
-    }
-
-    let table = document.getElementById("studentTable");
-    let newCode = Math.floor(10000 + Math.random() * 89999);
-    let gender = Math.random() < 0.5 ? 'ชาย' : 'หญิง'; 
-
-    let newRow = `
-        <tr class="border-b student-row"
-            data-room="${room}"
-            data-name="${(fname + ' ' + lname).toLowerCase()}"
-            data-code="${newCode}">
-            <td class="p-3 text-center">ใหม่</td>
-            <td class="p-3 text-center font-semibold">${newCode}</td>
-            <td class="p-3">${fname}</td>
-            <td class="p-3">${lname}</td>
-            <td class="p-3 text-center">${gender}</td>
-            <td class="p-3 text-center text-blue-600 font-semibold">${room}</td>
-
-            <td class="p-3 text-center">
-                <button onclick="alert('แก้ไข (Mock)')" class="text-yellow-600 font-semibold">แก้ไข</button> |
-                <button onclick="this.parentNode.parentNode.remove()" class="text-red-600 font-semibold">ลบ</button>
-            </td>
-        </tr>
-    `;
-
-    table.insertAdjacentHTML('afterbegin', newRow);
-
-    closeAddStudentModal();
-    document.getElementById("newFirstName").value = "";
-    document.getElementById("newLastName").value = "";
-
-    alert("เพิ่มนักเรียนเรียบร้อย (Mock)");
+function closeEditStudentModal() {
+    editModal.classList.add('hidden');
 }
-
-function openImportModal() {
-    document.getElementById("importModal").classList.remove("hidden");
-}
-
-function closeImportModal() {
-    document.getElementById("importModal").classList.add("hidden");
-}
-
 </script>
+@endpush
 
-
+@endsection

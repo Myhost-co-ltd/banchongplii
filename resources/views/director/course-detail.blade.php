@@ -7,6 +7,7 @@
     $hours = collect($course->teaching_hours ?? []);
     $lessons = collect($course->lessons ?? []);
     $assignments = collect($course->assignments ?? []);
+    $tz = config('app.timezone', 'Asia/Bangkok');
 
     $hoursByTerm = $hours->groupBy(fn ($item) => $item['term'] ?? $course->term ?? '-');
     $lessonsByTerm = $lessons->groupBy(fn ($item) => $item['term'] ?? $course->term ?? '-');
@@ -139,6 +140,11 @@
                                 @if (! empty($item['details'] ?? null))
                                     <p class="text-sm text-gray-500">{{ $item['details'] }}</p>
                                 @endif
+                                @if (! empty($item['created_at'] ?? null))
+                                    <p class="text-xs text-gray-400 mt-1">
+                                        เพิ่มเมื่อ: {{ \Illuminate\Support\Carbon::parse($item['created_at'])->timezone($tz)->locale('th')->isoFormat('D MMM YYYY HH:mm') }}
+                                    </p>
+                                @endif
                             </div>
                         @endforeach
                     </div>
@@ -172,6 +178,11 @@
                                 </p>
                                 @if (! empty($item['notes'] ?? null))
                                     <p class="text-sm text-gray-500">{{ $item['notes'] }}</p>
+                                @endif
+                                @if (! empty($item['created_at'] ?? null))
+                                    <p class="text-xs text-gray-400 mt-1">
+                                        เพิ่มเมื่อ: {{ \Illuminate\Support\Carbon::parse($item['created_at'])->timezone($tz)->locale('th')->isoFormat('D MMM YYYY HH:mm') }}
+                                    </p>
                                 @endif
                             </div>
                         @endforeach
