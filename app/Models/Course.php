@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class Course extends Model
 {
@@ -32,5 +35,118 @@ class Course extends Model
     public function teacher()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function (Course $course): void {
+            if ($course->wasChanged('teaching_hours')) {
+                $course->syncTeachingHoursTable();
+            }
+
+            if ($course->wasChanged('lessons')) {
+                $course->syncLessonsTable();
+            }
+
+            if ($course->wasChanged('assignments')) {
+                $course->syncAssignmentsTable();
+            }
+        });
+    }
+
+    public function syncTeachingHoursTable(): void
+    {
+        $rows = $this->mapCourseArrayToRows(
+            $this->teaching_hours ?? [],
+            [
+                'term'     => fn ($item) => $item['term'] ?? $this->term,
+                'category' => fn ($item) => $item['category'] ?? null,
+                'hours'    => fn ($item) => isset($item['hours']) ? (float) $item['hours'] : null,
+                'unit'     => fn ($item) => $item['unit'] ?? null,
+                'note'     => fn ($item) => $item['note'] ?? null,
+            ]
+        );
+
+        DB::transaction(function () use ($rows): void {
+            DB::table('course_teaching_hours')
+                ->where('course_id', $this->id)
+                ->delete();
+
+            if ($rows->isNotEmpty()) {
+                DB::table('course_teaching_hours')->insert($rows->all());
+            }
+        });
+    }
+
+    public function syncLessonsTable(): void
+    {
+        $rows = $this->mapCourseArrayToRows(
+            $this->lessons ?? [],
+            [
+                'term'     => fn ($item) => $item['term'] ?? $this->term,
+                'category' => fn ($item) => $item['category'] ?? null,
+                'title'    => fn ($item) => $item['title'] ?? '',
+                'hours'    => fn ($item) => isset($item['hours']) ? (float) $item['hours'] : null,
+                'period'   => fn ($item) => $item['period'] ?? null,
+                'details'  => fn ($item) => $item['details'] ?? null,
+            ]
+        );
+
+        DB::transaction(function () use ($rows): void {
+            DB::table('course_lessons')
+                ->where('course_id', $this->id)
+                ->delete();
+
+            if ($rows->isNotEmpty()) {
+                DB::table('course_lessons')->insert($rows->all());
+            }
+        });
+    }
+
+    public function syncAssignmentsTable(): void
+    {
+        $rows = $this->mapCourseArrayToRows(
+            $this->assignments ?? [],
+            [
+                'term'     => fn ($item) => $item['term'] ?? $this->term,
+                'title'    => fn ($item) => $item['title'] ?? '',
+                'due_date' => fn ($item) => $item['due_date'] ?? null,
+                'score'    => fn ($item) => isset($item['score']) ? (float) $item['score'] : null,
+                'notes'    => fn ($item) => $item['notes'] ?? null,
+            ]
+        );
+
+        DB::transaction(function () use ($rows): void {
+            DB::table('course_assignments')
+                ->where('course_id', $this->id)
+                ->delete();
+
+            if ($rows->isNotEmpty()) {
+                DB::table('course_assignments')->insert($rows->all());
+            }
+        });
+    }
+
+    private function mapCourseArrayToRows(array $items, array $fieldMapping): Collection
+    {
+        $now = now();
+        $courseId = $this->id;
+
+        return collect($items)->map(function ($item) use ($fieldMapping, $courseId, $now) {
+            $id = $item['id'] ?? (string) Str::uuid();
+
+            $base = [
+                'id'         => $id,
+                'course_id'  => $courseId,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+
+            foreach ($fieldMapping as $field => $resolver) {
+                $base[$field] = $resolver($item);
+            }
+
+            return $base;
+        });
     }
 }
