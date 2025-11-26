@@ -18,7 +18,7 @@ class StudentController extends Controller
     {
         $user = Auth::user();
 
-        // เตรียม filter นักเรียนตามห้องของครูประจำชั้น
+        // เตรียม filter นักเรียนตามห้องของครู (ห้องประจำชั้นหรือห้องจากหลักสูตร)
         $homeroomRooms = collect();
         if ($user && $user->hasRole('teacher')) {
             $homeroomRooms = collect(preg_split('/[,;]/', (string) $user->homeroom))
@@ -27,9 +27,21 @@ class StudentController extends Controller
                 ->values();
         }
 
+        $courses = Course::where('user_id', Auth::id())
+            ->latest()
+            ->get();
+
+        $courseRooms = $courses
+            ->flatMap(fn ($course) => collect($course->rooms ?? []))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $assignedRooms = $homeroomRooms->isNotEmpty() ? $homeroomRooms : $courseRooms;
+
         $studentQuery = Student::query();
-        if ($homeroomRooms->isNotEmpty()) {
-            $studentQuery->whereIn('room', $homeroomRooms);
+        if ($assignedRooms->isNotEmpty()) {
+            $studentQuery->whereIn('room', $assignedRooms);
         } elseif ($user && $user->hasRole('teacher')) {
             // ครูไม่มีการตั้งค่าห้อง → ไม่ต้องแสดงใคร
             $studentQuery->whereRaw('1 = 0');
@@ -38,10 +50,6 @@ class StudentController extends Controller
         $students = $studentQuery
             ->orderBy('room')
             ->orderBy('student_code')
-            ->get();
-
-        $courses = Course::where('user_id', Auth::id())
-            ->latest()
             ->get();
 
         $teacherRoleId = Role::where('name', 'teacher')->value('id');
@@ -59,6 +67,7 @@ class StudentController extends Controller
             'teacherCount' => $teacherCount,
             'attendanceToday' => $attendanceToday,
             'homeroomRooms' => $homeroomRooms,
+            'assignedRooms' => $assignedRooms,
             // newToday kept for backward compatibility
             'newToday' => $attendanceToday,
         ]);

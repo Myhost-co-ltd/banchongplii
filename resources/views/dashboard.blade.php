@@ -45,7 +45,9 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @forelse ($courses ?? [] as $course)
-                @php($roomsText = collect($course->rooms ?? [])->filter()->join(', '))
+                @php
+                    $roomsText = collect($course->rooms ?? [])->filter()->join(', ');
+                @endphp
                 <tr class="hover:bg-blue-50">
                     <td class="py-2 px-4">{{ $course->name }}</td>
                     <td class="py-2 px-4 text-center">{{ $roomsText !== '' ? $roomsText : '-' }}</td>
@@ -78,45 +80,60 @@
             <h3 class="text-xl font-semibold text-gray-800" data-i18n-th="ห้องที่รับผิดชอบ" data-i18n-en="Homeroom students">ห้องที่รับผิดชอบ</h3>
             <div class="text-sm text-gray-500">
                 <span data-i18n-th="ห้อง:" data-i18n-en="Room:">ห้อง:</span>
-                @php($roomTags = ($homeroomRooms ?? collect())->filter())
+                @php
+                    $roomTags = ($assignedRooms ?? collect())->filter();
+                @endphp
                 @if($roomTags->isNotEmpty())
                     <span class="font-semibold text-blue-700">{{ $roomTags->join(', ') }}</span>
                 @else
-                    <span class="text-gray-400" data-i18n-th="ยังไม่กำหนดห้องประจำชั้น" data-i18n-en="Homeroom not set">ยังไม่กำหนดห้องประจำชั้น</span>
+                    <span class="text-gray-400" data-i18n-th="ยังไม่กำหนดห้อง" data-i18n-en="No room assigned">ยังไม่กำหนดห้อง</span>
                 @endif
             </div>
         </div>
 
-        <table class="min-w-full border border-gray-200 rounded-xl overflow-hidden text-sm">
-            <thead class="bg-blue-600 text-white">
-                <tr>
-                    <th class="py-3 px-4 text-left" data-i18n-th="รหัส" data-i18n-en="Code">รหัส</th>
-                    <th class="py-3 px-4 text-left" data-i18n-th="ชื่อ" data-i18n-en="First Name">ชื่อ</th>
-                    <th class="py-3 px-4 text-left" data-i18n-th="นามสกุล" data-i18n-en="Last Name">นามสกุล</th>
-                    <th class="py-3 px-4 text-center" data-i18n-th="ห้อง" data-i18n-en="Room">ห้อง</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                @forelse ($students ?? [] as $student)
-                <tr class="hover:bg-blue-50">
-                    <td class="py-2 px-4 font-semibold text-blue-700">{{ $student->student_code }}</td>
-                    <td class="py-2 px-4">{{ $student->first_name }}</td>
-                    <td class="py-2 px-4">{{ $student->last_name }}</td>
-                    <td class="py-2 px-4 text-center">{{ $student->room ?? '-' }}</td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="4" class="py-4 px-4 text-center text-gray-500">
-                        @if(($homeroomRooms ?? collect())->isEmpty())
-                            <span data-i18n-th="โปรดกำหนดห้องประจำชั้นในโปรไฟล์ครู เพื่อแสดงรายชื่อนักเรียน" data-i18n-en="Please set your homeroom in profile to show students">โปรดกำหนดห้องประจำชั้นในโปรไฟล์ครู เพื่อแสดงรายชื่อนักเรียน</span>
-                        @else
-                            <span data-i18n-th="ยังไม่มีนักเรียนในห้องของคุณ" data-i18n-en="No students in your classroom yet">ยังไม่มีนักเรียนในห้องของคุณ</span>
-                        @endif
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
+        @php
+            $studentsByRoom = collect($students ?? [])->groupBy(fn($s) => $s->room ?? '-');
+            $roomLoop = ($assignedRooms ?? collect())->isNotEmpty() ? $assignedRooms : $studentsByRoom->keys();
+        @endphp
+
+
+        @forelse($roomLoop as $room)
+            <div class="mb-6">
+                <h4 class="text-md font-semibold text-blue-700 mb-2">ห้อง {{ $room }}</h4>
+                <table class="min-w-full border border-gray-200 rounded-xl overflow-hidden text-sm">
+                    <thead class="bg-blue-600 text-white">
+                        <tr>
+                            <th class="py-3 px-4 text-left" data-i18n-th="รหัส" data-i18n-en="Code">รหัส</th>
+                            <th class="py-3 px-4 text-left" data-i18n-th="ชื่อ" data-i18n-en="First Name">ชื่อ</th>
+                            <th class="py-3 px-4 text-left" data-i18n-th="นามสกุล" data-i18n-en="Last Name">นามสกุล</th>
+                            <th class="py-3 px-4 text-center" data-i18n-th="ห้อง" data-i18n-en="Room">ห้อง</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @forelse($studentsByRoom->get($room, collect()) as $student)
+                            <tr class="hover:bg-blue-50">
+                                <td class="py-2 px-4 font-semibold text-blue-700">{{ $student->student_code }}</td>
+                                <td class="py-2 px-4">{{ $student->first_name }}</td>
+                                <td class="py-2 px-4">{{ $student->last_name }}</td>
+                                <td class="py-2 px-4 text-center">{{ $student->room ?? '-' }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="py-3 px-4 text-center text-gray-400">ยังไม่มีนักเรียนในห้องนี้</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        @empty
+            <div class="text-center text-gray-500 py-6">
+                @if(($assignedRooms ?? collect())->isEmpty())
+                    <span data-i18n-th="โปรดกำหนดห้องในโปรไฟล์ครู หรือเพิ่มห้องในหลักสูตร เพื่อแสดงรายชื่อนักเรียน" data-i18n-en="Please set room in profile or courses to show students">โปรดกำหนดห้องในโปรไฟล์ครู หรือเพิ่มห้องในหลักสูตร เพื่อแสดงรายชื่อนักเรียน</span>
+                @else
+                    <span data-i18n-th="ยังไม่มีนักเรียนในห้องของคุณ" data-i18n-en="No students in your classroom yet">ยังไม่มีนักเรียนในห้องของคุณ</span>
+                @endif
+            </div>
+        @endforelse
     </div>
 
    
@@ -138,34 +155,36 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    const scoreChartEl = document.getElementById('scoreChart');
-    if (scoreChartEl) {
-        const ctx = scoreChartEl.getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['คณิต', 'วิทย์', 'ภาษาไทย', 'สังคม'],
-                datasets: [{
-                    label: 'คะแนนเฉลี่ย',
-                    data: [78, 82, 75, 88],
-                    backgroundColor: ['#60a5fa', '#34d399', '#fbbf24', '#a78bfa'],
-                    borderRadius: 8,
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: false },
+    document.addEventListener('DOMContentLoaded', () => {
+        const scoreChartEl = document.getElementById('scoreChart');
+        if (scoreChartEl) {
+            const ctx = scoreChartEl.getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['คณิต', 'วิทย์', 'ภาษาไทย', 'สังคม'],
+                    datasets: [{
+                        label: 'คะแนนเฉลี่ย',
+                        data: [78, 82, 75, 88],
+                        backgroundColor: ['#60a5fa', '#34d399', '#fbbf24', '#a78bfa'],
+                        borderRadius: 8,
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
                     }
                 }
-            }
-        });
-    }
+            });
+        }
+    });
 </script>
 
 @endsection

@@ -126,29 +126,26 @@ class TeacherCourseController extends Controller
         ]);
     }
 
-    public function export(Request $request, Course $course)
-    {
-        $this->authorizeCourse($course);
+   public function export(Request $request, Course $course)
+{
+    $this->authorizeCourse($course);
 
-        $selectedTerm = $this->resolveTerm($course, $request->input('term'));
-        $payload = $this->buildCoursePayload($course, $selectedTerm);
+    $selectedTerm = $this->resolveTerm($course, $request->input('term'));
+    $payload = $this->buildCoursePayload($course, $selectedTerm);
 
-        $pdf = Pdf::setOptions([
-                'isRemoteEnabled' => true,
-                'fontDir' => storage_path('fonts'),
-                'fontCache' => storage_path('fonts'),
-                'defaultFont' => 'LeelawUI',
-            ])
-            ->loadView('teacher.course-detail-pdf', array_merge($payload, [
+    $pdf = Pdf::setOptions([
+            'isRemoteEnabled' => true,
+            'defaultFont' => 'Sarabun',
+        ])
+        ->loadView('teacher.course-detail-pdf', array_merge($payload, [
             'course' => $course,
             'selectedTerm' => $selectedTerm,
             'teacher' => $request->user(),
         ]));
 
-        $fileName = sprintf('course-%s-term-%s.pdf', $course->id, $selectedTerm);
+    return $pdf->download('course-'.$course->id.'-term-'.$selectedTerm.'.pdf');
+}
 
-        return $pdf->download($fileName);
-    }
 
     public function edit(Course $course)
     {

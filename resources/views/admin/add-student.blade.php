@@ -108,16 +108,28 @@
 </div>
 
 {{-- FILTER --}}
-<div class="mb-6 flex items-center gap-3">
-            <label class="font-semibold text-gray-700" data-i18n-th="เลือกห้องเรียน:" data-i18n-en="Select classroom:">เลือกห้องเรียน:</label>
-            <select id="roomFilter" onchange="filterRoom()"
-                    class="border border-gray-300 rounded-xl px-3 py-2 shadow-sm w-48">
-                <option value="all" data-i18n-th="ทั้งหมด" data-i18n-en="All">ทั้งหมด</option>
-                @foreach(($rooms ?? []) as $room)
-                    <option value="{{ $room }}">{{ $room }}</option>
-                @endforeach
-            </select>
-        </div>
+<div class="mb-6 flex flex-col md:flex-row md:items-center gap-3">
+    <div class="flex items-center gap-2">
+        <label class="font-semibold text-gray-700">เลือกชั้น:</label>
+        <select id="gradeFilter"
+                class="border border-gray-300 rounded-xl px-3 py-2 shadow-sm w-40">
+            <option value="all">ทั้งหมด</option>
+            @foreach($gradeOptions as $grade)
+                <option value="{{ $grade }}">{{ $grade }}</option>
+            @endforeach
+        </select>
+    </div>
+    <div class="flex items-center gap-2">
+        <label class="font-semibold text-gray-700" data-i18n-th="เลือกห้องเรียน:" data-i18n-en="Select classroom:">เลือกห้องเรียน:</label>
+        <select id="roomFilter" onchange="filterRoom()"
+                class="border border-gray-300 rounded-xl px-3 py-2 shadow-sm w-48">
+            <option value="all" data-i18n-th="ทั้งหมด" data-i18n-en="All">ทั้งหมด</option>
+            @foreach(($rooms ?? []) as $room)
+                <option value="{{ $room }}">{{ $room }}</option>
+            @endforeach
+        </select>
+    </div>
+</div>
 
 {{-- TABLE CARD --}}
 <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
@@ -143,8 +155,9 @@
             @forelse (($students ?? []) as $index => $student)
                 @php($fullName = trim(($student->title ? $student->title . ' ' : '') . $student->first_name . ' ' . $student->last_name))
 
-                <tr class="border-b hover:bg-gray-50 transition student-row"
-                    data-room="{{ $student->room ?? '' }}"
+            <tr class="border-b hover:bg-gray-50 transition student-row"
+                data-room="{{ $student->room ?? '' }}"
+                data-grade="{{ $normalizeGrade(trim(preg_split('/\\s*\\/\\s*/', $student->room ?? '', 2)[0] ?? '')) }}"
                     data-name="{{ mb_strtolower($fullName) }}"
                     data-code="{{ $student->student_code }}">
 
@@ -325,6 +338,7 @@
 @push('scripts')
 <script>
 const roomsByGrade = @json($roomsByGrade);
+const allRooms = @json($rooms ?? []);
 
 function searchStudent() {
     const input = document.getElementById("searchInput").value.toLowerCase();
@@ -336,10 +350,19 @@ function searchStudent() {
 }
 
 function filterRoom() {
-    const selected = document.getElementById("roomFilter").value;
+    const gradeSelect = document.getElementById("gradeFilter");
+    const roomSelect = document.getElementById("roomFilter");
+    const selectedGrade = gradeSelect ? normalizeGrade(gradeSelect.value) : 'all';
+    const selectedRoom = roomSelect ? roomSelect.value : 'all';
+
     document.querySelectorAll(".student-row").forEach(row => {
-        const roomData = (row.dataset.room || '').split(' ')[0];
-        row.style.display = (selected === "all" || roomData === selected) ? "" : "none";
+        const rowRoom = (row.dataset.room || '').trim();
+        const rowGrade = normalizeGrade(row.dataset.grade || getGradeFromRoom(rowRoom));
+
+        const gradeMatch = (selectedGrade === 'all') || (rowGrade === selectedGrade);
+        const roomMatch = (selectedRoom === 'all') || (rowRoom === selectedRoom);
+
+        row.style.display = (gradeMatch && roomMatch) ? "" : "none";
     });
 }
 
@@ -367,6 +390,21 @@ function getGradeFromRoom(room) {
     if (!room) return '';
     const parts = room.split('/');
     return normalizeGrade((parts[0] || '').trim());
+}
+
+function updateRoomFilterOptions(grade) {
+    const roomSelect = document.getElementById("roomFilter");
+    if (!roomSelect) return;
+
+    const normalizedGrade = normalizeGrade(grade);
+    roomSelect.innerHTML = '';
+    roomSelect.add(new Option('ทั้งหมด', 'all', true, normalizedGrade === 'all'));
+
+    const rooms = normalizedGrade === 'all'
+        ? allRooms
+        : (roomsByGrade[normalizedGrade] || []);
+
+    rooms.forEach(room => roomSelect.add(new Option(room, room)));
 }
 
 function normalizeGrade(grade) {
@@ -438,6 +476,24 @@ addGradeSelect?.addEventListener('change', (event) => {
 editGradeSelect?.addEventListener('change', (event) => {
     renderRoomOptions(editRoomSelect, event.target.value, '');
 });
+
+// Filter grade -> rebuild room filter + filter rows
+const gradeFilter = document.getElementById('gradeFilter');
+const roomFilter = document.getElementById('roomFilter');
+
+if (gradeFilter) {
+    gradeFilter.addEventListener('change', (e) => {
+        updateRoomFilterOptions(e.target.value || 'all');
+        filterRoom();
+    });
+}
+
+if (roomFilter) {
+    roomFilter.addEventListener('change', filterRoom);
+}
+
+// initial sync
+updateRoomFilterOptions(gradeFilter ? gradeFilter.value : 'all');
 </script>
 @endpush
 

@@ -12,6 +12,7 @@ public function run()
     $this->call([
         RoleSeeder::class,
         UserSeeder::class,
+        StudentSeeder::class,
     ]);
 }
 
