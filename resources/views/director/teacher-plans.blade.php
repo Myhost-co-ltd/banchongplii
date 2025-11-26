@@ -112,7 +112,23 @@
                     <div class="space-y-2">
                         <div>
                             <p class="text-xs uppercase tracking-wide text-gray-500">หลักสูตร</p>
-                            <h3 class="text-xl font-semibold text-gray-900">{{ $course->name }}</h3>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-xl font-semibold text-gray-900">{{ $course->name }}</h3>
+                                @php
+                                    $hasHours = !empty($course->teaching_hours);
+                                    $hasAssignments = !empty($course->assignments);
+                                    $isComplete = $hasHours && $hasAssignments;
+                                @endphp
+                                @if($isComplete)
+                                    <span class="inline-flex items-center text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200" title="เพิ่มเนื้อหาและสั่งงานครบแล้ว">
+                                        ✅ ครบชั่วโมง/งาน
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200" title="ยังไม่ครบทั้งชั่วโมงสอนและงาน">
+                                        ⏳ รอตรวจสอบ
+                                    </span>
+                                @endif
+                            </div>
                         </div>
 
                         <p class="text-sm text-gray-600">
@@ -153,6 +169,9 @@
                                 <p class="text-sm text-gray-600">
                                     {{ $course->teacher->email }}
                                 </p>
+                            @endif
+                            @if ($isComplete)
+                                <p class="text-xs text-emerald-600">ครูคนนี้เพิ่มเนื้อหาครบชั่วโมงและสั่งงานครบแล้ว</p>
                             @endif
                         </div>
 

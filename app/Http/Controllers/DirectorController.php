@@ -15,9 +15,18 @@ class DirectorController extends Controller
         $studentCount = Student::count();
 
         $teacherRoleId = Role::where('name', 'teacher')->value('id');
-        $teacherCount = $teacherRoleId
-            ? User::where('role_id', $teacherRoleId)->count()
-            : 0;
+        $teacherQuery = $teacherRoleId
+            ? User::where('role_id', $teacherRoleId)
+            : User::query()->whereRaw('1 = 0');
+
+        $teacherCount = $teacherQuery->count();
+
+        $homeroomTeachers = $teacherQuery
+            ? User::query()
+                ->where('role_id', $teacherRoleId)
+                ->orderBy('name')
+                ->get(['id', 'name', 'email', 'major'])
+            : collect();
 
         $classCount = Course::query()
             ->select('rooms')
@@ -27,10 +36,83 @@ class DirectorController extends Controller
             ->unique()
             ->count();
 
+        $majorPresets = [
+            'คณิตศาสตร์',
+            'วิทยาศาสตร์',
+            'ภาษาไทย',
+            'ภาษาอังกฤษ',
+            'สังคมศึกษา',
+            'สุขศึกษา/พลศึกษา',
+            'ศิลปะ',
+            'ดนตรี',
+            'การงานอาชีพ',
+            'คอมพิวเตอร์',
+        ];
+
+        $allMajors = collect($majorPresets)
+            ->map(fn ($major) => trim($major))
+            ->merge(
+                $homeroomTeachers
+                    ->pluck('major')
+                    ->map(fn ($major) => trim((string) $major))
+                    ->filter()
+            )
+            ->unique()
+            ->values();
+
+        $teachersByMajor = $homeroomTeachers
+            ->filter(fn ($teacher) => $teacher->major)
+            ->groupBy(fn ($teacher) => trim($teacher->major));
+
+        $courses = Course::with('teacher:id,name,email')
+            ->latest()
+            ->get();
+
+        // รวมครูจากรายวิชา (course) เข้ามาใน mapping วิชาเอก ด้วยชื่อวิชาเป็นกุญแจ
+        foreach ($courses as $course) {
+            $majorKey = trim((string) $course->name);
+            if ($majorKey === '') {
+                continue;
+            }
+
+            $current = collect($teachersByMajor->get($majorKey, collect()));
+
+            if ($course->teacher) {
+                $current = $current
+                    ->push($course->teacher)
+                    ->unique('id')
+                    ->values();
+            }
+
+            // เก็บไว้แม้ยังไม่มีครู เพื่อให้วิชาเอกปรากฏครบตามชื่อรายวิชา
+            $teachersByMajor->put($majorKey, $current);
+        }
+
+        // อัปเดตวิชาเอกทั้งหมดให้รวมชื่อรายวิชาที่มีอยู่จริงด้วย
+        $allMajors = $allMajors
+            ->merge(
+                $courses
+                    ->pluck('name')
+                    ->map(fn ($name) => trim((string) $name))
+                    ->filter()
+            )
+            ->unique()
+            ->values();
+
+        $teacherWithMajorCount = $teachersByMajor
+            ->flatten(1)
+            ->unique('id')
+            ->count();
+
         return view('dashboards.director', [
             'studentCount' => $studentCount,
             'teacherCount' => $teacherCount,
             'classCount'   => $classCount,
+            'homeroomTeachers' => $homeroomTeachers,
+            'allMajors' => $allMajors,
+            'teachersByMajor' => $teachersByMajor,
+            'teacherWithMajorCount' => $teacherWithMajorCount,
+            'courses' => $courses,
         ]);
     }
 
@@ -85,7 +167,19 @@ class DirectorController extends Controller
                         ->orWhereHas('teacher', fn ($teacher) => $teacher->where('name', 'like', '%' . $search . '%'));
                 });
             })
-            ->select('id', 'user_id', 'name', 'grade', 'term', 'year', 'rooms', 'description')
+            // ต้องดึง teaching_hours และ assignments ด้วยเพื่อใช้คำนวณสถานะในหน้า view
+            ->select(
+                'id',
+                'user_id',
+                'name',
+                'grade',
+                'term',
+                'year',
+                'rooms',
+                'description',
+                'teaching_hours',
+                'assignments'
+            )
             ->orderBy('grade')
             ->orderBy('name')
             ->get();

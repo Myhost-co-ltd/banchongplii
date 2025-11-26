@@ -29,7 +29,7 @@ class AdminTeacherController extends Controller
             'last_name'  => 'required|string|max:100',
             'email'      => 'required|email|max:255|unique:users,email',
             'phone'      => 'nullable|string|max:30',
-            'homeroom'   => 'nullable|string|max:50',
+            'major'      => 'nullable|string|max:100',
         ]);
 
         $teacherRoleId = Role::firstOrCreate(['name' => 'teacher'])->id;
@@ -38,6 +38,7 @@ class AdminTeacherController extends Controller
             'name'     => trim($data['first_name'] . ' ' . $data['last_name']),
             'email'    => $data['email'],
             'phone'    => $data['phone'] ?? null,
+            'major'    => $data['major'] ?? null,
             'password' => Hash::make('12345678'),
             'role_id'  => $teacherRoleId,
             'homeroom' => $data['homeroom'] ?? null,
@@ -55,13 +56,14 @@ class AdminTeacherController extends Controller
             'last_name'  => 'required|string|max:100',
             'email'      => ['required','email','max:255',"unique:users,email,{$teacher->id}"],
             'phone'      => 'nullable|string|max:30',
-            'homeroom'   => 'nullable|string|max:50',
+            'major'      => 'nullable|string|max:100',
         ]);
 
         $teacher->update([
             'name'     => trim($data['first_name'] . ' ' . $data['last_name']),
             'email'    => $data['email'],
             'phone'    => $data['phone'] ?? null,
+            'major'    => $data['major'] ?? null,
             'homeroom' => $data['homeroom'] ?? null,
             'role_id'  => $teacherRoleId,
         ]);

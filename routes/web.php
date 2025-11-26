@@ -114,6 +114,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('teacher.courses.assignments.update');
     Route::delete('/teacher/courses/{course}/assignments/{assignment}', [TeacherCourseController::class, 'destroyAssignment'])
         ->name('teacher.courses.assignments.destroy');
+    Route::get('/teacher/courses/{course}/export', [TeacherCourseController::class, 'export'])
+        ->name('teacher.courses.export');
 
     // Select course page
     Route::get('/teacher/course/select', function () {
