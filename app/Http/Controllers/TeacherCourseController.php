@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -12,25 +14,45 @@ class TeacherCourseController extends Controller
 {
     public function index()
     {
+        $teacherMajor = Auth::user()->major ?? null;
+
         $courses = Course::where('user_id', Auth::id())
             ->latest()
             ->get();
 
         $adminCourseOptions = Course::query()
             ->select('id', 'name', 'grade', 'term', 'year')
+            ->when($teacherMajor, fn ($q) => $q->where('name', $teacherMajor))
             ->orderBy('name')
             ->get();
 
         return view('teacher.course-create', [
             'courses' => $courses,
             'adminCourseOptions' => $adminCourseOptions,
+            'teacherMajor' => $teacherMajor,
         ]);
     }
 
     public function store(Request $request)
     {
+        $teacherMajor = Auth::user()->major ?? null;
+        $adminCourseOptions = Course::query()
+            ->select('name')
+            ->when($teacherMajor, fn ($q) => $q->where('name', $teacherMajor))
+            ->orderBy('name')
+            ->pluck('name')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
         $validated = $request->validate([
-            'name'        => 'required|string|max:255',
+            'name'        => [
+                $teacherMajor ? 'nullable' : 'required',
+                'string',
+                'max:255',
+                $teacherMajor ? Rule::in($teacherMajor) : 'sometimes',
+            ],
             'grade'       => 'required|string|max:20',
             'rooms'       => 'required|array|min:1',
             'rooms.*'     => 'string|max:20',
@@ -39,9 +61,11 @@ class TeacherCourseController extends Controller
             'description' => 'nullable|string|max:5000',
         ]);
 
+        $courseName = $teacherMajor ?? $validated['name'];
+
         Course::create([
             'user_id'     => Auth::id(),
-            'name'        => $validated['name'],
+            'name'        => $courseName,
             'grade'       => $validated['grade'],
             'rooms'       => $validated['rooms'],
             'term'        => $validated['term'] ?? null,
@@ -73,10 +97,8 @@ class TeacherCourseController extends Controller
             ->latest()
             ->get();
 
-        // Pick the requested course (must belong to the user)
         $course = $courses->firstWhere('id', $courseId) ?? $courses->first();
 
-        // ถ้ายังไม่มีหลักสูตรเลย ให้พาไปสร้างก่อน
         if (! $course) {
             return redirect()
                 ->route('teacher.course-create')
@@ -85,58 +107,47 @@ class TeacherCourseController extends Controller
 
         $this->authorizeCourse($course);
 
-        $selectedTerm = request('term');
-        $selectedTerm = in_array($selectedTerm, ['1', '2'], true)
-            ? $selectedTerm
-            : (string) ($course->term ?? '1');
-
-        $hours = collect($course->teaching_hours ?? [])
-            ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $selectedTerm)
-            ->values();
-
-        $lessons = collect($course->lessons ?? [])
-            ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $selectedTerm)
-            ->values();
-
-        $assignments = collect($course->assignments ?? [])
-            ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $selectedTerm)
-            ->values();
-
-        $assignmentTotal = $assignments->sum(fn ($item) => $item['score'] ?? 0);
-        $assignmentRemaining = max(0, 70 - $assignmentTotal);
-
-        $lessonCapacity = [];
-        $hourTargets = $hours->groupBy('category')->map(fn ($group) => (float) $group->sum('hours'));
-        $lessonUsed = $lessons->groupBy('category')->map(fn ($group) => (float) $group->sum('hours'));
-
-        foreach ($hourTargets as $category => $allowedHours) {
-            $usedHours = $lessonUsed[$category] ?? 0.0;
-            $remaining = max(0, $allowedHours - $usedHours);
-            $lessonCapacity[$category] = [
-                'allowed'   => $allowedHours,
-                'used'      => $usedHours,
-                'remaining' => $remaining,
-            ];
-        }
-
-        $lessonAllowedTotal = (float) $hourTargets->sum();
-        $lessonUsedTotal = (float) $lessonUsed->sum();
-        $lessonRemainingTotal = max(0, $lessonAllowedTotal - $lessonUsedTotal);
+        $selectedTerm = $this->resolveTerm($course, request('term'));
+        $payload = $this->buildCoursePayload($course, $selectedTerm);
 
         return view('teacher.course-detail', [
             'course'        => $course,
             'courses'       => $courses,
             'selectedTerm'  => $selectedTerm,
-            'hours'         => $hours,
-            'lessons'       => $lessons,
-            'assignments'   => $assignments,
-            'lessonCapacity'=> $lessonCapacity,
-            'assignmentTotal' => $assignmentTotal,
-            'assignmentRemaining' => $assignmentRemaining,
-            'lessonAllowedTotal' => $lessonAllowedTotal,
-            'lessonUsedTotal' => $lessonUsedTotal,
-            'lessonRemainingTotal' => $lessonRemainingTotal,
+            'hours'         => $payload['hours'],
+            'lessons'       => $payload['lessons'],
+            'assignments'   => $payload['assignments'],
+            'lessonCapacity'=> $payload['lessonCapacity'],
+            'assignmentTotal' => $payload['assignmentTotal'],
+            'assignmentRemaining' => $payload['assignmentRemaining'],
+            'lessonAllowedTotal' => $payload['lessonAllowedTotal'],
+            'lessonUsedTotal' => $payload['lessonUsedTotal'],
+            'lessonRemainingTotal' => $payload['lessonRemainingTotal'],
         ]);
+    }
+
+    public function export(Request $request, Course $course)
+    {
+        $this->authorizeCourse($course);
+
+        $selectedTerm = $this->resolveTerm($course, $request->input('term'));
+        $payload = $this->buildCoursePayload($course, $selectedTerm);
+
+        $pdf = Pdf::setOptions([
+                'isRemoteEnabled' => true,
+                'fontDir' => storage_path('fonts'),
+                'fontCache' => storage_path('fonts'),
+                'defaultFont' => 'LeelawUI',
+            ])
+            ->loadView('teacher.course-detail-pdf', array_merge($payload, [
+            'course' => $course,
+            'selectedTerm' => $selectedTerm,
+            'teacher' => $request->user(),
+        ]));
+
+        $fileName = sprintf('course-%s-term-%s.pdf', $course->id, $selectedTerm);
+
+        return $pdf->download($fileName);
     }
 
     public function edit(Course $course)
@@ -190,6 +201,63 @@ class TeacherCourseController extends Controller
     protected function authorizeCourse(Course $course): void
     {
         abort_unless($course->user_id === Auth::id(), 403);
+    }
+
+    protected function resolveTerm(Course $course, $input): string
+    {
+        $selectedTerm = in_array((string) $input, ['1', '2'], true)
+            ? (string) $input
+            : (string) ($course->term ?? '1');
+
+        return $selectedTerm;
+    }
+
+    protected function buildCoursePayload(Course $course, string $selectedTerm): array
+    {
+        $hours = collect($course->teaching_hours ?? [])
+            ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $selectedTerm)
+            ->values();
+
+        $lessons = collect($course->lessons ?? [])
+            ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $selectedTerm)
+            ->values();
+
+        $assignments = collect($course->assignments ?? [])
+            ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $selectedTerm)
+            ->values();
+
+        $assignmentTotal = $assignments->sum(fn ($item) => $item['score'] ?? 0);
+        $assignmentRemaining = max(0, 70 - $assignmentTotal);
+
+        $lessonCapacity = [];
+        $hourTargets = $hours->groupBy('category')->map(fn ($group) => (float) $group->sum('hours'));
+        $lessonUsed = $lessons->groupBy('category')->map(fn ($group) => (float) $group->sum('hours'));
+
+        foreach ($hourTargets as $category => $allowedHours) {
+            $usedHours = $lessonUsed[$category] ?? 0.0;
+            $remaining = max(0, $allowedHours - $usedHours);
+            $lessonCapacity[$category] = [
+                'allowed'   => $allowedHours,
+                'used'      => $usedHours,
+                'remaining' => $remaining,
+            ];
+        }
+
+        $lessonAllowedTotal = (float) $hourTargets->sum();
+        $lessonUsedTotal = (float) $lessonUsed->sum();
+        $lessonRemainingTotal = max(0, $lessonAllowedTotal - $lessonUsedTotal);
+
+        return [
+            'hours' => $hours,
+            'lessons' => $lessons,
+            'assignments' => $assignments,
+            'assignmentTotal' => $assignmentTotal,
+            'assignmentRemaining' => $assignmentRemaining,
+            'lessonCapacity' => $lessonCapacity,
+            'lessonAllowedTotal' => $lessonAllowedTotal,
+            'lessonUsedTotal' => $lessonUsedTotal,
+            'lessonRemainingTotal' => $lessonRemainingTotal,
+        ];
     }
 
     public function storeTeachingHour(Request $request, Course $course)

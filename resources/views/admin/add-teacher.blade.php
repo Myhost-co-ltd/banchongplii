@@ -3,9 +3,23 @@
 @section('title', 'จัดการข้อมูลครู')
 
 @section('content')
-@php($tz = config('app.timezone', 'Asia/Bangkok'))
+@php
+    $tz = config('app.timezone', 'Asia/Bangkok');
+    $majorOptions = [
+        'คณิตศาสตร์',
+        'วิทยาศาสตร์',
+        'ภาษาไทย',
+        'ภาษาอังกฤษ',
+        'สังคมศึกษา',
+        'สุขศึกษา/พลศึกษา',
+        'ศิลปะ',
+        'ดนตรี',
+        'การงานอาชีพ',
+        'คอมพิวเตอร์',
+    ];
+@endphp
 
-<h1 class="text-3xl font-bold text-gray-800 mb-6">จัดการข้อมูลครู</h1>
+<h1 class="text-3xl font-bold text-gray-800 mb-6" data-i18n-th="จัดการข้อมูลครู" data-i18n-en="Manage Teachers">จัดการข้อมูลครู</h1>
 
 @if (session('status'))
     <div class="mb-4 rounded-xl bg-green-50 text-green-700 border border-green-200 px-4 py-3 text-sm shadow">
@@ -27,7 +41,8 @@
 
     <div class="flex gap-3">
         <button onclick="openAddTeacher()"
-            class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-5 rounded-xl shadow">
+            class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-5 rounded-xl shadow"
+            data-i18n-th="เพิ่มครู" data-i18n-en="Add Teacher">
             เพิ่มครู
         </button>
     </div>
@@ -36,15 +51,16 @@
         <input type="text" id="searchInput"
                 onkeyup="searchTeacher()"
                 placeholder="ค้นหาชื่อ / อีเมล / เบอร์โทร..."
+                data-i18n-placeholder-th="ค้นหาชื่อ / อีเมล / เบอร์โทร..." data-i18n-placeholder-en="Search name / email / phone..."
                 class="w-full border-0 outline-none">
     </div>
 </div>
 
 <div class="mb-6">
-    <label class="font-semibold text-gray-700">เลือกบทบาท:</label>
+    <label class="font-semibold text-gray-700" data-i18n-th="เลือกบทบาท:" data-i18n-en="Select role:">เลือกบทบาท:</label>
     <select id="roleFilter" onchange="filterRole()" class="input w-48 ml-3">
-        <option value="all">ทั้งหมด</option>
-        <option value="teacher">ครู</option>
+        <option value="all" data-i18n-th="ทั้งหมด" data-i18n-en="All">ทั้งหมด</option>
+        <option value="teacher" data-i18n-th="ครู" data-i18n-en="Teacher">ครู</option>
     </select>
 </div>
 
@@ -52,13 +68,13 @@
     <table class="w-full border-collapse">
         <thead>
         <tr class="bg-blue-600 text-white">
-            <th class="p-3">#</th>
-            <th class="p-3">ชื่อ</th>
-            <th class="p-3">อีเมล</th>
-            <th class="p-3">เบอร์โทร</th>
-            <th class="p-3">บทบาท</th>
-            <th class="p-3">ห้องเรียน</th>
-            <th class="p-3 text-center">จัดการ</th>
+            <th class="p-3" data-i18n-th="#" data-i18n-en="#">#</th>
+            <th class="p-3" data-i18n-th="ชื่อ" data-i18n-en="Name">ชื่อ</th>
+            <th class="p-3" data-i18n-th="อีเมล" data-i18n-en="Email">อีเมล</th>
+            <th class="p-3" data-i18n-th="เบอร์โทร" data-i18n-en="Phone">เบอร์โทร</th>
+            <th class="p-3" data-i18n-th="บทบาท" data-i18n-en="Role">บทบาท</th>
+            <th class="p-3" data-i18n-th="วิชาเอก" data-i18n-en="Major">วิชาเอก</th>
+            <th class="p-3 text-center" data-i18n-th="จัดการ" data-i18n-en="Actions">จัดการ</th>
         </tr>
         </thead>
 
@@ -75,8 +91,7 @@
                 data-role="{{ $teacher->role->name ?? 'teacher' }}"
                 data-email="{{ strtolower($teacher->email ?? '') }}"
                 data-phone="{{ $teacher->phone ?? '' }}"
-                data-classroom="{{ mb_strtolower($teacher->homeroom ?? '') }}"
-                data-homeroom="{{ $teacher->homeroom ?? '' }}"
+                data-major="{{ $teacher->major ?? '' }}"
                 data-first="{{ $firstName }}"
                 data-last="{{ $lastName }}"
                 data-id="{{ $teacher->id }}">
@@ -95,7 +110,7 @@
                 <td class="p-3 text-blue-600 font-semibold text-center">
                     {{ $teacher->role->name === 'teacher' ? 'ครู' : $teacher->role->name }}
                 </td>
-                <td class="p-3 text-center">{{ $teacher->homeroom ?? '-' }}</td>
+                <td class="p-3 text-center">{{ $teacher->major ?? '-' }}</td>
 
                 <td class="p-3 text-center">
                     <button type="button"
@@ -114,7 +129,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="7" class="p-4 text-center text-gray-500">ยังไม่มีข้อมูลครู</td>
+                <td colspan="6" class="p-4 text-center text-gray-500">ยังไม่มีข้อมูลครู</td>
             </tr>
         @endforelse
 
@@ -135,46 +150,45 @@
         <button onclick="closeAddTeacher()"
             class="absolute top-3 right-3 text-gray-500 text-xl">&times;</button>
 
-        <h2 class="text-xl font-bold text-gray-800 mb-4">เพิ่มข้อมูลครู</h2>
+        <h2 class="text-xl font-bold text-gray-800 mb-4" data-i18n-th="เพิ่มข้อมูลครู" data-i18n-en="Add Teacher">เพิ่มข้อมูลครู</h2>
 
         <form method="POST" action="{{ route('admin.teachers.store') }}" class="space-y-3">
             @csrf
             <div class="mb-3">
-                <label class="font-semibold">ชื่อ</label>
-                <input type="text" name="first_name" class="input w-full border border-gray-300 shadow-sm" placeholder="ชื่อจริง" required>
+                <label class="font-semibold" data-i18n-th="ชื่อ" data-i18n-en="First Name">ชื่อ</label>
+                <input type="text" name="first_name" class="input w-full border border-gray-300 shadow-sm" placeholder="ชื่อจริง" data-i18n-placeholder-th="ชื่อจริง" data-i18n-placeholder-en="First name" required>
             </div>
 
             <div class="mb-3">
-                <label class="font-semibold">นามสกุล</label>
-                <input type="text" name="last_name" class="input w-full border border-gray-300 shadow-sm" placeholder="นามสกุล" required>
+                <label class="font-semibold" data-i18n-th="นามสกุล" data-i18n-en="Last Name">นามสกุล</label>
+                <input type="text" name="last_name" class="input w-full border border-gray-300 shadow-sm" placeholder="นามสกุล" data-i18n-placeholder-th="นามสกุล" data-i18n-placeholder-en="Last name" required>
             </div>
 
             <div class="mb-3">
-                <label class="font-semibold">อีเมล</label>
-                <input type="email" name="email" class="input w-full border border-gray-300 shadow-sm" placeholder="example@mail.com" required>
+                <label class="font-semibold" data-i18n-th="อีเมล" data-i18n-en="Email">อีเมล</label>
+                <input type="email" name="email" class="input w-full border border-gray-300 shadow-sm" placeholder="example@mail.com" data-i18n-placeholder-th="example@mail.com" data-i18n-placeholder-en="example@mail.com" required>
             </div>
 
             <div class="mb-3">
-                <label class="font-semibold">เบอร์โทร</label>
-                <input type="text" name="phone" class="input w-full border border-gray-300 shadow-sm" placeholder="0812345678">
+                <label class="font-semibold" data-i18n-th="เบอร์โทร" data-i18n-en="Phone">เบอร์โทร</label>
+                <input type="text" name="phone" class="input w-full border border-gray-300 shadow-sm" placeholder="0812345678" data-i18n-placeholder-th="0812345678" data-i18n-placeholder-en="Phone number">
             </div>
 
             <div class="mb-3">
-                <label class="font-semibold">ห้องเรียนประจำชั้น</label>
-                <select name="homeroom" class="input w-full border border-gray-300 shadow-sm">
-                    <option value="">-- เลือกห้องเรียน --</option>
-                    @for ($c = 1; $c <= 6; $c++)
-                        @for ($r = 1; $r <= 3; $r++)
-                            <option value="ป.{{ $c }}/{{ $r }}">ป.{{ $c }}/{{ $r }}</option>
-                        @endfor
-                    @endfor
+                <label class="font-semibold" data-i18n-th="วิชาเอก" data-i18n-en="Major">วิชาเอก</label>
+                <select name="major" class="input w-full border border-gray-300 shadow-sm">
+                    <option value="" data-i18n-th="-- เลือกวิชาเอก --" data-i18n-en="-- Select major --">-- เลือกวิชาเอก --</option>
+                    @foreach($majorOptions as $major)
+                        <option value="{{ $major }}">{{ $major }}</option>
+                    @endforeach
                 </select>
             </div>
 
-            <p class="text-xs text-gray-500">รหัสผ่านเริ่มต้น: 12345678 (กรุณาให้ครูเปลี่ยนเองภายหลัง)</p>
+            <p class="text-xs text-gray-500" data-i18n-th="รหัสผ่านเริ่มต้น: 12345678 (กรุณาให้ครูเปลี่ยนเองภายหลัง)" data-i18n-en="Default password: 12345678 (please ask teacher to change later)">รหัสผ่านเริ่มต้น: 12345678 (กรุณาให้ครูเปลี่ยนเองภายหลัง)</p>
 
             <button type="submit"
-                class="bg-blue-600 hover:bg-blue-700 w-full text-white py-2 rounded-xl">
+                class="bg-blue-600 hover:bg-blue-700 w-full text-white py-2 rounded-xl"
+                data-i18n-th="เพิ่มข้อมูล" data-i18n-en="Add">
                  เพิ่มข้อมูล
             </button>
         </form>
@@ -192,45 +206,44 @@
         <button onclick="closeEditTeacher()"
             class="absolute top-3 right-3 text-gray-500 text-xl">&times;</button>
 
-        <h2 class="text-xl font-bold text-gray-800 mb-4">แก้ไขข้อมูลครู</h2>
+        <h2 class="text-xl font-bold text-gray-800 mb-4" data-i18n-th="แก้ไขข้อมูลครู" data-i18n-en="Edit Teacher">แก้ไขข้อมูลครู</h2>
 
         <form method="POST" id="editTeacherForm" class="space-y-3">
             @csrf
             @method('PUT')
             <div class="mb-3">
-                <label class="font-semibold">ชื่อ</label>
-                <input type="text" name="first_name" class="input w-full border border-gray-300 shadow-sm" placeholder="ชื่อจริง" required>
+                <label class="font-semibold" data-i18n-th="ชื่อ" data-i18n-en="First Name">ชื่อ</label>
+                <input type="text" name="first_name" class="input w-full border border-gray-300 shadow-sm" placeholder="ชื่อจริง" data-i18n-placeholder-th="ชื่อจริง" data-i18n-placeholder-en="First name" required>
             </div>
 
             <div class="mb-3">
-                <label class="font-semibold">นามสกุล</label>
-                <input type="text" name="last_name" class="input w-full border border-gray-300 shadow-sm" placeholder="นามสกุล" required>
+                <label class="font-semibold" data-i18n-th="นามสกุล" data-i18n-en="Last Name">นามสกุล</label>
+                <input type="text" name="last_name" class="input w-full border border-gray-300 shadow-sm" placeholder="นามสกุล" data-i18n-placeholder-th="นามสกุล" data-i18n-placeholder-en="Last name" required>
             </div>
 
             <div class="mb-3">
-                <label class="font-semibold">อีเมล</label>
-                <input type="email" name="email" class="input w-full border border-gray-300 shadow-sm" placeholder="example@mail.com" required>
+                <label class="font-semibold" data-i18n-th="อีเมล" data-i18n-en="Email">อีเมล</label>
+                <input type="email" name="email" class="input w-full border border-gray-300 shadow-sm" placeholder="example@mail.com" data-i18n-placeholder-th="example@mail.com" data-i18n-placeholder-en="example@mail.com" required>
             </div>
 
             <div class="mb-3">
-                <label class="font-semibold">เบอร์โทร</label>
-                <input type="text" name="phone" class="input w-full border border-gray-300 shadow-sm" placeholder="0812345678">
+                <label class="font-semibold" data-i18n-th="เบอร์โทร" data-i18n-en="Phone">เบอร์โทร</label>
+                <input type="text" name="phone" class="input w-full border border-gray-300 shadow-sm" placeholder="0812345678" data-i18n-placeholder-th="0812345678" data-i18n-placeholder-en="Phone number">
             </div>
 
             <div class="mb-3">
-                <label class="font-semibold">ห้องเรียนประจำชั้น</label>
-                <select name="homeroom" class="input w-full border border-gray-300 shadow-sm">
-                    <option value="">-- เลือกห้องเรียน --</option>
-                    @for ($c = 1; $c <= 6; $c++)
-                        @for ($r = 1; $r <= 3; $r++)
-                            <option value="ป.{{ $c }}/{{ $r }}">ป.{{ $c }}/{{ $r }}</option>
-                        @endfor
-                    @endfor
+                <label class="font-semibold" data-i18n-th="วิชาเอก" data-i18n-en="Major">วิชาเอก</label>
+                <select name="major" class="input w-full border border-gray-300 shadow-sm">
+                    <option value="" data-i18n-th="-- เลือกวิชาเอก --" data-i18n-en="-- Select major --">-- เลือกวิชาเอก --</option>
+                    @foreach($majorOptions as $major)
+                        <option value="{{ $major }}">{{ $major }}</option>
+                    @endforeach
                 </select>
             </div>
 
             <button type="submit"
-                class="bg-blue-600 hover:bg-blue-700 w-full text-white py-2 rounded-xl">
+                class="bg-blue-600 hover:bg-blue-700 w-full text-white py-2 rounded-xl"
+                data-i18n-th="บันทึกการแก้ไข" data-i18n-en="Save changes">
                  บันทึกการแก้ไข
             </button>
         </form>
@@ -291,7 +304,7 @@ function openEditTeacher(button) {
     editTeacherForm.last_name.value = ds.last || '';
     editTeacherForm.email.value = ds.email || '';
     editTeacherForm.phone.value = ds.phone || '';
-    editTeacherForm.homeroom.value = ds.homeroom || '';
+    if (editTeacherForm.major) editTeacherForm.major.value = ds.major || '';
     editTeacherModal.classList.remove('hidden');
 }
 

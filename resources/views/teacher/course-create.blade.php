@@ -33,20 +33,28 @@
             {{-- ชื่อหลักสูตร --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อหลักสูตร</label>
-                <select id="nameSelect"
-                        name="name"
-                        class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
-                    <option value="">-- เลือกหลักสูตร --</option>
-                    @foreach(($adminCourseOptions ?? collect()) as $adminCourse)
-                        <option value="{{ $adminCourse->name }}"
-                                data-grade="{{ $adminCourse->grade }}"
-                                data-term="{{ $adminCourse->term }}"
-                                data-year="{{ $adminCourse->year }}"
-                                @selected(old('name') === $adminCourse->name)>
-                            {{ $adminCourse->name }}
-                        </option>
-                    @endforeach
-                </select>
+                @if(!empty($teacherMajor))
+                    <input type="hidden" name="name" value="{{ $teacherMajor }}">
+                    <div class="w-full border rounded-lg px-3 py-2 bg-gray-50 text-gray-700">
+                        {{ $teacherMajor }}
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">วิชาเอกของคุณ: <span class="font-semibold text-blue-700">{{ $teacherMajor }}</span></p>
+                @else
+                    <select id="nameSelect"
+                            name="name"
+                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+                        <option value="">-- เลือกหลักสูตร --</option>
+                        @foreach(($adminCourseOptions ?? collect()) as $adminCourse)
+                            <option value="{{ $adminCourse->name }}"
+                                    data-grade="{{ $adminCourse->grade }}"
+                                    data-term="{{ $adminCourse->term }}"
+                                    data-year="{{ $adminCourse->year }}"
+                                    @selected(old('name') === $adminCourse->name)>
+                                {{ $adminCourse->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                @endif
             </div>
 
             {{-- ระดับชั้น --}}
@@ -64,7 +72,7 @@
             </div>
 
             {{-- ห้องเรียน --}}
-            <div>
+            <div data-room-section>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                     เลือกห้องเรียน (เลือกได้หลายห้อง)
                 </label>
@@ -176,6 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const nameSelect     = document.getElementById('nameSelect');
     const gradeSelect    = document.getElementById('gradeSelect');
     const roomContainer  = document.getElementById('roomCheckboxes');
+    const roomSection    = document.querySelector('[data-room-section]');
 
     const oldGrade = @json(old('grade'));
     const oldRooms = @json(old('rooms', []));
@@ -185,8 +194,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!grade) {
             roomContainer.innerHTML = '<p class="text-gray-400">-- เลือกระดับชั้นเรียนก่อน --</p>';
+            if (roomSection) roomSection.classList.add('opacity-60');
             return;
         }
+
+        if (roomSection) roomSection.classList.remove('opacity-60');
 
         for (let i = 1; i <= 10; i++) {
             const value = `${grade}/${i}`;
@@ -212,24 +224,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // เลือกชื่อหลักสูตรจาก admin แล้วเติมข้อมูลที่เกี่ยวข้อง
-    nameSelect.addEventListener('change', (event) => {
-        const option = event.target.selectedOptions[0];
-        if (!option) return;
+    if (nameSelect) {
+        nameSelect.addEventListener('change', (event) => {
+            const option = event.target.selectedOptions[0];
+            if (!option) return;
 
-        const grade = option.getAttribute('data-grade') || '';
-        const term  = option.getAttribute('data-term') || '';
-        const year  = option.getAttribute('data-year') || '';
+            const grade = option.getAttribute('data-grade') || '';
+            const term  = option.getAttribute('data-term') || '';
+            const year  = option.getAttribute('data-year') || '';
 
-        if (grade) {
-            gradeSelect.value = grade;
-            renderRoomOptions(grade, []);
-        }
-        if (year) {
-            const yearInput = document.querySelector('input[name=\"year\"]');
-            if (yearInput) yearInput.value = year;
-        }
-        // term ช่องถูกคอมเมนต์ไว้ ถ้าเปิดใช้งานอีกครั้งให้เติมค่าที่นี่
-    });
+            if (grade) {
+                gradeSelect.value = grade;
+                renderRoomOptions(grade, []);
+            }
+            if (year) {
+                const yearInput = document.querySelector('input[name=\"year\"]');
+                if (yearInput) yearInput.value = year;
+            }
+            // term ช่องถูกคอมเมนต์ไว้ ถ้าเปิดใช้งานอีกครั้งให้เติมค่าที่นี่
+        });
+    }
 
     // เวลาเปลี่ยนชั้นเรียน → สร้างห้องใหม่ให้เลือก
     gradeSelect.addEventListener('change', (event) => {

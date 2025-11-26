@@ -16,7 +16,30 @@ class StudentController extends Controller
      */
     public function index()
     {
-        $students = Student::orderByDesc('created_at')->get();
+        $user = Auth::user();
+
+        // เตรียม filter นักเรียนตามห้องของครูประจำชั้น
+        $homeroomRooms = collect();
+        if ($user && $user->hasRole('teacher')) {
+            $homeroomRooms = collect(preg_split('/[,;]/', (string) $user->homeroom))
+                ->map(fn ($room) => trim($room))
+                ->filter()
+                ->values();
+        }
+
+        $studentQuery = Student::query();
+        if ($homeroomRooms->isNotEmpty()) {
+            $studentQuery->whereIn('room', $homeroomRooms);
+        } elseif ($user && $user->hasRole('teacher')) {
+            // ครูไม่มีการตั้งค่าห้อง → ไม่ต้องแสดงใคร
+            $studentQuery->whereRaw('1 = 0');
+        }
+
+        $students = $studentQuery
+            ->orderBy('room')
+            ->orderBy('student_code')
+            ->get();
+
         $courses = Course::where('user_id', Auth::id())
             ->latest()
             ->get();
@@ -35,6 +58,7 @@ class StudentController extends Controller
             'courseCount' => $courses->count(),
             'teacherCount' => $teacherCount,
             'attendanceToday' => $attendanceToday,
+            'homeroomRooms' => $homeroomRooms,
             // newToday kept for backward compatibility
             'newToday' => $attendanceToday,
         ]);

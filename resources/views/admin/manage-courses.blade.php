@@ -47,7 +47,21 @@
                     <select id="presetCourseSelect"
                             class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500">
                         <option value="">-- เลือกวิชา --</option>
-                        @foreach(['คณิตศาสตร์พื้นฐาน','วิทยาศาสตร์','ภาษาไทย','ภาษาอังกฤษ','สังคมศึกษา','สุขศึกษาและพลศึกษา','ดนตรี','ศิลปะ','ประวัติศาสตร์'] as $preset)
+                        @php
+                            $majorOptions = [
+                                'คณิตศาสตร์',
+                                'วิทยาศาสตร์',
+                                'ภาษาไทย',
+                                'ภาษาอังกฤษ',
+                                'สังคมศึกษา',
+                                'สุขศึกษา/พลศึกษา',
+                                'ศิลปะ',
+                                'ดนตรี',
+                                'การงานอาชีพ',
+                                'คอมพิวเตอร์',
+                            ];
+                        @endphp
+                        @foreach($majorOptions as $preset)
                             <option value="{{ $preset }}">{{ $preset }}</option>
                         @endforeach
                     </select>
