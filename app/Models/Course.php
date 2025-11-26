@@ -17,6 +17,7 @@ class Course extends Model
         'name',
         'grade',
         'rooms',
+        'course_rooms',
         'term',
         'year',
         'description',
@@ -27,10 +28,17 @@ class Course extends Model
 
     protected $casts = [
         'rooms' => 'array',
+        'course_rooms' => 'array',
         'teaching_hours' => 'array',
         'lessons' => 'array',
         'assignments' => 'array',
     ];
+
+    /**
+     * Keep Unicode and slashes unescaped when storing JSON fields (rooms, etc.)
+     * so values stay readable like "ป.1/1" instead of "\u0e1b.1\/1".
+     */
+    protected $jsonEncodingOptions = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 
     public function teacher()
     {
@@ -39,6 +47,15 @@ class Course extends Model
 
     protected static function booted(): void
     {
+        static::saving(function (Course $course): void {
+            // Keep rooms and course_rooms in sync so both columns reflect the same array.
+            if (! is_null($course->rooms)) {
+                $course->course_rooms = $course->course_rooms ?? $course->rooms;
+            } elseif (! is_null($course->course_rooms)) {
+                $course->rooms = $course->course_rooms;
+            }
+        });
+
         static::saved(function (Course $course): void {
             if ($course->wasChanged('teaching_hours')) {
                 $course->syncTeachingHoursTable();
@@ -51,6 +68,10 @@ class Course extends Model
             if ($course->wasChanged('assignments')) {
                 $course->syncAssignmentsTable();
             }
+
+            if ($course->wasChanged('rooms') || $course->wasChanged('course_rooms')) {
+                $course->syncCourseRoomsTable();
+            }
         });
     }
 
@@ -62,7 +83,6 @@ class Course extends Model
                 'term'     => fn ($item) => $item['term'] ?? $this->term,
                 'category' => fn ($item) => $item['category'] ?? null,
                 'hours'    => fn ($item) => isset($item['hours']) ? (float) $item['hours'] : null,
-                'unit'     => fn ($item) => $item['unit'] ?? null,
                 'note'     => fn ($item) => $item['note'] ?? null,
             ]
         );
@@ -123,6 +143,37 @@ class Course extends Model
 
             if ($rows->isNotEmpty()) {
                 DB::table('course_assignments')->insert($rows->all());
+            }
+        });
+    }
+
+    public function syncCourseRoomsTable(): void
+    {
+        $items = $this->course_rooms ?? $this->rooms ?? [];
+        $now = now();
+        $courseId = $this->id;
+        $rows = collect($items)->map(function ($item) use ($courseId, $now) {
+            $isArray = is_array($item);
+            $room = $isArray ? ($item['room'] ?? $item['name'] ?? null) : (string) $item;
+            $term = $isArray ? ($item['term'] ?? null) : null;
+
+            return [
+                'id'         => $isArray ? ($item['id'] ?? (string) Str::uuid()) : (string) Str::uuid(),
+                'course_id'  => $courseId,
+                'teacher_id' => $this->user_id,
+                'teacher_name' => optional($this->teacher)->name,
+                'term'       => $term ?? $this->term,
+                'room'       => $room,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        })->filter(fn ($row) => $row['room'] !== null && $row['room'] !== '');
+
+        DB::transaction(function () use ($rows): void {
+            DB::table('course_rooms')->where('course_id', $this->id)->delete();
+
+            if ($rows->isNotEmpty()) {
+                DB::table('course_rooms')->insert($rows->all());
             }
         });
     }

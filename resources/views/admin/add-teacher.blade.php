@@ -3,7 +3,9 @@
 @section('title', 'จัดการข้อมูลครู')
 
 @section('content')
-@php($tz = config('app.timezone', 'Asia/Bangkok'))
+@php
+    $tz = config('app.timezone', 'Asia/Bangkok');
+@endphp
 
 <h1 class="text-3xl font-bold text-gray-800 mb-6">จัดการข้อมูลครู</h1>
 
