@@ -1,8 +1,9 @@
 <aside id="appSidebar" class="sidebar-panel">
   <div>
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-lg font-bold">ผอ.</h1>
-      <button id="sidebarToggle" type="button" class="sidebar-toggle-btn" aria-pressed="false" title="ซ่อน/แสดงเมนู">
+      <h1 class="text-lg font-bold" data-i18n-th="ผอ." data-i18n-en="Director">ผอ.</h1>
+      <button id="sidebarToggle" type="button" class="sidebar-toggle-btn" aria-pressed="false"
+              title="ซ่อน/แสดงเมนู" data-i18n-title-th="ซ่อน/แสดงเมนู" data-i18n-title-en="Hide/Show menu">
         ☰
       </button>
     </div>
@@ -16,7 +17,10 @@
     </nav>
 
     <div class="mt-4">
-      <button type="button" data-lang-toggle class="lang-toggle w-full justify-center" aria-label="เปลี่ยนภาษา" title="เปลี่ยนภาษา">
+      <button type="button" data-lang-toggle class="lang-toggle w-full justify-center"
+              aria-label="เปลี่ยนภาษา" title="เปลี่ยนภาษา"
+              data-i18n-aria-th="เปลี่ยนภาษา" data-i18n-aria-en="Switch language"
+              data-i18n-title-th="เปลี่ยนภาษา" data-i18n-title-en="Switch language">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v18m9-9H3m14.5 0a14.5 14.5 0 00-5.5-11 14.5 14.5 0 00-5.5 11 14.5 14.5 0 005.5 11 14.5 14.5 0 005.5-11z" />
         </svg>
@@ -28,7 +32,7 @@
   <form method="POST" action="{{ route('logout') }}" class="mt-8">
     @csrf
     <button type="submit" class="w-full py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition">
-      ออกจากระบบ
+      <span data-i18n-th="ออกจากระบบ" data-i18n-en="Logout">ออกจากระบบ</span>
     </button>
   </form>
 </aside>

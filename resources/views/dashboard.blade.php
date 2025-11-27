@@ -95,11 +95,19 @@
             $studentsByRoom = collect($students ?? [])->groupBy(fn($s) => $s->room ?? '-');
             $roomLoop = ($assignedRooms ?? collect())->isNotEmpty() ? $assignedRooms : $studentsByRoom->keys();
         @endphp
+        <div class="flex items-center gap-3 mb-3">
+            <a href="{{ route('teacher.students.export') }}"
+               class="text-sm text-blue-600 hover:underline">Export ห้องทั้งหมด</a>
+        </div>
 
 
         @forelse($roomLoop as $room)
             <div class="mb-6">
-                <h4 class="text-md font-semibold text-blue-700 mb-2">ห้อง {{ $room }}</h4>
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-md font-semibold text-blue-700">ห้อง {{ $room }}</h4>
+                    <a href="{{ route('teacher.students.export', ['room' => $room]) }}"
+                       class="text-sm text-blue-600 hover:underline">Export ห้องนี้</a>
+                </div>
                 <table class="min-w-full border border-gray-200 rounded-xl overflow-hidden text-sm">
                     <thead class="bg-blue-600 text-white">
                         <tr>

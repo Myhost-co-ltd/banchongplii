@@ -12,15 +12,18 @@
     <!-- ===================== -->
     <!--      SIDEBAR FIXED    -->
     <!-- ===================== -->
-    <button id="sidebarToggleFab" type="button" class="sidebar-fab hidden" aria-pressed="false" title="แสดงเมนู">
+    <button id="sidebarToggleFab" type="button" class="sidebar-fab hidden" aria-pressed="false"
+            title="แสดงเมนู" data-i18n-title-th="แสดงเมนู" data-i18n-title-en="Show menu">
         ☰
     </button>
     <aside id="appSidebar" class="sidebar-panel fixed left-0 top-0 bottom-0 z-50">
 
         <div>
             <div class="flex items-center justify-between mb-6">
-                <h1 class="text-lg font-bold leading-tight select-none">ผู้ดูแลระบบ</h1>
-                <button id="sidebarToggle" type="button" class="sidebar-toggle-btn" aria-pressed="false" title="ซ่อน/แสดงเมนู">
+                <h1 class="text-lg font-bold leading-tight select-none"
+                    data-i18n-th="ผู้ดูแลระบบ" data-i18n-en="Administrator">ผู้ดูแลระบบ</h1>
+                <button id="sidebarToggle" type="button" class="sidebar-toggle-btn" aria-pressed="false"
+                        title="ซ่อน/แสดงเมนู" data-i18n-title-th="ซ่อน/แสดงเมนู" data-i18n-title-en="Hide/Show menu">
                     ☰
                 </button>
             </div>
@@ -70,7 +73,10 @@
             </nav>
 
             <div class="mt-4">
-                <button type="button" data-lang-toggle class="lang-toggle w-full justify-center" aria-label="เปลี่ยนภาษา" title="เปลี่ยนภาษา">
+                <button type="button" data-lang-toggle class="lang-toggle w-full justify-center"
+                        aria-label="เปลี่ยนภาษา" title="เปลี่ยนภาษา"
+                        data-i18n-aria-th="เปลี่ยนภาษา" data-i18n-aria-en="Switch language"
+                        data-i18n-title-th="เปลี่ยนภาษา" data-i18n-title-en="Switch language">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v18m9-9H3m14.5 0a14.5 14.5 0 00-5.5-11 14.5 14.5 0 00-5.5 11 14.5 14.5 0 005.5 11 14.5 14.5 0 005.5-11z" />
                     </svg>
@@ -84,7 +90,7 @@
             @csrf
             <button type="submit"
                     class="w-full py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all duration-200">
-                ออกจากระบบ
+                <span data-i18n-th="ออกจากระบบ" data-i18n-en="Logout">ออกจากระบบ</span>
             </button>
         </form>
     </aside>
@@ -105,12 +111,8 @@
             const sidebar = document.getElementById('appSidebar');
             const toggleBtn = document.getElementById('sidebarToggle');
             const toggleFab = document.getElementById('sidebarToggleFab');
-            const mainContent = document.getElementById('adminMainContent');
             const STORAGE_KEY = 'sidebarCollapsed';
-            const LANG_KEY = 'appLocale';
-            const langButtons = document.querySelectorAll('[data-lang-toggle]');
-            const i18nElements = document.querySelectorAll('[data-i18n-th]');
-            const i18nPlaceholders = document.querySelectorAll('[data-i18n-placeholder-th]');
+            const mainContent = document.getElementById('adminMainContent');
 
             function applyState(collapsed) {
                 if (!sidebar) return;
@@ -147,42 +149,10 @@
                 applyState(false);
                 saveState(false);
             });
-
-            function setLanguage(lang) {
-                document.documentElement.setAttribute('lang', lang);
-                localStorage.setItem(LANG_KEY, lang);
-                langButtons.forEach(btn => {
-                    btn.setAttribute('aria-label', lang === 'th' ? 'เปลี่ยนเป็นภาษาอังกฤษ' : 'Switch to Thai');
-                    const labelEl = btn.querySelector('[data-lang-label]');
-                    if (labelEl) labelEl.textContent = lang.toUpperCase();
-                });
-                i18nElements.forEach(el => {
-                    const text = lang === 'th'
-                        ? el.dataset.i18nTh
-                        : (el.dataset.i18nEn || el.dataset.i18nTh);
-                    if (text) el.textContent = text;
-                });
-                i18nPlaceholders.forEach(el => {
-                    const text = lang === 'th'
-                        ? el.dataset.i18nPlaceholderTh
-                        : (el.dataset.i18nPlaceholderEn || el.dataset.i18nPlaceholderTh);
-                    if (text) el.setAttribute('placeholder', text);
-                });
-            }
-
-            const storedLang = localStorage.getItem(LANG_KEY) || document.documentElement.getAttribute('lang') || 'th';
-            setLanguage(storedLang);
-
-            langButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const current = localStorage.getItem(LANG_KEY) || 'th';
-                    const next = current === 'th' ? 'en' : 'th';
-                    setLanguage(next);
-                });
-            });
         })();
     </script>
 
+    @include('layouts.partials.localization')
     @stack('scripts')
 </body>
 </html>

@@ -5,7 +5,7 @@
 @section('content')
 
 @php
-    $titleOptions = ['ด.ช.', 'ด.ญ.', 'นาย', 'นางสาว', 'นาง'];
+    $titleOptions = ['นาย', 'นางสาว', 'เด็กชาย', 'เด็กหญิง'];
 
     $normalizeGrade = function (?string $grade): string {
         if (! $grade) {

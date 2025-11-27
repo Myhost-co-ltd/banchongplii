@@ -6,9 +6,9 @@
 <div class="space-y-8">
 
     <div class="flex flex-col gap-2">
-        <p class="text-sm text-slate-500 uppercase tracking-[0.2em]">สำหรับผู้ดูแลระบบ</p>
-        <h1 class="text-3xl font-bold text-gray-900">สร้างหลักสูตรและกำหนดชั่วโมงสอน</h1>
-        <p class="text-gray-600">แอดมินสร้างวิชาและชั่วโมงคร่าวๆ แล้วครูจะเข้ามารับและเติมรายละเอียดชั้น/ห้องเอง</p>
+        <p class="text-sm text-slate-500 uppercase tracking-[0.2em]" data-i18n-th="สำหรับผู้ดูแลระบบ" data-i18n-en="For administrators">สำหรับผู้ดูแลระบบ</p>
+        <h1 class="text-3xl font-bold text-gray-900" data-i18n-th="สร้างหลักสูตรและกำหนดชั่วโมงสอน" data-i18n-en="Create courses and set teaching hours">สร้างหลักสูตรและกำหนดชั่วโมงสอน</h1>
+        <p class="text-gray-600" data-i18n-th="แอดมินสร้างวิชาและชั่วโมงคร่าวๆ แล้วครูจะเข้ามารับและเติมรายละเอียดชั้น/ห้องเอง" data-i18n-en="Admins create subjects and rough hours, then teachers claim them and fill class/room details">แอดมินสร้างวิชาและชั่วโมงคร่าวๆ แล้วครูจะเข้ามารับและเติมรายละเอียดชั้น/ห้องเอง</p>
     </div>
 
     @if (session('status'))
@@ -19,7 +19,7 @@
 
     @if ($errors->any())
         <div class="border border-red-200 bg-red-50 text-red-700 rounded-2xl p-4">
-            <p class="font-semibold mb-2">กรุณาตรวจสอบข้อมูลที่กรอก</p>
+            <p class="font-semibold mb-2" data-i18n-th="กรุณาตรวจสอบข้อมูลที่กรอก" data-i18n-en="Please review the submitted information">กรุณาตรวจสอบข้อมูลที่กรอก</p>
             <ul class="list-disc list-inside space-y-1 text-sm">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -31,8 +31,10 @@
     <div class="bg-white rounded-3xl shadow-sm p-8 border border-gray-100">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div>
-                <h2 class="text-xl font-semibold text-gray-900">เพิ่มหลักสูตรใหม่</h2>
-                <p class="text-sm text-gray-500">
+                <h2 class="text-xl font-semibold text-gray-900" data-i18n-th="เพิ่มหลักสูตรใหม่" data-i18n-en="Add new course">เพิ่มหลักสูตรใหม่</h2>
+                <p class="text-sm text-gray-500"
+                   data-i18n-th="แอดมินสร้างวิชาและชั่วโมงสอนเบื้องต้น ส่วนครูจะเข้ามารับหลักสูตร เลือกชั้น/ห้อง และจัดการรายละเอียดต่อ"
+                   data-i18n-en="Admins set up the subject and base hours; teachers will claim it, pick grade/room, and refine details.">
                     แอดมินสร้างวิชาและชั่วโมงสอนเบื้องต้น ส่วนครูจะเข้ามารับหลักสูตร เลือกชั้น/ห้อง และจัดการรายละเอียดต่อ
                 </p>
             </div>
@@ -43,10 +45,12 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">เลือกวิชา (ตัวเลือกด่วน)</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="เลือกวิชา (ตัวเลือกด่วน)" data-i18n-en="Pick subject (quick option)">เลือกวิชา (ตัวเลือกด่วน)</label>
                     <select id="presetCourseSelect"
                             class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500">
-                        <option value="">-- เลือกวิชา --</option>
+                        <option value=""
+                                data-i18n-th="-- เลือกวิชา --"
+                                data-i18n-en="-- Select subject --">-- เลือกวิชา --</option>
                         @php
                             $majorOptions = [
                                 'คณิตศาสตร์',
@@ -60,54 +64,79 @@
                                 'การงานอาชีพ',
                                 'คอมพิวเตอร์',
                             ];
+                            $majorTranslations = [
+                                'คณิตศาสตร์' => 'Mathematics',
+                                'วิทยาศาสตร์' => 'Science',
+                                'ภาษาไทย' => 'Thai language',
+                                'ภาษาอังกฤษ' => 'English language',
+                                'สังคมศึกษา' => 'Social studies',
+                                'สุขศึกษา/พลศึกษา' => 'Health/Physical education',
+                                'ศิลปะ' => 'Art',
+                                'ดนตรี' => 'Music',
+                                'การงานอาชีพ' => 'Career and technology',
+                                'คอมพิวเตอร์' => 'Computer',
+                            ];
                         @endphp
                         @foreach($majorOptions as $preset)
-                            <option value="{{ $preset }}">{{ $preset }}</option>
+                            @php $presetEn = $majorTranslations[$preset] ?? $preset; @endphp
+                            <option value="{{ $preset }}"
+                                    data-i18n-th="{{ $preset }}"
+                                    data-i18n-en="{{ $presetEn }}">{{ $preset }}</option>
                         @endforeach
                     </select>
-                    <p class="text-xs text-gray-500 mt-1">เลือกแล้วระบบจะเติมชื่อหลักสูตรให้อัตโนมัติ (ยังแก้ไขได้)</p>
+                    <p class="text-xs text-gray-500 mt-1"
+                       data-i18n-th="เลือกแล้วระบบจะเติมชื่อหลักสูตรให้อัตโนมัติ (ยังแก้ไขได้)"
+                       data-i18n-en="Selecting will auto-fill the course name (you can still edit)">
+                        เลือกแล้วระบบจะเติมชื่อหลักสูตรให้อัตโนมัติ (ยังแก้ไขได้)
+                    </p>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อหลักสูตร</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="ชื่อหลักสูตร" data-i18n-en="Course name">ชื่อหลักสูตร</label>
                     <input type="text" name="name"
                            class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500"
                            placeholder="เช่น คณิตศาสตร์พื้นฐาน ป.1"
+                           data-i18n-placeholder-th="เช่น คณิตศาสตร์พื้นฐาน ป.1"
+                           data-i18n-placeholder-en="e.g. Basic Mathematics G.1"
                            value="{{ old('name') }}">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">ภาคเรียน (ถ้ามี)</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="ภาคเรียน (ถ้ามี)" data-i18n-en="Term (if any)">ภาคเรียน (ถ้ามี)</label>
                     <select name="term" class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500">
-                        <option value="">-- เลือกภาคเรียน --</option>
-                        <option value="1" @selected(old('term') == 1)>ภาคเรียนที่ 1</option>
-                        <option value="2" @selected(old('term') == 2)>ภาคเรียนที่ 2</option>
+                        <option value="" data-i18n-th="-- เลือกภาคเรียน --" data-i18n-en="-- Select term --">-- เลือกภาคเรียน --</option>
+                        <option value="1" @selected(old('term') == 1) data-i18n-th="ภาคเรียนที่ 1" data-i18n-en="Term 1">ภาคเรียนที่ 1</option>
+                        <option value="2" @selected(old('term') == 2) data-i18n-th="ภาคเรียนที่ 2" data-i18n-en="Term 2">ภาคเรียนที่ 2</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">ปีการศึกษา</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="ปีการศึกษา" data-i18n-en="Academic year">ปีการศึกษา</label>
                     <input type="number" name="year"
                            class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500"
                            placeholder="2567"
+                           data-i18n-placeholder-th="2567"
+                           data-i18n-placeholder-en="2024"
                            value="{{ old('year') }}">
                 </div>
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                    รายละเอียดหลักสูตร
-                    <span class="text-xs text-gray-400">(ให้ครูใส่/แก้ไขได้เอง)</span>
+                    <span data-i18n-th="รายละเอียดหลักสูตร" data-i18n-en="Course details">รายละเอียดหลักสูตร</span>
+                    <span class="text-xs text-gray-400" data-i18n-th="(ให้ครูใส่/แก้ไขได้เอง)" data-i18n-en="(Teachers can fill/edit on their own)">(ให้ครูใส่/แก้ไขได้เอง)</span>
                 </label>
                 <textarea name="description" rows="3"
                           class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                          placeholder="จุดประสงค์รายวิชา / เนื้อหาโดยย่อ">{{ old('description') }}</textarea>
+                          placeholder="จุดประสงค์รายวิชา / เนื้อหาโดยย่อ"
+                          data-i18n-placeholder-th="จุดประสงค์รายวิชา / เนื้อหาโดยย่อ"
+                          data-i18n-placeholder-en="Course objectives / Summary">{{ old('description') }}</textarea>
             </div>
 
             <div class="text-right">
                 <button type="submit"
                         class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700">
-                    สร้างหลักสูตร
+                    <span data-i18n-th="สร้างหลักสูตร" data-i18n-en="Create course">สร้างหลักสูตร</span>
                 </button>
             </div>
         </form>
@@ -116,24 +145,26 @@
     <div class="bg-white rounded-3xl shadow-sm p-8 border border-gray-100">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div>
-                <h2 class="text-xl font-semibold text-gray-900">หลักสูตรทั้งหมด</h2>
-                <p class="text-sm text-gray-500">ดูภาพรวมหลักสูตร พร้อมจัดสรรชั่วโมงสอนให้ครู</p>
+                <h2 class="text-xl font-semibold text-gray-900" data-i18n-th="หลักสูตรทั้งหมด" data-i18n-en="All courses">หลักสูตรทั้งหมด</h2>
+                <p class="text-sm text-gray-500" data-i18n-th="ดูภาพรวมหลักสูตร พร้อมจัดสรรชั่วโมงสอนให้ครู" data-i18n-en="View all courses and allocate teaching hours to teachers">ดูภาพรวมหลักสูตร พร้อมจัดสรรชั่วโมงสอนให้ครู</p>
             </div>
             <div class="flex flex-col md:flex-row md:items-center gap-3 w-full md:w-auto">
                 <div class="flex items-center gap-2 text-sm text-gray-500">
-                    <span>จำนวนหลักสูตร:</span>
+                    <span data-i18n-th="จำนวนหลักสูตร:" data-i18n-en="Courses:">จำนวนหลักสูตร:</span>
                     <span class="font-semibold text-gray-800">{{ $courses->count() }}</span>
                 </div>
                 <input id="courseSearch"
                        type="text"
                        placeholder="ค้นหาชื่อหลักสูตร / ปีการศึกษา"
+                       data-i18n-placeholder-th="ค้นหาชื่อหลักสูตร / ปีการศึกษา"
+                       data-i18n-placeholder-en="Search course name / academic year"
                        class="w-full md:w-64 border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
             </div>
         </div>
 
         @if($courses->isEmpty())
             <div class="border border-dashed border-gray-200 rounded-2xl p-8 text-center text-gray-500">
-                ยังไม่มีหลักสูตรในระบบ กรุณาเพิ่มหลักสูตรใหม่ก่อน
+                <span data-i18n-th="ยังไม่มีหลักสูตรในระบบ กรุณาเพิ่มหลักสูตรใหม่ก่อน" data-i18n-en="No courses in the system yet. Please add a new course first.">ยังไม่มีหลักสูตรในระบบ กรุณาเพิ่มหลักสูตรใหม่ก่อน</span>
             </div>
         @else
             <div class="space-y-6" id="courseList">
@@ -147,10 +178,15 @@
                          data-year="{{ $course->year ?? '' }}">
                         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
                             <div class="space-y-1">
-                                <p class="text-xs uppercase tracking-[0.2em] text-slate-500">หลักสูตร</p>
+                                <p class="text-xs uppercase tracking-[0.2em] text-slate-500" data-i18n-th="หลักสูตร" data-i18n-en="Course">หลักสูตร</p>
                                 <h3 class="text-lg font-semibold text-gray-900">{{ $course->name }}</h3>
                                 <p class="text-sm text-gray-600">
-                                    ครูผู้รับผิดชอบ: <span class="font-semibold text-gray-800">{{ $course->teacher->name ?? 'ไม่พบข้อมูลครู' }}</span>
+                                    <span data-i18n-th="ครูผู้รับผิดชอบ:" data-i18n-en="Responsible teacher:">ครูผู้รับผิดชอบ:</span>
+                                    @if($course->teacher?->name)
+                                        <span class="font-semibold text-gray-800">{{ $course->teacher->name }}</span>
+                                    @else
+                                        <span class="font-semibold text-gray-800" data-i18n-th="ไม่พบข้อมูลครู" data-i18n-en="Teacher not found">ไม่พบข้อมูลครู</span>
+                                    @endif
                                 </p>
                             </div>
                             <div class="flex flex-wrap gap-2 text-sm text-gray-700 items-center">
@@ -159,25 +195,25 @@
                                     <span class="px-3 py-1 rounded-full bg-white border text-gray-700">{{ $room }}</span>
                                 @endforeach
                                 <span class="px-3 py-1 rounded-full bg-white border text-gray-600">
-                                    ปีการศึกษา {{ $course->year ?? '-' }}
+                                    <span data-i18n-th="ปีการศึกษา" data-i18n-en="Academic year">ปีการศึกษา</span> {{ $course->year ?? '-' }}
                                 </span>
                                 <div class="flex items-center gap-3 text-sm ml-2">
                                     <button type="button"
                                             class="text-blue-600 hover:underline"
                                             onclick="toggleCourseEdit('course-edit-{{ $course->id }}')">
-                                        แก้ไข
+                                        <span data-i18n-th="แก้ไข" data-i18n-en="Edit">แก้ไข</span>
                                     </button>
                                     <form method="POST"
                                           action="{{ route('admin.courses.destroy', $course) }}"
-                                          onsubmit="return confirm('ยืนยันการลบหลักสูตรนี้หรือไม่?')">
+                                          onsubmit="return confirmWithLocale('ยืนยันการลบหลักสูตรนี้หรือไม่?', 'Delete this course?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button class="text-red-600 hover:underline" type="submit">ลบ</button>
+                                        <button class="text-red-600 hover:underline" type="submit" data-i18n-th="ลบ" data-i18n-en="Delete">ลบ</button>
                                     </form>
                                     <button type="button"
                                             class="text-gray-600 hover:underline"
                                             onclick="toggleCourseBody('course-body-{{ $course->id }}')">
-                                        แสดงรายละเอียด
+                                        <span data-i18n-th="แสดงรายละเอียด" data-i18n-en="Show details">แสดงรายละเอียด</span>
                                     </button>
                                 </div>
                             </div>
@@ -190,35 +226,37 @@
                             @method('PUT')
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อหลักสูตร</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="ชื่อหลักสูตร" data-i18n-en="Course name">ชื่อหลักสูตร</label>
                                     <input type="text" name="name"
                                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                                            value="{{ $course->name }}" required>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">ภาคเรียน (ถ้ามี)</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="ภาคเรียน (ถ้ามี)" data-i18n-en="Term (if any)">ภาคเรียน (ถ้ามี)</label>
                                     <select name="term" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
-                                        <option value="">-- เลือกภาคเรียน --</option>
-                                        <option value="1" @selected(($course->term ?? null) == '1')>ภาคเรียนที่ 1</option>
-                                        <option value="2" @selected(($course->term ?? null) == '2')>ภาคเรียนที่ 2</option>
+                                        <option value="" data-i18n-th="-- เลือกภาคเรียน --" data-i18n-en="-- Select term --">-- เลือกภาคเรียน --</option>
+                                        <option value="1" @selected(($course->term ?? null) == '1') data-i18n-th="ภาคเรียนที่ 1" data-i18n-en="Term 1">ภาคเรียนที่ 1</option>
+                                        <option value="2" @selected(($course->term ?? null) == '2') data-i18n-th="ภาคเรียนที่ 2" data-i18n-en="Term 2">ภาคเรียนที่ 2</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">ปีการศึกษา</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="ปีการศึกษา" data-i18n-en="Academic year">ปีการศึกษา</label>
                                     <input type="number" name="year"
                                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                                            value="{{ $course->year }}">
                                 </div>
                             </div>
                             <div class="mt-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">รายละเอียดหลักสูตร</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="รายละเอียดหลักสูตร" data-i18n-en="Course details">รายละเอียดหลักสูตร</label>
                                 <textarea name="description" rows="2"
                                           class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                                          placeholder="จุดประสงค์รายวิชา / เนื้อหาโดยย่อ">{{ $course->description }}</textarea>
+                                          placeholder="จุดประสงค์รายวิชา / เนื้อหาโดยย่อ"
+                                          data-i18n-placeholder-th="จุดประสงค์รายวิชา / เนื้อหาโดยย่อ"
+                                          data-i18n-placeholder-en="Course objectives / Summary">{{ $course->description }}</textarea>
                             </div>
                             <div class="text-right mt-3">
                                 <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                                    บันทึกการแก้ไข
+                                    <span data-i18n-th="บันทึกการแก้ไข" data-i18n-en="Save changes">บันทึกการแก้ไข</span>
                                 </button>
                             </div>
                         </form>
@@ -226,30 +264,37 @@
                         <div id="course-body-{{ $course->id }}" class="grid grid-cols-1 lg:grid-cols-2 gap-6 hidden">
                             <div class="space-y-3">
                                 <div class="flex items-center justify-between">
-                                    <p class="font-semibold text-gray-900">ชั่วโมงสอนที่ตั้งไว้</p>
-                                    <span class="text-xs text-gray-500">จัดการภาคเรียนแยกกัน</span>
+                                    <p class="font-semibold text-gray-900" data-i18n-th="ชั่วโมงสอนที่ตั้งไว้" data-i18n-en="Scheduled teaching hours">ชั่วโมงสอนที่ตั้งไว้</p>
+                                    <span class="text-xs text-gray-500" data-i18n-th="จัดการภาคเรียนแยกกัน" data-i18n-en="Manage separately by term">จัดการภาคเรียนแยกกัน</span>
                                 </div>
 
                                 @if($groupedHours->isEmpty())
                                     <p class="text-sm text-gray-500 bg-white border border-dashed border-gray-200 rounded-xl p-4">
-                                        ยังไม่มีข้อมูลชั่วโมงสอนสำหรับหลักสูตรนี้
+                                        <span data-i18n-th="ยังไม่มีข้อมูลชั่วโมงสอนสำหรับหลักสูตรนี้" data-i18n-en="No teaching hours for this course yet">ยังไม่มีข้อมูลชั่วโมงสอนสำหรับหลักสูตรนี้</span>
                                     </p>
                                 @else
                                     <div class="space-y-3">
                                         @foreach($groupedHours as $term => $hours)
                                             <div class="bg-white border border-gray-100 rounded-xl p-3">
                                                 <p class="text-sm font-semibold text-gray-800 mb-2">
-                                                    ภาคเรียนที่ {{ $term ?? '-' }}
+                                                    <span data-i18n-th="ภาคเรียนที่" data-i18n-en="Term">ภาคเรียนที่</span> {{ $term ?? '-' }}
                                                 </p>
                                                 <div class="space-y-2">
                                                     @foreach($hours as $hour)
-                                                        @php($hourId = $hour['id'] ?? null)
+                                                        @php $hourId = $hour['id'] ?? null; @endphp
+                                                        @php
+                                                            $categoryLabel = $hour['category'] ?? '-';
+                                                            $categoryEnMap = ['ทฤษฎี' => 'Theory', 'ปฏิบัติ' => 'Practical'];
+                                                            $categoryEn = $categoryEnMap[$categoryLabel] ?? $categoryLabel;
+                                                        @endphp
                                                         <div class="border border-gray-100 rounded-lg p-3 bg-gray-50">
                                                             <div class="flex items-start justify-between gap-3">
                                                                 <div>
-                                                                    <p class="font-medium text-gray-900">{{ $hour['category'] ?? '-' }}</p>
+                                                                    <p class="font-medium text-gray-900"
+                                                                       data-i18n-th="{{ $categoryLabel }}"
+                                                                       data-i18n-en="{{ $categoryEn }}">{{ $categoryLabel }}</p>
                                                                     <p class="text-sm text-gray-600">
-                                                                        {{ $hour['hours'] ?? 0 }} ชั่วโมง
+                                                                        {{ $hour['hours'] ?? 0 }} <span data-i18n-th="ชั่วโมง" data-i18n-en="hours">ชั่วโมง</span>
                                                                     </p>
                                                                     @if(!empty($hour['note']))
                                                                         <p class="text-xs text-gray-500 mt-1">{{ $hour['note'] }}</p>
@@ -260,14 +305,14 @@
                                                                         <button type="button"
                                                                                 class="text-blue-600 hover:underline"
                                                                                 onclick="toggleHourForm('hour-edit-{{ $course->id }}-{{ $hourId }}')">
-                                                                            แก้ไข
+                                                                            <span data-i18n-th="แก้ไข" data-i18n-en="Edit">แก้ไข</span>
                                                                         </button>
                                                                         <form method="POST"
                                                                               action="{{ route('admin.courses.hours.destroy', ['course' => $course, 'hour' => $hourId]) }}"
-                                                                              onsubmit="return confirm('ยืนยันลบชั่วโมงนี้หรือไม่?')">
+                                                                              onsubmit="return confirmWithLocale('ยืนยันลบชั่วโมงนี้หรือไม่?', 'Delete this hour?')">
                                                                             @csrf
                                                                             @method('DELETE')
-                                                                            <button class="text-red-600 hover:underline">ลบ</button>
+                                                                            <button class="text-red-600 hover:underline" data-i18n-th="ลบ" data-i18n-en="Delete">ลบ</button>
                                                                         </form>
                                                                     </div>
                                                                 @endif
@@ -280,13 +325,13 @@
                                                                     @csrf
                                                                     @method('PUT')
                                                                     <select name="term" class="border rounded-lg px-2 py-2" required>
-                                                                        <option value="1" @selected(($hour['term'] ?? null) == '1')>ภาคเรียนที่ 1</option>
-                                                                        <option value="2" @selected(($hour['term'] ?? null) == '2')>ภาคเรียนที่ 2</option>
+                                                                        <option value="1" @selected(($hour['term'] ?? null) == '1') data-i18n-th="ภาคเรียนที่ 1" data-i18n-en="Term 1">ภาคเรียนที่ 1</option>
+                                                                        <option value="2" @selected(($hour['term'] ?? null) == '2') data-i18n-th="ภาคเรียนที่ 2" data-i18n-en="Term 2">ภาคเรียนที่ 2</option>
                                                                     </select>
                                         <select name="category" class="border rounded-lg px-2 py-2" required>
-                                            <option value="">เลือกประเภทชั่วโมง</option>
-                                            <option value="ทฤษฎี" @selected(($hour['category'] ?? '') === 'ทฤษฎี')>ทฤษฎี</option>
-                                            <option value="ปฏิบัติ" @selected(($hour['category'] ?? '') === 'ปฏิบัติ')>ปฏิบัติ</option>
+                                            <option value="" data-i18n-th="เลือกประเภทชั่วโมง" data-i18n-en="Select hour type">เลือกประเภทชั่วโมง</option>
+                                            <option value="ทฤษฎี" @selected(($hour['category'] ?? '') === 'ทฤษฎี') data-i18n-th="ทฤษฎี" data-i18n-en="Theory">ทฤษฎี</option>
+                                            <option value="ปฏิบัติ" @selected(($hour['category'] ?? '') === 'ปฏิบัติ') data-i18n-th="ปฏิบัติ" data-i18n-en="Practical">ปฏิบัติ</option>
                                         </select>
                                                                     <input type="number" step="0.1" name="hours"
                                                                            class="border rounded-lg px-2 py-2"
@@ -294,10 +339,12 @@
                                         <input type="hidden" name="unit" value="ชั่วโมง/สัปดาห์">
                                                                     <textarea name="note" rows="2"
                                                                               class="md:col-span-4 border rounded-lg px-2 py-2"
-                                                                              placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)">{{ $hour['note'] ?? '' }}</textarea>
+                                                                              placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"
+                                                                              data-i18n-placeholder-th="หมายเหตุเพิ่มเติม (ถ้ามี)"
+                                                                              data-i18n-placeholder-en="Additional notes (if any)">{{ $hour['note'] ?? '' }}</textarea>
                                                                     <div class="md:col-span-4 text-right">
                                                                         <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg">
-                                                                            บันทึกการแก้ไข
+                                                                            <span data-i18n-th="บันทึกการแก้ไข" data-i18n-en="Save changes">บันทึกการแก้ไข</span>
                                                                         </button>
                                                                     </div>
                                                                 </form>
@@ -312,32 +359,36 @@
                             </div>
 
                             <div class="bg-white border border-gray-100 rounded-xl p-4">
-                                <h4 class="font-semibold text-gray-900 mb-3">เพิ่มชั่วโมงสอนให้หลักสูตรนี้</h4>
+                                <h4 class="font-semibold text-gray-900 mb-3" data-i18n-th="เพิ่มชั่วโมงสอนให้หลักสูตรนี้" data-i18n-en="Add teaching hours to this course">เพิ่มชั่วโมงสอนให้หลักสูตรนี้</h4>
                                 <form method="POST"
                                       action="{{ route('admin.courses.hours.store', $course) }}"
                                       class="space-y-3 text-sm">
                                     @csrf
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                                         <select name="term" class="border rounded-lg px-2 py-2" required>
-                                            <option value="1" @selected($defaultTerm == '1')>ภาคเรียนที่ 1</option>
-                                            <option value="2" @selected($defaultTerm == '2')>ภาคเรียนที่ 2</option>
+                                            <option value="1" @selected($defaultTerm == '1') data-i18n-th="ภาคเรียนที่ 1" data-i18n-en="Term 1">ภาคเรียนที่ 1</option>
+                                            <option value="2" @selected($defaultTerm == '2') data-i18n-th="ภาคเรียนที่ 2" data-i18n-en="Term 2">ภาคเรียนที่ 2</option>
                                         </select>
                                         <select name="category" class="border rounded-lg px-2 py-2" required>
-                                            <option value="">เลือกประเภทชั่วโมง</option>
-                                            <option value="ทฤษฎี">ทฤษฎี</option>
-                                            <option value="ปฏิบัติ">ปฏิบัติ</option>
+                                            <option value="" data-i18n-th="เลือกประเภทชั่วโมง" data-i18n-en="Select hour type">เลือกประเภทชั่วโมง</option>
+                                            <option value="ทฤษฎี" data-i18n-th="ทฤษฎี" data-i18n-en="Theory">ทฤษฎี</option>
+                                            <option value="ปฏิบัติ" data-i18n-th="ปฏิบัติ" data-i18n-en="Practical">ปฏิบัติ</option>
                                         </select>
                                         <input type="number" step="0.1" name="hours"
                                                class="border rounded-lg px-2 py-2"
-                                               placeholder="จำนวนชั่วโมง" required>
+                                               placeholder="จำนวนชั่วโมง"
+                                               data-i18n-placeholder-th="จำนวนชั่วโมง"
+                                               data-i18n-placeholder-en="Number of hours" required>
                                     </div>
                                     <input type="hidden" name="unit" value="ชั่วโมง/สัปดาห์">
                                     <textarea name="note" rows="2"
                                               class="w-full border rounded-lg px-2 py-2"
-                                              placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"></textarea>
+                                              placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"
+                                              data-i18n-placeholder-th="หมายเหตุเพิ่มเติม (ถ้ามี)"
+                                              data-i18n-placeholder-en="Additional notes (if any)"></textarea>
                                     <div class="text-right">
                                         <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg">
-                                            บันทึกชั่วโมงสอน
+                                            <span data-i18n-th="บันทึกชั่วโมงสอน" data-i18n-en="Save teaching hours">บันทึกชั่วโมงสอน</span>
                                         </button>
                                     </div>
                                 </form>
@@ -353,6 +404,17 @@
 
 @push('scripts')
 <script>
+const LANG_KEY = 'appLocale';
+
+function getAppLocale() {
+    return localStorage.getItem(LANG_KEY) || document.documentElement.getAttribute('lang') || 'th';
+}
+
+function confirmWithLocale(thText, enText) {
+    const lang = getAppLocale();
+    return confirm(lang === 'en' ? enText : thText);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('courseSearch');
     const courseCards = document.querySelectorAll('.course-card');

@@ -6,6 +6,7 @@ use App\Models\Role;
 use App\Models\Course;
 use App\Models\Student;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -71,6 +72,63 @@ class StudentController extends Controller
             // newToday kept for backward compatibility
             'newToday' => $attendanceToday,
         ]);
+    }
+
+    public function export(Request $request)
+    {
+        $user = Auth::user();
+
+        $homeroomRooms = collect();
+        if ($user && $user->hasRole('teacher')) {
+            $homeroomRooms = collect(preg_split('/[,;]/', (string) $user->homeroom))
+                ->map(fn ($room) => trim($room))
+                ->filter()
+                ->values();
+        }
+
+        $courses = Course::where('user_id', Auth::id())->latest()->get();
+        $courseRooms = $courses
+            ->flatMap(fn ($course) => collect($course->rooms ?? []))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $assignedRooms = $homeroomRooms->isNotEmpty() ? $homeroomRooms : $courseRooms;
+
+        $studentsByRoom = Student::query()
+            ->when($assignedRooms->isNotEmpty(), fn ($q) => $q->whereIn('room', $assignedRooms))
+            ->orderBy('room')
+            ->orderBy('student_code')
+            ->get()
+            ->groupBy(fn ($s) => $s->room ?? '-');
+
+        $filterRoom = trim((string) $request->query('room', ''));
+        if ($filterRoom !== '' && $assignedRooms->isNotEmpty() && ! $assignedRooms->contains($filterRoom)) {
+            abort(403, 'ห้องนี้ไม่ได้อยู่ในความรับผิดชอบของคุณ');
+        }
+
+        if ($filterRoom !== '') {
+            $studentsByRoom = $studentsByRoom->only([$filterRoom]);
+            $assignedRooms = collect([$filterRoom]);
+        }
+
+        $pdf = Pdf::setOptions([
+                'isRemoteEnabled' => true,
+                'fontDir'   => storage_path('fonts'),
+                'fontCache' => storage_path('fonts'),
+                'defaultFont' => 'leelawadee',
+            ])
+            ->loadView('teacher.students-export', [
+                'teacher' => $user,
+                'studentsByRoom' => $studentsByRoom,
+                'assignedRooms' => $assignedRooms,
+            ]);
+
+        $fileName = $filterRoom !== ''
+            ? 'students-room-' . str_replace(['/', ' '], '_', $filterRoom) . '.pdf'
+            : 'students.pdf';
+
+        return $pdf->download($fileName);
     }
 
     /**
