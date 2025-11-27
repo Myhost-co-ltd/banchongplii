@@ -126,25 +126,54 @@ class TeacherCourseController extends Controller
         ]);
     }
 
-   public function export(Request $request, Course $course)
-{
-    $this->authorizeCourse($course);
+    public function export(Request $request, Course $course)
+    {
+        $this->authorizeCourse($course);
 
-    $selectedTerm = $this->resolveTerm($course, $request->input('term'));
-    $payload = $this->buildCoursePayload($course, $selectedTerm);
+        $selectedTerm = $this->resolveTerm($course, $request->input('term'));
+        $payload = $this->buildCoursePayload($course, $selectedTerm);
 
-    $pdf = Pdf::setOptions([
-            'isRemoteEnabled' => true,
-            'defaultFont' => 'Sarabun',
-        ])
-        ->loadView('teacher.course-detail-pdf', array_merge($payload, [
-            'course' => $course,
-            'selectedTerm' => $selectedTerm,
-            'teacher' => $request->user(),
-        ]));
+        $fontPath = strtr(storage_path('fonts'), '\\', '/');
+        $fontCache = strtr(storage_path('fonts/cache'), '\\', '/');
 
-    return $pdf->download('course-'.$course->id.'-term-'.$selectedTerm.'.pdf');
-}
+        if (! is_dir($fontCache)) {
+            @mkdir($fontCache, 0775, true);
+        }
+
+        $leelaRegularPath = "{$fontPath}/LeelawUI.ttf";
+        $leelaBoldPath = "{$fontPath}/LeelaUIb.ttf";
+
+        $pdf = Pdf::setOptions([
+                'isRemoteEnabled' => true,
+                'isHtml5ParserEnabled' => true,
+                'chroot' => base_path(),
+                'fontDir' => $fontPath,
+                'fontCache' => $fontCache,
+                'tempDir' => $fontCache,
+                'defaultFont' => 'LeelawUI',
+                'enable_font_subsetting' => true,
+            ])
+            ->loadView('teacher.course-detail-pdf', array_merge($payload, [
+                'course' => $course,
+                'selectedTerm' => $selectedTerm,
+                'teacher' => $request->user(),
+            ]));
+
+        // Register LeelawUI font explicitly so Dompdf does not fall back to an empty font key
+        $metrics = $pdf->getDomPDF()->getFontMetrics();
+        $metrics->registerFont([
+            'family' => 'LeelawUI',
+            'style' => 'normal',
+            'weight' => 'normal',
+        ], $leelaRegularPath);
+        $metrics->registerFont([
+            'family' => 'LeelawUI',
+            'style' => 'normal',
+            'weight' => 'bold',
+        ], $leelaBoldPath);
+
+        return $pdf->download('course-'.$course->id.'-term-'.$selectedTerm.'.pdf');
+    }
 
 
     public function edit(Course $course)

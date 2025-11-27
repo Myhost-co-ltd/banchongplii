@@ -17,9 +17,94 @@ class StudentController extends Controller
      */
     public function index()
     {
+        $data = $this->buildHomeroomData();
+
+        return view('dashboard', $data);
+    }
+
+    /**
+     * Export homeroom students to PDF.
+     */
+    public function exportHomeroom()
+    {
+        $data = $this->buildHomeroomData();
+
+        $rooms = $data['assignedRooms']->isNotEmpty()
+            ? $data['assignedRooms']
+            : $data['students']->pluck('room')->filter()->unique();
+
+        $studentsByRoom = collect($data['students'])->groupBy(fn ($s) => $s->room ?? '-');
+
+        $fontPath = strtr(storage_path('fonts'), '\\', '/');
+        $fontCache = strtr(storage_path('fonts/cache'), '\\', '/');
+
+        if (! is_dir($fontCache)) {
+            @mkdir($fontCache, 0775, true);
+        }
+
+        $leelaRegularPath = "{$fontPath}/LeelawUI.ttf";
+        $leelaBoldPath = "{$fontPath}/LeelaUIb.ttf";
+
+        $pdf = Pdf::setOptions([
+                'isRemoteEnabled' => true,
+                'isHtml5ParserEnabled' => true,
+                'chroot' => base_path(),
+                'tempDir' => $fontCache,
+                'defaultFont' => 'LeelawUI',
+                'fontDir' => $fontPath,
+                'fontCache' => $fontCache,
+                'enable_font_subsetting' => true,
+            ])
+            ->loadView('teacher.homeroom-pdf', [
+                'teacher' => Auth::user(),
+                'courses' => $data['courses'],
+                'rooms' => $rooms,
+                'studentsByRoom' => $studentsByRoom,
+                'generatedAt' => now(),
+            ]);
+
+        // Explicitly register LeelawUI font so Dompdf embeds it
+        $metrics = $pdf->getDomPDF()->getFontMetrics();
+        $metrics->registerFont([
+            'family' => 'LeelawUI',
+            'style' => 'normal',
+            'weight' => 'normal',
+        ], $leelaRegularPath);
+        $metrics->registerFont([
+            'family' => 'LeelawUI',
+            'style' => 'normal',
+            'weight' => 'bold',
+        ], $leelaBoldPath);
+
+        return $pdf->download('homeroom-students.pdf');
+    }
+
+    /**
+     * Persist a new student into storage.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'student_code' => 'required|string|max:20|unique:students,student_code',
+            'title' => 'required|string|max:20',
+            'first_name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
+        ]);
+
+        Student::create($validated);
+
+        return redirect()
+            ->route('dashboard')
+            ->with('status', '??????????????????????');
+    }
+
+    /**
+     * Shared homeroom data builder for dashboard and export.
+     */
+    private function buildHomeroomData(): array
+    {
         $user = Auth::user();
 
-        // เตรียม filter นักเรียนตามห้องของครู (ห้องประจำชั้นหรือห้องจากหลักสูตร)
         $homeroomRooms = collect();
         if ($user && $user->hasRole('teacher')) {
             $homeroomRooms = collect(preg_split('/[,;]/', (string) $user->homeroom))
@@ -44,7 +129,6 @@ class StudentController extends Controller
         if ($assignedRooms->isNotEmpty()) {
             $studentQuery->whereIn('room', $assignedRooms);
         } elseif ($user && $user->hasRole('teacher')) {
-            // ครูไม่มีการตั้งค่าห้อง → ไม่ต้องแสดงใคร
             $studentQuery->whereRaw('1 = 0');
         }
 
@@ -60,7 +144,7 @@ class StudentController extends Controller
 
         $attendanceToday = Student::whereDate('created_at', today())->count();
 
-        return view('dashboard', [
+        return [
             'students' => $students,
             'studentCount' => $students->count(),
             'courses' => $courses,
@@ -71,6 +155,7 @@ class StudentController extends Controller
             'assignedRooms' => $assignedRooms,
             // newToday kept for backward compatibility
             'newToday' => $attendanceToday,
+<<<<<<< HEAD
         ]);
     }
 
@@ -148,5 +233,8 @@ class StudentController extends Controller
         return redirect()
             ->route('dashboard')
             ->with('status', 'เพิ่มข้อมูลนักเรียนเรียบร้อยแล้ว');
+=======
+        ];
+>>>>>>> b4a503de30d69066aa64bfb4eab3682c67130fd5
     }
 }

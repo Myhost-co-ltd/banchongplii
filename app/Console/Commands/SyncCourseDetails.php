@@ -9,7 +9,7 @@ class SyncCourseDetails extends Command
 {
     protected $signature = 'course:sync-details {course_id? : Limit sync to a single course ID}';
 
-    protected $description = 'Sync course teaching hours, lessons, and assignments JSON into relational tables.';
+    protected $description = 'Sync course teaching hours, lessons, assignments, and rooms JSON into relational tables.';
 
     public function handle(): int
     {
@@ -26,6 +26,7 @@ class SyncCourseDetails extends Command
                 $course->syncTeachingHoursTable();
                 $course->syncLessonsTable();
                 $course->syncAssignmentsTable();
+                $course->syncCourseRoomsTable();
                 $synced++;
             }
         });
