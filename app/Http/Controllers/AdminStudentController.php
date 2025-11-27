@@ -11,19 +11,19 @@ class AdminStudentController extends Controller
     public function index()
     {
         $students = Student::orderBy('student_code')->get();
+
         $rooms = Student::query()
-            ->select('room')
+            ->select('classroom')
             ->distinct()
-            ->pluck('room')
+            ->pluck('classroom')
             ->filter()
             ->values();
 
-        // Preload default rooms ป.1/1 - ป.6/10 so dropdown always has options
-        $defaultRooms = collect(range(1, 6))->flatMap(function ($grade) {
+        $defaultClassrooms = collect(range(1, 6))->flatMap(function ($grade) {
             return collect(range(1, 10))->map(fn ($room) => "ป.$grade/$room");
         });
 
-        $rooms = $defaultRooms
+        $rooms = $defaultClassrooms
             ->merge($rooms)
             ->unique()
             ->values();
@@ -38,20 +38,23 @@ class AdminStudentController extends Controller
             'title'        => 'nullable|string|max:20',
             'first_name'   => 'required|string|max:100',
             'last_name'    => 'required|string|max:100',
-            'gender'       => 'nullable|string|in:???,????,?????',
+            'gender'       => 'nullable|string|in:ชาย,หญิง,ไม่ระบุ',
             'room'         => 'nullable|string|max:20',
         ]);
+
+        [$grade, $classroom] = $this->splitGradeAndClassroom($data['room'] ?? null);
 
         Student::create([
             'student_code' => $data['student_code'],
             'title'        => $data['title'] ?? '',
             'first_name'   => $data['first_name'],
             'last_name'    => $data['last_name'],
-            'gender'       => $data['gender'] ?? '?????',
-            'room'         => $data['room'] ?? null,
+            'gender'       => $data['gender'] ?? 'ไม่ระบุ',
+            'room'         => $grade,
+            'classroom'    => $classroom,
         ]);
 
-        return back()->with('status', '??????????????????????');
+        return back()->with('status', 'บันทึกนักเรียนเรียบร้อยแล้ว');
     }
 
     public function import(Request $request)
@@ -64,7 +67,7 @@ class AdminStudentController extends Controller
         $handle = fopen($path, 'r');
 
         if (! $handle) {
-            return back()->withErrors(['file' => '?????????']);
+            return back()->withErrors(['file' => 'ไม่สามารถเปิดไฟล์ได้']);
         }
 
         $header = [];
@@ -76,7 +79,6 @@ class AdminStudentController extends Controller
         while (($row = fgetcsv($handle, 1000, ',')) !== false) {
             $rowNumber++;
 
-            // read header
             if ($rowNumber === 1) {
                 $header = array_map(
                     fn ($value) => strtolower(trim($value)),
@@ -106,7 +108,7 @@ class AdminStudentController extends Controller
 
         fclose($handle);
 
-        $message = "???????????: ????????? {$created} ?????? {$updated} ???? {$skipped}";
+        $message = "สรุปผล: เพิ่ม {$created} อัปเดต {$updated} ข้าม {$skipped}";
 
         return back()->with('status', $message);
     }
@@ -123,27 +125,30 @@ class AdminStudentController extends Controller
             'title'        => 'nullable|string|max:20',
             'first_name'   => 'required|string|max:100',
             'last_name'    => 'required|string|max:100',
-            'gender'       => 'nullable|string|in:???,????,?????',
+            'gender'       => 'nullable|string|in:ชาย,หญิง,ไม่ระบุ',
             'room'         => 'nullable|string|max:20',
         ]);
+
+        [$grade, $classroom] = $this->splitGradeAndClassroom($data['room'] ?? null);
 
         $student->update([
             'student_code' => $data['student_code'],
             'title'        => $data['title'] ?? '',
             'first_name'   => $data['first_name'],
             'last_name'    => $data['last_name'],
-            'gender'       => $data['gender'] ?? '?????',
-            'room'         => $data['room'] ?? null,
+            'gender'       => $data['gender'] ?? 'ไม่ระบุ',
+            'room'         => $grade,
+            'classroom'    => $classroom,
         ]);
 
-        return back()->with('status', '??????????????????????');
+        return back()->with('status', 'บันทึกการแก้ไขเรียบร้อยแล้ว');
     }
 
     public function destroy(Student $student)
     {
         $student->delete();
 
-        return back()->with('status', '???????????????????');
+        return back()->with('status', 'ลบนักเรียนเรียบร้อยแล้ว');
     }
 
     private function mapRow(array $header, array $row): array
@@ -157,8 +162,16 @@ class AdminStudentController extends Controller
             return trim($row[$index]);
         };
 
-        $gender = $get('gender');
-        $normalizedGender = in_array($gender, ['???', '????', '?????'], true) ? $gender : '?????';
+        $gender = trim((string) $get('gender'));
+
+        $normalizedGender = match (mb_strtolower($gender)) {
+            'ชาย', 'm', 'male', 'boy'   => 'ชาย',
+            'หญิง', 'f', 'female', 'girl' => 'หญิง',
+            'ไม่ระบุ', 'ไม่ระบุ.', 'not specified', 'not specified.' => 'ไม่ระบุ',
+            default => 'ไม่ระบุ',
+        };
+
+        [$grade, $classroom] = $this->splitGradeAndClassroom($get('room') ?? $get('class'));
 
         return [
             'student_code' => $get('student_code') ?? $get('code'),
@@ -166,7 +179,36 @@ class AdminStudentController extends Controller
             'first_name'   => $get('first_name') ?? $get('name') ?? $get('firstname'),
             'last_name'    => $get('last_name') ?? $get('lastname') ?? $get('surname'),
             'gender'       => $normalizedGender,
-            'room'         => $get('room') ?? $get('class'),
+            'room'         => $grade,
+            'classroom'    => $classroom,
         ];
+    }
+
+    private function splitGradeAndClassroom(?string $roomValue): array
+    {
+        if (! $roomValue) {
+            return [null, null];
+        }
+
+        $parts = preg_split('/\s*\/\s*/', $roomValue, 2);
+        $grade = $this->normalizeGrade($parts[0] ?? '');
+        $classroom = $roomValue;
+
+        return [$grade ?: null, $classroom];
+    }
+
+    private function normalizeGrade(string $grade): string
+    {
+        $clean = preg_replace('/\s+/u', '', $grade);
+        if (! $clean) {
+            return '';
+        }
+
+        $clean = preg_replace('/^(?:\x{0E21}|[MmPp])\.?/u', 'ป.', $clean);
+        if (! str_contains($clean, '.')) {
+            $clean = preg_replace('/^([^\d]+)(\d+)/u', '$1.$2', $clean);
+        }
+
+        return $clean;
     }
 }

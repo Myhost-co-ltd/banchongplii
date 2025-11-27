@@ -1,10 +1,11 @@
-﻿@extends('layouts.layout-admin')
+@extends('layouts.layout-admin')
 
 @section('title', 'จัดการนักเรียน')
 
 @section('content')
 
 @php
+    // คำนำหน้า
     $titleOptions = ['ด.ช.', 'ด.ญ.', 'นาย', 'นางสาว', 'นาง'];
 
     /**

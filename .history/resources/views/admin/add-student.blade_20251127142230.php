@@ -1,10 +1,11 @@
-﻿@extends('layouts.layout-admin')
+@extends('layouts.layout-admin')
 
 @section('title', 'จัดการนักเรียน')
 
 @section('content')
 
 @php
+    // คำนำหน้า
     $titleOptions = ['ด.ช.', 'ด.ญ.', 'นาย', 'นางสาว', 'นาง'];
 
     /**
@@ -54,7 +55,7 @@
 <h1 class="text-3xl font-extrabold text-gray-900 mb-8 tracking-tight"
     data-i18n-th="จัดการนักเรียน"
     data-i18n-en="Manage Students">
-    จัดการนักเรียนน
+    จัดการนักเรียน
 </h1>
 
 {{-- SUCCESS --}}
@@ -162,10 +163,6 @@
                 <th class="p-3 text-left" data-i18n-th="ชื่อ" data-i18n-en="First Name">ชื่อ</th>
                 <th class="p-3 text-left" data-i18n-th="นามสกุล" data-i18n-en="Last Name">นามสกุล</th>
                 <th class="p-3 text-left" data-i18n-th="เพศ" data-i18n-en="Gender">เพศ</th>
-
-                {{-- คอลัมน์ใหม่: ชั้น --}}
-                <th class="p-3 text-left" data-i18n-th="ชั้น" data-i18n-en="Grade">ชั้น</th>
-
                 <th class="p-3 text-left" data-i18n-th="ห้อง" data-i18n-en="Room">ห้อง</th>
                 <th class="p-3 text-center" data-i18n-th="จัดการ" data-i18n-en="Actions">จัดการ</th>
             </tr>
@@ -175,11 +172,7 @@
             <tbody id="studentTable" class="text-gray-700">
 
             @forelse (($students ?? []) as $index => $student)
-                @php
-                    $fullName = trim(($student->title ? $student->title . ' ' : '') . $student->first_name . ' ' . $student->last_name);
-                    // ดึงชั้นจาก room แล้ว normalize ให้เป็น ป.1–ป.6
-                    $gradeDisplay = $normalizeGrade(trim(preg_split('/\s*\/\s*/', $student->room ?? '', 2)[0] ?? ''));
-                @endphp
+                @php($fullName = trim(($student->title ? $student->title . ' ' : '') . $student->first_name . ' ' . $student->last_name))
 
                 <tr class="border-b hover:bg-gray-50 transition student-row"
                     data-room="{{ $student->room ?? '' }}"
@@ -193,11 +186,6 @@
                     <td class="p-3">{{ $student->first_name }}</td>
                     <td class="p-3">{{ $student->last_name }}</td>
                     <td class="p-3">{{ $student->gender ?? '-' }}</td>
-
-                    {{-- แสดงชั้น --}}
-                    <td class="p-3">{{ $gradeDisplay ?: '-' }}</td>
-
-                    {{-- แสดงห้อง --}}
                     <td class="p-3 text-blue-600 font-semibold">{{ $student->room ?? '-' }}</td>
 
                     <td class="p-3 text-center text-gray-400">
@@ -229,8 +217,7 @@
 
             @empty
                 <tr>
-                    {{-- เพิ่ม colspan เป็น 8 เพราะมีคอลัมน์เพิ่มแล้ว --}}
-                    <td colspan="8" class="p-4 text-center text-gray-400"
+                    <td colspan="7" class="p-4 text-center text-gray-400"
                         data-i18n-th="ยังไม่มีข้อมูลนักเรียน" data-i18n-en="No student data yet">
                         ยังไม่มีข้อมูลนักเรียน
                     </td>
@@ -534,9 +521,8 @@ function searchStudent() {
 // -------------------- NORMALIZE GRADE (JS) --------------------
 function normalizeGrade(grade) {
     if (!grade) return '';
-    // Strip whitespace and normalize to prefix.number (e.g., ป.6)
+    // Strip whitespace and normalize to prefix.number (e.g., \u0E1B.6)
     let clean = grade.replace(/\s+/g, '');
-    // แปลง ม / m / p ให้เป็น ป.
     clean = clean.replace(/^(\u0E21|m|p)\.?/i, "\u0E1B.");
     clean = clean.replace(/^([^.]+)\.?(\d+)$/, '$1.$2');
     return clean;

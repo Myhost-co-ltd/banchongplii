@@ -1,10 +1,11 @@
-﻿@extends('layouts.layout-admin')
+@extends('layouts.layout-admin')
 
 @section('title', 'จัดการนักเรียน')
 
 @section('content')
 
 @php
+    // คำนำหน้า
     $titleOptions = ['ด.ช.', 'ด.ญ.', 'นาย', 'นางสาว', 'นาง'];
 
     /**
@@ -54,7 +55,7 @@
 <h1 class="text-3xl font-extrabold text-gray-900 mb-8 tracking-tight"
     data-i18n-th="จัดการนักเรียน"
     data-i18n-en="Manage Students">
-    จัดการนักเรียนน
+    จัดการนักเรียน
 </h1>
 
 {{-- SUCCESS --}}
