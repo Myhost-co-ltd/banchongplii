@@ -18,6 +18,16 @@ class AdminStudentController extends Controller
             ->filter()
             ->values();
 
+        // Preload default rooms ป.1/1 - ป.6/10 so dropdown always has options
+        $defaultRooms = collect(range(1, 6))->flatMap(function ($grade) {
+            return collect(range(1, 10))->map(fn ($room) => "ป.$grade/$room");
+        });
+
+        $rooms = $defaultRooms
+            ->merge($rooms)
+            ->unique()
+            ->values();
+
         return view('admin.add-student', compact('students', 'rooms'));
     }
 
@@ -28,7 +38,7 @@ class AdminStudentController extends Controller
             'title'        => 'nullable|string|max:20',
             'first_name'   => 'required|string|max:100',
             'last_name'    => 'required|string|max:100',
-            'gender'       => 'nullable|string|in:ชาย,หญิง,ไม่ระบุ',
+            'gender'       => 'nullable|string|in:???,????,?????',
             'room'         => 'nullable|string|max:20',
         ]);
 
@@ -37,11 +47,11 @@ class AdminStudentController extends Controller
             'title'        => $data['title'] ?? '',
             'first_name'   => $data['first_name'],
             'last_name'    => $data['last_name'],
-            'gender'       => $data['gender'] ?? 'ไม่ระบุ',
+            'gender'       => $data['gender'] ?? '?????',
             'room'         => $data['room'] ?? null,
         ]);
 
-        return back()->with('status', 'เพิ่มนักเรียนเรียบร้อยแล้ว');
+        return back()->with('status', '??????????????????????');
     }
 
     public function import(Request $request)
@@ -54,7 +64,7 @@ class AdminStudentController extends Controller
         $handle = fopen($path, 'r');
 
         if (! $handle) {
-            return back()->withErrors(['file' => 'ไม่สามารถอ่านไฟล์ได้']);
+            return back()->withErrors(['file' => '?????????']);
         }
 
         $header = [];
@@ -96,7 +106,7 @@ class AdminStudentController extends Controller
 
         fclose($handle);
 
-        $message = "นำเข้าเรียบร้อย: เพิ่มใหม่ {$created} รายการ, อัปเดต {$updated} รายการ, ข้าม {$skipped} รายการ";
+        $message = "???????????: ????????? {$created} ?????? {$updated} ???? {$skipped}";
 
         return back()->with('status', $message);
     }
@@ -113,7 +123,7 @@ class AdminStudentController extends Controller
             'title'        => 'nullable|string|max:20',
             'first_name'   => 'required|string|max:100',
             'last_name'    => 'required|string|max:100',
-            'gender'       => 'nullable|string|in:ชาย,หญิง,ไม่ระบุ',
+            'gender'       => 'nullable|string|in:???,????,?????',
             'room'         => 'nullable|string|max:20',
         ]);
 
@@ -122,18 +132,18 @@ class AdminStudentController extends Controller
             'title'        => $data['title'] ?? '',
             'first_name'   => $data['first_name'],
             'last_name'    => $data['last_name'],
-            'gender'       => $data['gender'] ?? 'ไม่ระบุ',
+            'gender'       => $data['gender'] ?? '?????',
             'room'         => $data['room'] ?? null,
         ]);
 
-        return back()->with('status', 'อัปเดตข้อมูลนักเรียนเรียบร้อยแล้ว');
+        return back()->with('status', '??????????????????????');
     }
 
     public function destroy(Student $student)
     {
         $student->delete();
 
-        return back()->with('status', 'ลบนักเรียนเรียบร้อยแล้ว');
+        return back()->with('status', '???????????????????');
     }
 
     private function mapRow(array $header, array $row): array
@@ -148,7 +158,7 @@ class AdminStudentController extends Controller
         };
 
         $gender = $get('gender');
-        $normalizedGender = in_array($gender, ['ชาย', 'หญิง', 'ไม่ระบุ'], true) ? $gender : 'ไม่ระบุ';
+        $normalizedGender = in_array($gender, ['???', '????', '?????'], true) ? $gender : '?????';
 
         return [
             'student_code' => $get('student_code') ?? $get('code'),

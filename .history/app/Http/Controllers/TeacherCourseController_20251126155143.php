@@ -126,22 +126,23 @@ class TeacherCourseController extends Controller
         ]);
     }
 
-    public function export(Request $request, Course $course)
-    {
-        $this->authorizeCourse($course);
+   public function export(Request $request, Course $course)
+{
+    $this->authorizeCourse($course);
 
-        $selectedTerm = $this->resolveTerm($course, $request->input('term'));
-        $payload = $this->buildCoursePayload($course, $selectedTerm);
+    $selectedTerm = $this->resolveTerm($course, $request->input('term'));
+    $payload = $this->buildCoursePayload($course, $selectedTerm);
 
         $fontPath = strtr(storage_path('fonts'), '\\', '/');
         $fontCache = strtr(storage_path('fonts/cache'), '\\', '/');
-
         if (! is_dir($fontCache)) {
             @mkdir($fontCache, 0775, true);
         }
 
-        $leelaRegularPath = "{$fontPath}/LeelawUI.ttf";
-        $leelaBoldPath = "{$fontPath}/LeelaUIb.ttf";
+        $fontRegularPath = "{$fontPath}/LeelawUI.ttf";
+        $fontBoldPath = "{$fontPath}/LeelaUIb.ttf";
+        $fontRegular = "file://{$fontRegularPath}";
+        $fontBold = "file://{$fontBoldPath}";
 
         $pdf = Pdf::setOptions([
                 'isRemoteEnabled' => true,
@@ -159,21 +160,32 @@ class TeacherCourseController extends Controller
                 'teacher' => $request->user(),
             ]));
 
-        // Register LeelawUI font explicitly so Dompdf does not fall back to an empty font key
-        $metrics = $pdf->getDomPDF()->getFontMetrics();
+        // Register LeelawUI font explicitly with Dompdf to avoid missing glyphs
+        $dompdf = $pdf->getDomPDF();
+        $metrics = $dompdf->getFontMetrics();
         $metrics->registerFont([
             'family' => 'LeelawUI',
             'style' => 'normal',
             'weight' => 'normal',
-        ], $leelaRegularPath);
+        ], $fontRegular);
         $metrics->registerFont([
             'family' => 'LeelawUI',
             'style' => 'normal',
             'weight' => 'bold',
-        ], $leelaBoldPath);
+        ], $fontBold);
+    $pdf = Pdf::setOptions([
+            'isRemoteEnabled' => true,
+            'defaultFont' => 'Sarabun',
+        ])
+        ->loadView('teacher.course-detail-pdf', array_merge($payload, [
+            'course' => $course,
+            'selectedTerm' => $selectedTerm,
+            'teacher' => $request->user(),
+        ]));
+>>>>>>> 4ca6a41a6050c3abcd3fc1dccc704f263340b5ea
 
-        return $pdf->download('course-'.$course->id.'-term-'.$selectedTerm.'.pdf');
-    }
+    return $pdf->download('course-'.$course->id.'-term-'.$selectedTerm.'.pdf');
+}
 
 
     public function edit(Course $course)

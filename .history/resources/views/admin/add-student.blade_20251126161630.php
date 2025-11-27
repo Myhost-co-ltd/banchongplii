@@ -1,4 +1,4 @@
-﻿@extends('layouts.layout-admin')
+@extends('layouts.layout-admin')
 
 @section('title', 'จัดการข้อมูลนักเรียน')
 
@@ -22,15 +22,21 @@
         return $clean;
     };
 
-    // Fixed grade list: ป.1, ป.2, ป.3, ป.4, ป.5, ป.6
-    $baseGrades = collect(['ป.1', 'ป.2', 'ป.3', 'ป.4', 'ป.5', 'ป.6']);
+    $baseGrades = collect(range(1, 6))->map(fn ($n) => "ป.$n");
     $roomOptions = collect($rooms ?? [])->filter()->values();
 
-    // Use only the fixed list for grade options
-    $gradeOptions = $baseGrades;
+    $gradeOptions = $roomOptions
+        ->map(function ($room) use ($normalizeGrade) {
+            $parts = preg_split('/\\s*\\/\\s*/', $room, 2);
+            return $normalizeGrade(trim($parts[0] ?? ''));
+        })
+        ->filter()
+        ->unique();
+
+    // รวมชั้นพื้นฐาน 1-6 เสมอ และลบค่าซ้ำ
+    $gradeOptions = $baseGrades->merge($gradeOptions)->unique()->values();
 
     $roomsByGrade = [];
-
     foreach ($roomOptions as $room) {
         $gradeKey = $normalizeGrade(trim(preg_split('/\\s*\\/\\s*/', $room, 2)[0] ?? ''));
         if ($gradeKey === '') {
@@ -241,9 +247,10 @@
                 </div>
                 <div>
                     <label class="font-semibold text-gray-800" data-i18n-th="ห้อง" data-i18n-en="Room">ห้อง</label>
-                    <select name="room" id="addRoomSelect" class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 disabled:bg-gray-100 disabled:text-gray-400" disabled>
-                        <option value="" data-i18n-th="เลือกชั้นก่อน" data-i18n-en="Select grade first">เลือกชั้นก่อน</option>
-                    </select>
+                                        <input name="room" id="addRoomInput" list="addRoomOptions"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+                           placeholder="?1??,??,??,-?,??,S?,?1%?,T?,??1^?,-?,T">
+                    <datalist id="addRoomOptions"></datalist>
                 </div>
             </div>
             <div class="flex gap-3">
@@ -308,9 +315,10 @@
                 </div>
                 <div>
                     <label class="font-semibold text-gray-800" data-i18n-th="ห้อง" data-i18n-en="Room">ห้อง</label>
-                    <select name="room" id="editRoomSelect" class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 disabled:bg-gray-100 disabled:text-gray-400" disabled>
-                        <option value="" data-i18n-th="เลือกชั้นก่อน" data-i18n-en="Select grade first">เลือกชั้นก่อน</option>
-                    </select>
+                                        <input name="room" id="editRoomInput" list="editRoomOptions"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+                           placeholder="?1??,??,??,-?,??,S?,?1%?,T?,??1^?,-?,T">
+                    <datalist id="editRoomOptions"></datalist>
                 </div>
             </div>
             <div class="flex gap-3">
@@ -365,7 +373,7 @@ function openAddStudentModal() {
     if (addGradeSelect) {
         addGradeSelect.value = '';
     }
-    renderRoomOptions(addRoomSelect, '', '');
+    renderRoomOptions(addRoomInput, addRoomOptionsList, '', '');
 }
 
 function closeAddStudentModal() {
@@ -376,9 +384,11 @@ const editForm = document.getElementById('editStudentForm');
 const editModal = document.getElementById('editStudentModal');
 const updateUrlTemplate = "{{ url('/admin/students/__ID__') }}";
 const addGradeSelect = document.getElementById('addGradeSelect');
-const addRoomSelect = document.getElementById('addRoomSelect');
+const addRoomInput = document.getElementById('addRoomInput');
+const addRoomOptionsList = document.getElementById('addRoomOptions');
 const editGradeSelect = document.getElementById('editGradeSelect');
-const editRoomSelect = document.getElementById('editRoomSelect');
+const editRoomInput = document.getElementById('editRoomInput');
+const editRoomOptionsList = document.getElementById('editRoomOptions');
 
 function getGradeFromRoom(room) {
     if (!room) return '';
@@ -403,40 +413,38 @@ function updateRoomFilterOptions(grade) {
 
 function normalizeGrade(grade) {
     if (!grade) return '';
-    // Strip whitespace and normalize to prefix.number (e.g., ป.6)
     let clean = grade.replace(/\s+/g, '');
-    clean = clean.replace(/^([^.]+)\.?(\d+)$/, '$1.$2');
+    clean = clean.replace(/^ป(\.?)(\d)/, 'ป.$2');
     return clean;
 }
 
-function renderRoomOptions(selectEl, grade, selectedRoom = '') {
-    if (!selectEl) return;
-    grade = normalizeGrade(grade);
-    selectEl.innerHTML = '';
+function renderRoomOptions(inputEl, datalistEl, grade, selectedRoom = '') {
+    if (!inputEl || !datalistEl) return;
+    const normalized = normalizeGrade(grade);
+    const roomList = normalized ? (roomsByGrade[normalized] || []) : allRooms;
 
-    const hasGrade = !!grade;
-    const knownRooms = hasGrade ? (roomsByGrade[grade] || []) : [];
-    let roomList = hasGrade ? knownRooms : [];
-
-    // fallback: if this grade has no mapped rooms, show all rooms so the user can still pick.
-    if (hasGrade && roomList.length === 0) {
-        roomList = allRooms;
-    }
-
-    const placeholder = hasGrade
-        ? (roomList.length ? "Select room" : "No rooms for this grade")
-        : "Select grade first";
-    selectEl.add(new Option(placeholder, '', true, !selectedRoom));
-
+    datalistEl.innerHTML = '';
     roomList.forEach(room => {
-        selectEl.add(new Option(room, room, false, room === selectedRoom));
+        const opt = document.createElement('option');
+        opt.value = room;
+        datalistEl.appendChild(opt);
     });
 
-    if (selectedRoom && !roomList.includes(selectedRoom)) {
-        selectEl.add(new Option(selectedRoom, selectedRoom, true, true));
+    if (selectedRoom) {
+        inputEl.value = selectedRoom;
+        if (!roomList.includes(selectedRoom)) {
+            const opt = document.createElement('option');
+            opt.value = selectedRoom;
+            datalistEl.appendChild(opt);
+        }
+    } else {
+        inputEl.value = '';
     }
 
-    selectEl.disabled = !hasGrade;
+    inputEl.placeholder = normalized
+        ? (roomList.length ? '?1??,??,??,-?,??,??1%?,-?,?1??,??,?,??,T' : '?1,?,??1^?,??,?,??1%?,-?,?1??,T?,S?,?1%?,T?,T?,?1%')
+        : '?1??,??,??,-?,??,S?,?1%?,T?,??1^?,-?,T';
+    inputEl.disabled = false;
 }
 
 function setSelectValue(select, value) {
@@ -458,7 +466,7 @@ function openEditStudentModal(button) {
     editForm.last_name.value = ds.last || '';
     const derivedGrade = getGradeFromRoom(ds.room || '');
     setSelectValue(editGradeSelect, derivedGrade);
-    renderRoomOptions(editRoomSelect, derivedGrade, ds.room || '');
+    renderRoomOptions(editRoomInput, editRoomOptionsList, derivedGrade, ds.room || '');
     editModal.classList.remove('hidden');
 }
 
@@ -467,15 +475,15 @@ function closeEditStudentModal() {
 }
 
 // initial state for add/edit selects
-renderRoomOptions(addRoomSelect, addGradeSelect ? addGradeSelect.value : '', addRoomSelect ? addRoomSelect.value : '');
-renderRoomOptions(editRoomSelect, editGradeSelect ? editGradeSelect.value : '', editRoomSelect ? editRoomSelect.value : '');
+renderRoomOptions(addRoomInput, addRoomOptionsList, addGradeSelect ? addGradeSelect.value : '', addRoomInput ? addRoomInput.value : '');
+renderRoomOptions(editRoomInput, editRoomOptionsList, editGradeSelect ? editGradeSelect.value : '', editRoomInput ? editRoomInput.value : '');
 
 addGradeSelect?.addEventListener('change', (event) => {
-    renderRoomOptions(addRoomSelect, event.target.value, '');
+    renderRoomOptions(addRoomInput, addRoomOptionsList, event.target.value, '');
 });
 
 editGradeSelect?.addEventListener('change', (event) => {
-    renderRoomOptions(editRoomSelect, event.target.value, '');
+    renderRoomOptions(editRoomInput, editRoomOptionsList, event.target.value, '');
 });
 
 // Filter grade -> rebuild room filter + filter rows
@@ -499,12 +507,6 @@ updateRoomFilterOptions(gradeFilter ? gradeFilter.value : 'all');
 @endpush
 
 @endsection
-
-
-
-
-
-
 
 
 

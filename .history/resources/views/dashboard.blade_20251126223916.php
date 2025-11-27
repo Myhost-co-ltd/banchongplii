@@ -34,14 +34,7 @@
 
     <!-- Course List -->
     <div class="bg-white rounded-3xl shadow-md p-8 border border-gray-100">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-            <h3 class="text-xl font-semibold text-gray-800" data-i18n-th="หลักสูตรที่รับผิดชอบ" data-i18n-en="Courses in charge">หลักสูตรที่รับผิดชอบ</h3>
-            <a href="{{ route('teacher.homeroom.export') }}"
-               class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-xl text-sm hover:bg-green-700 transition shadow-sm"
-               data-i18n-th="Export PDF" data-i18n-en="Export PDF">
-                Export PDF
-            </a>
-        </div>
+        <h3 class="text-xl font-semibold text-gray-800 mb-4" data-i18n-th="หลักสูตรที่รับผิดชอบ" data-i18n-en="Courses in charge">หลักสูตรที่รับผิดชอบ</h3>
 
         <table class="min-w-full border border-gray-200 rounded-xl overflow-hidden text-sm">
             <thead class="bg-blue-600 text-white">
@@ -84,9 +77,9 @@
 
     <!-- Student list for homeroom -->
     <div class="bg-white rounded-3xl shadow-md p-8 border border-gray-100 mb-10">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
+        <div class="flex items-center justify-between mb-4">
             <h3 class="text-xl font-semibold text-gray-800" data-i18n-th="ห้องที่รับผิดชอบ" data-i18n-en="Homeroom students">ห้องที่รับผิดชอบ</h3>
-            <div class="text-sm text-gray-500 sm:text-right">
+            <div class="text-sm text-gray-500">
                 <span data-i18n-th="ห้อง:" data-i18n-en="Room:">ห้อง:</span>
                 @php
                     $roomTags = ($assignedRooms ?? collect())->filter();

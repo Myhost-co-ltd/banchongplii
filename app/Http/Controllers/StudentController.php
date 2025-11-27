@@ -6,6 +6,7 @@ use App\Models\Role;
 use App\Models\Course;
 use App\Models\Student;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,52 +17,66 @@ class StudentController extends Controller
      */
     public function index()
     {
-        $user = Auth::user();
+        $data = $this->buildHomeroomData();
 
-        // เตรียม filter นักเรียนตามห้องของครูประจำชั้น
-        $homeroomRooms = collect();
-        if ($user && $user->hasRole('teacher')) {
-            $homeroomRooms = collect(preg_split('/[,;]/', (string) $user->homeroom))
-                ->map(fn ($room) => trim($room))
-                ->filter()
-                ->values();
+        return view('dashboard', $data);
+    }
+
+    /**
+     * Export homeroom students to PDF.
+     */
+    public function exportHomeroom()
+    {
+        $data = $this->buildHomeroomData();
+
+        $rooms = $data['assignedRooms']->isNotEmpty()
+            ? $data['assignedRooms']
+            : $data['students']->pluck('room')->filter()->unique();
+
+        $studentsByRoom = collect($data['students'])->groupBy(fn ($s) => $s->room ?? '-');
+
+        $fontPath = strtr(storage_path('fonts'), '\\', '/');
+        $fontCache = strtr(storage_path('fonts/cache'), '\\', '/');
+
+        if (! is_dir($fontCache)) {
+            @mkdir($fontCache, 0775, true);
         }
 
-        $studentQuery = Student::query();
-        if ($homeroomRooms->isNotEmpty()) {
-            $studentQuery->whereIn('room', $homeroomRooms);
-        } elseif ($user && $user->hasRole('teacher')) {
-            // ครูไม่มีการตั้งค่าห้อง → ไม่ต้องแสดงใคร
-            $studentQuery->whereRaw('1 = 0');
-        }
+        $leelaRegularPath = "{$fontPath}/LeelawUI.ttf";
+        $leelaBoldPath = "{$fontPath}/LeelaUIb.ttf";
 
-        $students = $studentQuery
-            ->orderBy('room')
-            ->orderBy('student_code')
-            ->get();
+        $pdf = Pdf::setOptions([
+                'isRemoteEnabled' => true,
+                'isHtml5ParserEnabled' => true,
+                'chroot' => base_path(),
+                'tempDir' => $fontCache,
+                'defaultFont' => 'LeelawUI',
+                'fontDir' => $fontPath,
+                'fontCache' => $fontCache,
+                'enable_font_subsetting' => true,
+            ])
+            ->loadView('teacher.homeroom-pdf', [
+                'teacher' => Auth::user(),
+                'courses' => $data['courses'],
+                'rooms' => $rooms,
+                'studentsByRoom' => $studentsByRoom,
+                'generatedAt' => now(),
+            ]);
 
-        $courses = Course::where('user_id', Auth::id())
-            ->latest()
-            ->get();
+        // Explicitly register LeelawUI font so Dompdf embeds it
+        $metrics = $pdf->getDomPDF()->getFontMetrics();
+        $metrics->registerFont([
+            'family' => 'LeelawUI',
+            'style' => 'normal',
+            'weight' => 'normal',
+        ], $leelaRegularPath);
+        $metrics->registerFont([
+            'family' => 'LeelawUI',
+            'style' => 'normal',
+            'weight' => 'bold',
+        ], $leelaBoldPath);
 
-        $teacherRoleId = Role::where('name', 'teacher')->value('id');
-        $teacherCount = $teacherRoleId
-            ? User::where('role_id', $teacherRoleId)->count()
-            : 0;
-
-        $attendanceToday = Student::whereDate('created_at', today())->count();
-
-        return view('dashboard', [
-            'students' => $students,
-            'studentCount' => $students->count(),
-            'courses' => $courses,
-            'courseCount' => $courses->count(),
-            'teacherCount' => $teacherCount,
-            'attendanceToday' => $attendanceToday,
-            'homeroomRooms' => $homeroomRooms,
-            // newToday kept for backward compatibility
-            'newToday' => $attendanceToday,
-        ]);
+        return $pdf->download('homeroom-students.pdf');
     }
 
     /**
@@ -80,6 +95,66 @@ class StudentController extends Controller
 
         return redirect()
             ->route('dashboard')
-            ->with('status', 'เพิ่มข้อมูลนักเรียนเรียบร้อยแล้ว');
+            ->with('status', '??????????????????????');
+    }
+
+    /**
+     * Shared homeroom data builder for dashboard and export.
+     */
+    private function buildHomeroomData(): array
+    {
+        $user = Auth::user();
+
+        $homeroomRooms = collect();
+        if ($user && $user->hasRole('teacher')) {
+            $homeroomRooms = collect(preg_split('/[,;]/', (string) $user->homeroom))
+                ->map(fn ($room) => trim($room))
+                ->filter()
+                ->values();
+        }
+
+        $courses = Course::where('user_id', Auth::id())
+            ->latest()
+            ->get();
+
+        $courseRooms = $courses
+            ->flatMap(fn ($course) => collect($course->rooms ?? []))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $assignedRooms = $homeroomRooms->isNotEmpty() ? $homeroomRooms : $courseRooms;
+
+        $studentQuery = Student::query();
+        if ($assignedRooms->isNotEmpty()) {
+            $studentQuery->whereIn('room', $assignedRooms);
+        } elseif ($user && $user->hasRole('teacher')) {
+            $studentQuery->whereRaw('1 = 0');
+        }
+
+        $students = $studentQuery
+            ->orderBy('room')
+            ->orderBy('student_code')
+            ->get();
+
+        $teacherRoleId = Role::where('name', 'teacher')->value('id');
+        $teacherCount = $teacherRoleId
+            ? User::where('role_id', $teacherRoleId)->count()
+            : 0;
+
+        $attendanceToday = Student::whereDate('created_at', today())->count();
+
+        return [
+            'students' => $students,
+            'studentCount' => $students->count(),
+            'courses' => $courses,
+            'courseCount' => $courses->count(),
+            'teacherCount' => $teacherCount,
+            'attendanceToday' => $attendanceToday,
+            'homeroomRooms' => $homeroomRooms,
+            'assignedRooms' => $assignedRooms,
+            // newToday kept for backward compatibility
+            'newToday' => $attendanceToday,
+        ];
     }
 }

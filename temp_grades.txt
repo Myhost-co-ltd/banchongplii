@@ -1,0 +1,8 @@
+﻿    // Fixed grade list: ป.1, ป.2, ป.3, ป.4, ป.5, ป.6
+    $baseGrades = collect(['ป.1', 'ป.2', 'ป.3', 'ป.4', 'ป.5', 'ป.6']);
+    $roomOptions = collect($rooms ?? [])->filter()->values();
+
+    // Use only the fixed list for grade options
+    $gradeOptions = $baseGrades;
+
+    $roomsByGrade = [];
