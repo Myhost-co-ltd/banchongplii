@@ -82,7 +82,7 @@
         </table>
     </div>
 
-    <!-- Student list for homeroom -->
+        <!-- Student list for homeroom -->
     <div class="bg-white rounded-3xl shadow-md p-8 border border-gray-100 mb-10">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
             <h3 class="text-xl font-semibold text-gray-800" data-i18n-th="ห้องที่รับผิดชอบ" data-i18n-en="Homeroom students">ห้องที่รับผิดชอบ</h3>
@@ -94,13 +94,13 @@
                 @if($roomTags->isNotEmpty())
                     <span class="font-semibold text-blue-700">{{ $roomTags->join(', ') }}</span>
                 @else
-                    <span class="text-gray-400" data-i18n-th="ยังไม่กำหนดห้อง" data-i18n-en="No room assigned">ยังไม่กำหนดห้อง</span>
+                    <span class="text-gray-400" data-i18n-th="ยังไม่ได้กำหนดห้อง" data-i18n-en="No room assigned">ยังไม่ได้กำหนดห้อง</span>
                 @endif
             </div>
         </div>
 
         @php
-            $studentsByRoom = collect($students ?? [])->groupBy(fn($s) => $s->room ?? '-');
+            $studentsByRoom = collect($students ?? [])->groupBy(fn($s) => $s->classroom ?? '-');
             $roomLoop = ($assignedRooms ?? collect())->isNotEmpty() ? $assignedRooms : $studentsByRoom->keys();
         @endphp
 
@@ -114,6 +114,7 @@
                             <th class="py-3 px-4 text-left" data-i18n-th="รหัส" data-i18n-en="Code">รหัส</th>
                             <th class="py-3 px-4 text-left" data-i18n-th="ชื่อ" data-i18n-en="First Name">ชื่อ</th>
                             <th class="py-3 px-4 text-left" data-i18n-th="นามสกุล" data-i18n-en="Last Name">นามสกุล</th>
+                            <th class="py-3 px-4 text-center" data-i18n-th="ชั้น" data-i18n-en="Grade">ชั้น</th>
                             <th class="py-3 px-4 text-center" data-i18n-th="ห้อง" data-i18n-en="Room">ห้อง</th>
                         </tr>
                     </thead>
@@ -124,10 +125,11 @@
                                 <td class="py-2 px-4">{{ $student->first_name }}</td>
                                 <td class="py-2 px-4">{{ $student->last_name }}</td>
                                 <td class="py-2 px-4 text-center">{{ $student->room ?? '-' }}</td>
+                                <td class="py-2 px-4 text-center">{{ $student->classroom ?? '-' }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="py-3 px-4 text-center text-gray-400">ยังไม่มีนักเรียนในห้องนี้</td>
+                                <td colspan="5" class="py-3 px-4 text-center text-gray-400">ยังไม่มีนักเรียนในห้องนี้</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -143,8 +145,6 @@
             </div>
         @endforelse
     </div>
-
-   
 
     <!-- Notifications -->
     <div class="bg-white rounded-3xl shadow-md p-8 border border-gray-100 mb-20">
@@ -196,3 +196,4 @@
 </script>
 
 @endsection
+

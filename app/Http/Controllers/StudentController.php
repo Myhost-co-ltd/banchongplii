@@ -31,9 +31,9 @@ class StudentController extends Controller
 
         $rooms = $data['assignedRooms']->isNotEmpty()
             ? $data['assignedRooms']
-            : $data['students']->pluck('room')->filter()->unique();
+            : $data['students']->pluck('classroom')->filter()->unique();
 
-        $studentsByRoom = collect($data['students'])->groupBy(fn ($s) => $s->room ?? '-');
+        $studentsByRoom = collect($data['students'])->groupBy(fn ($s) => $s->classroom ?? '-');
 
         $fontPath = strtr(storage_path('fonts'), '\\', '/');
         $fontCache = strtr(storage_path('fonts/cache'), '\\', '/');
@@ -127,13 +127,13 @@ class StudentController extends Controller
 
         $studentQuery = Student::query();
         if ($assignedRooms->isNotEmpty()) {
-            $studentQuery->whereIn('room', $assignedRooms);
+            $studentQuery->whereIn('classroom', $assignedRooms);
         } elseif ($user && $user->hasRole('teacher')) {
             $studentQuery->whereRaw('1 = 0');
         }
 
         $students = $studentQuery
-            ->orderBy('room')
+            ->orderBy('classroom')
             ->orderBy('student_code')
             ->get();
 

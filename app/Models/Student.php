@@ -21,5 +21,6 @@ class Student extends Model
         'last_name',
         'gender',
         'room',
+        'classroom',
     ];
 }
