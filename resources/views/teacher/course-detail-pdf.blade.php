@@ -1,32 +1,27 @@
-@php
+﻿@php
     $termLabel = $selectedTerm === '2' ? 'ภาคเรียนที่ 2' : 'ภาคเรียนที่ 1';
+    $fontRegular = 'file:///' . str_replace('\\', '/', storage_path('fonts/LeelawUI.ttf'));
+    $fontBold = 'file:///' . str_replace('\\', '/', storage_path('fonts/LeelaUIb.ttf'));
 @endphp
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>รายละเอียดหลักสูตร - {{ $course->name }}</title>
-
+    <title>รายงานรายละเอียดรายวิชา - {{ $course->name }}</title>
     <style>
-        {{-- โหลดฟอนต์ Sarabun แบบตรงจาก storage --}}
-        @php
-            $fontRegular = 'file:///' . str_replace('\\', '/', storage_path('fonts/Sarabun-Regular.ttf'));
-            $fontBold    = 'file:///' . str_replace('\\', '/', storage_path('fonts/Sarabun-Bold.ttf'));
-        @endphp
-
         @font-face {
-            font-family: 'Sarabun';
+            font-family: 'LeelawUI';
             font-weight: 400;
             src: url('{{ $fontRegular }}') format('truetype');
         }
         @font-face {
-            font-family: 'Sarabun';
+            font-family: 'LeelawUI';
             font-weight: 700;
             src: url('{{ $fontBold }}') format('truetype');
         }
 
         body {
-            font-family: 'Sarabun', sans-serif;
+            font-family: 'LeelawUI', 'Tahoma', 'DejaVu Sans', sans-serif;
             font-size: 13px;
             color: #111827;
             line-height: 1.45;
@@ -91,18 +86,15 @@
 </head>
 
 <body>
+<header>รายงานรายละเอียดรายวิชา</header>
+<footer>หน้า {PAGE_NUM} / {PAGE_COUNT}</footer>
 
-<header>รายละเอียดหลักสูตร</header>
-<footer>หน้าที่ {PAGE_NUM} / {PAGE_COUNT}</footer>
-
-{{-- หัวเรื่อง --}}
-<h1 style="font-size:20px; margin-bottom:6px;">รายละเอียดหลักสูตร</h1>
+<h1 style="font-size:20px; margin-bottom:6px;">รายงานรายละเอียดรายวิชา</h1>
 <p class="muted">
-    พิมพ์โดย: {{ $teacher->name ?? '-' }} |
-    วันที่ {{ now()->format('d/m/Y H:i') }}
+    ผู้สอน: {{ $teacher->name ?? '-' }} |
+    สร้างเมื่อ {{ now()->format('d/m/Y H:i') }}
 </p>
 
-{{-- ข้อมูลหลักสูตร --}}
 <div class="section">
     <h2 style="font-size:17px; font-weight:700;">{{ $course->name }}</h2>
 
@@ -121,45 +113,41 @@
         @endforelse
     </p>
 
-    <p>รายละเอียด: {{ $course->description ?? '-' }}</p>
+    <p>รายละเอียดวิชา: {{ $course->description ?? '-' }}</p>
 </div>
 
-{{-- ตาราง ชม.สอน --}}
 <div class="section">
-    <h3>ชั่วโมงสอน (เป้าหมาย vs ใช้แล้ว)</h3>
+    <h3>ชั่วโมงสอน (เป้าหมาย vs ใช้จริง)</h3>
     <table>
         <thead>
             <tr>
                 <th>หมวด</th>
-                <th>ชั่วโมงที่กำหนด</th>
+                <th>ชั่วโมงเป้าหมาย</th>
                 <th>ชั่วโมงที่ใช้</th>
-                <th>คงเหลือ</th>
+                <th>เหลือ</th>
             </tr>
         </thead>
         <tbody>
             @forelse($lessonCapacity as $category => $meta)
                 <tr>
                     <td>{{ $category }}</td>
-                    <td>{{ $meta['allowed'] }}</td>
-                    <td>{{ $meta['used'] }}</td>
-                    <td>{{ $meta['remaining'] }}</td>
+                    <td>{{ $meta['allowed'] ?? '-' }}</td>
+                    <td>{{ $meta['used'] ?? '-' }}</td>
+                    <td>{{ $meta['remaining'] ?? '-' }}</td>
                 </tr>
             @empty
-                <tr>
-                    <td colspan="4" class="muted">ยังไม่มีข้อมูลชั่วโมงสอน</td>
-                </tr>
+                <tr><td colspan="4" class="muted">ยังไม่มีข้อมูลชั่วโมงสอน</td></tr>
             @endforelse
         </tbody>
     </table>
 </div>
 
-{{-- ตารางบทเรียน --}}
 <div class="section">
-    <h3>บทเรียน (ภาคเรียนนี้)</h3>
+    <h3>แผนการสอน (รายการ)</h3>
     <table>
         <thead>
             <tr>
-                <th>เรื่อง</th>
+                <th>หัวข้อ</th>
                 <th>หมวด</th>
                 <th>ชั่วโมง</th>
             </tr>
@@ -167,25 +155,24 @@
         <tbody>
             @forelse($lessons as $lesson)
                 <tr>
-                    <td>{{ $lesson['title'] }}</td>
-                    <td>{{ $lesson['category'] }}</td>
-                    <td>{{ $lesson['hours'] }}</td>
+                    <td>{{ $lesson['title'] ?? '-' }}</td>
+                    <td>{{ $lesson['category'] ?? '-' }}</td>
+                    <td>{{ $lesson['hours'] ?? '-' }}</td>
                 </tr>
             @empty
-                <tr><td colspan="3" class="muted">ยังไม่มีบทเรียน</td></tr>
+                <tr><td colspan="3" class="muted">ยังไม่มีแผนการสอน</td></tr>
             @endforelse
         </tbody>
     </table>
 </div>
 
-{{-- ตารางงาน/คะแนน --}}
 <div class="section">
-    <h3>การบ้าน / งาน (ภาคเรียนนี้)</h3>
+    <h3>งาน / แบบฝึกหัด (รายการ)</h3>
 
     <table>
         <thead>
             <tr>
-                <th>ชื่องาน</th>
+                <th>ชื่อรายการ</th>
                 <th>คะแนน</th>
                 <th>กำหนดส่ง</th>
             </tr>
@@ -193,19 +180,19 @@
         <tbody>
             @forelse($assignments as $assignment)
                 <tr>
-                    <td>{{ $assignment['title'] }}</td>
-                    <td>{{ $assignment['score'] }}</td>
+                    <td>{{ $assignment['title'] ?? '-' }}</td>
+                    <td>{{ $assignment['score'] ?? '-' }}</td>
                     <td>{{ $assignment['due_date'] ?? '-' }}</td>
                 </tr>
             @empty
-                <tr><td colspan="3" class="muted">ยังไม่มีการบ้าน/งาน</td></tr>
+                <tr><td colspan="3" class="muted">ยังไม่มีงานหรือแบบฝึกหัด</td></tr>
             @endforelse
         </tbody>
     </table>
 
     <p class="muted">
         คะแนนรวม: {{ $assignmentTotal }} |
-        เหลือคงต้องเพิ่ม: {{ $assignmentRemaining }}
+        คะแนนที่เหลือ: {{ $assignmentRemaining }}
     </p>
 </div>
 

@@ -1,4 +1,4 @@
-@extends('layouts.layout-admin')
+﻿@extends('layouts.layout-admin')
 
 @section('title', 'จัดการข้อมูลนักเรียน')
 
@@ -22,21 +22,15 @@
         return $clean;
     };
 
-    $baseGrades = collect(range(1, 6))->map(fn ($n) => "ป.$n");
+    // Fixed grade list: ป.1, ป.2, ป.3, ป.4, ป.5, ป.6
+    $baseGrades = collect(['ป.1', 'ป.2', 'ป.3', 'ป.4', 'ป.5', 'ป.6']);
     $roomOptions = collect($rooms ?? [])->filter()->values();
 
-    $gradeOptions = $roomOptions
-        ->map(function ($room) use ($normalizeGrade) {
-            $parts = preg_split('/\\s*\\/\\s*/', $room, 2);
-            return $normalizeGrade(trim($parts[0] ?? ''));
-        })
-        ->filter()
-        ->unique();
-
-    // รวมชั้นพื้นฐาน 1-6 เสมอ และลบค่าซ้ำ
-    $gradeOptions = $baseGrades->merge($gradeOptions)->unique()->values();
+    // Use only the fixed list for grade options
+    $gradeOptions = $baseGrades;
 
     $roomsByGrade = [];
+
     foreach ($roomOptions as $room) {
         $gradeKey = $normalizeGrade(trim(preg_split('/\\s*\\/\\s*/', $room, 2)[0] ?? ''));
         if ($gradeKey === '') {
@@ -409,8 +403,9 @@ function updateRoomFilterOptions(grade) {
 
 function normalizeGrade(grade) {
     if (!grade) return '';
+    // Strip whitespace and normalize to prefix.number (e.g., ป.6)
     let clean = grade.replace(/\s+/g, '');
-    clean = clean.replace(/^ป(\.?)(\d)/, 'ป.$2');
+    clean = clean.replace(/^([^.]+)\.?(\d+)$/, '$1.$2');
     return clean;
 }
 
@@ -421,10 +416,16 @@ function renderRoomOptions(selectEl, grade, selectedRoom = '') {
 
     const hasGrade = !!grade;
     const knownRooms = hasGrade ? (roomsByGrade[grade] || []) : [];
-    const roomList = hasGrade ? knownRooms : [];
+    let roomList = hasGrade ? knownRooms : [];
+
+    // fallback: if this grade has no mapped rooms, show all rooms so the user can still pick.
+    if (hasGrade && roomList.length === 0) {
+        roomList = allRooms;
+    }
+
     const placeholder = hasGrade
-        ? (roomList.length ? 'เลือกห้องเรียน' : 'ไม่มีห้องในชั้นนี้')
-        : 'เลือกชั้นก่อน';
+        ? (roomList.length ? "Select room" : "No rooms for this grade")
+        : "Select grade first";
     selectEl.add(new Option(placeholder, '', true, !selectedRoom));
 
     roomList.forEach(room => {
@@ -435,7 +436,7 @@ function renderRoomOptions(selectEl, grade, selectedRoom = '') {
         selectEl.add(new Option(selectedRoom, selectedRoom, true, true));
     }
 
-    selectEl.disabled = !hasGrade || (!roomList.length && !selectedRoom);
+    selectEl.disabled = !hasGrade;
 }
 
 function setSelectValue(select, value) {
@@ -498,3 +499,14 @@ updateRoomFilterOptions(gradeFilter ? gradeFilter.value : 'all');
 @endpush
 
 @endsection
+
+
+
+
+
+
+
+
+
+
+
