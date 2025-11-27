@@ -171,13 +171,15 @@ class StudentController extends Controller
         }
 
         $courses = Course::where('user_id', Auth::id())->latest()->get();
-        $courseRooms = $courses
+        $courseRooms = collect($courses)
             ->flatMap(fn ($course) => collect($course->rooms ?? []))
             ->filter()
             ->unique()
             ->values();
 
-        $assignedRooms = $homeroomRooms->isNotEmpty() ? $homeroomRooms : $courseRooms;
+        // Force to support collection of plain strings to avoid Eloquent contains() calling getKey()
+        $assignedRooms = $homeroomRooms->isNotEmpty() ? $homeroomRooms->values() : $courseRooms;
+        $assignedRooms = collect($assignedRooms->all());
 
         $studentsByRoom = Student::query()
             ->when($assignedRooms->isNotEmpty(), fn ($q) => $q->whereIn('room', $assignedRooms))
@@ -192,7 +194,8 @@ class StudentController extends Controller
         }
 
         if ($filterRoom !== '') {
-            $studentsByRoom = $studentsByRoom->only([$filterRoom]);
+            $filterKey = $studentsByRoom->keys()->first(fn ($k) => (string) $k === $filterRoom) ?? $filterRoom;
+            $studentsByRoom = collect([$filterKey => $studentsByRoom->get($filterKey, collect())]);
             $assignedRooms = collect([$filterRoom]);
         }
 

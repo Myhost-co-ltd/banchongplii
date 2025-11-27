@@ -4,6 +4,8 @@
     $roomsList = ($rooms ?? collect())->filter();
     $printedAt = ($generatedAt ?? now())->timezone('Asia/Bangkok');
     $printedAtTh = $printedAt->copy()->addYears(543)->format('d/m/Y H:i');
+    $logoFile = public_path('images/school-logo.png');
+    $logoPath = file_exists($logoFile) ? ('file:///' . str_replace('\\', '/', $logoFile)) : null;
 @endphp
 <!DOCTYPE html>
 <html lang="th">
@@ -61,7 +63,7 @@
         }
         table { width: 100%; border-collapse: collapse; margin-top: 6px; }
         th {
-            background: #1d4ed8;
+            background: #fff;
             color: #fff;
             padding: 6px;
             border: 1px solid #cbd5e1;
@@ -73,6 +75,12 @@
 <body>
 <header>สรุปหลักสูตรและนักเรียนที่รับผิดชอบ</header>
 <footer>หน้า {PAGE_NUM} / {PAGE_COUNT}</footer>
+
+@if($logoPath)
+    <div style="text-align:center; margin: 0 0 8px 0;">
+        <img src="{{ $logoPath }}" alt="โลโก้โรงเรียน" style="height:70px; object-fit:contain;">
+    </div>
+@endif
 
 <p style="font-size:15px; font-weight:700; margin:0 0 4px 0;">
     ครูผู้รับผิดชอบ: {{ $teacher->name ?? '-' }}

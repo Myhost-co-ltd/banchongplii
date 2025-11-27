@@ -30,16 +30,7 @@
         }
 
         @page {
-            margin: 90px 40px 70px;
-        }
-
-        header {
-            position: fixed;
-            top: -70px;
-            left: 0; right: 0;
-            text-align: center;
-            font-size: 18px;
-            font-weight: 700;
+            margin: 60px 40px 60px;
         }
 
         .section { margin-bottom: 22px; }
@@ -67,19 +58,24 @@
             padding: 6px;
             border: 1px solid #cbd5e1;
             font-weight: 700;
+            text-align: center;
         }
 
         td {
             padding: 6px;
             border: 1px solid #e5e7eb;
+            text-align: center;
         }
 
         h1,h2,h3 { margin: 0 0 6px 0; }
+
+        table, tr, td, th { page-break-inside: avoid; }
+        .section { page-break-inside: avoid; }
     </style>
 </head>
 
 <body>
-<header>รายงานรายละเอียดรายวิชา</header>
+<h1 style="font-size:18px; font-weight:700; text-align:center; margin:0 0 10px 0;">รายงานรายละเอียดรายวิชา</h1>
 
 <p style="font-size:15px; font-weight:700; margin:0 0 6px 0;">
     ผู้สอน: {{ $teacher->name ?? '-' }}
