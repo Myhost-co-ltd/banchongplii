@@ -2,6 +2,8 @@
     $fontRegular = 'file:///' . str_replace('\\', '/', storage_path('fonts/LeelawUI.ttf'));
     $fontBold = 'file:///' . str_replace('\\', '/', storage_path('fonts/LeelaUIb.ttf'));
     $roomsList = ($rooms ?? collect())->filter();
+    $printedAt = ($generatedAt ?? now())->timezone('Asia/Bangkok');
+    $printedAtTh = $printedAt->copy()->addYears(543)->format('d/m/Y H:i');
 @endphp
 <!DOCTYPE html>
 <html lang="th">
@@ -72,10 +74,11 @@
 <header>สรุปหลักสูตรและนักเรียนที่รับผิดชอบ</header>
 <footer>หน้า {PAGE_NUM} / {PAGE_COUNT}</footer>
 
-<h1 style="font-size:18px; margin-bottom:4px;">สรุปหลักสูตรและนักเรียนที่รับผิดชอบ</h1>
+<p style="font-size:15px; font-weight:700; margin:0 0 4px 0;">
+    ครูผู้รับผิดชอบ: {{ $teacher->name ?? '-' }}
+</p>
 <p class="muted" style="margin-bottom:10px;">
-    ครูผู้รับผิดชอบ: {{ $teacher->name ?? '-' }} |
-    จัดทำเมื่อ {{ ($generatedAt ?? now())->format('d/m/Y H:i') }}
+    จัดทำเมื่อ {{ $printedAtTh }}
 </p>
 
 <div class="section">

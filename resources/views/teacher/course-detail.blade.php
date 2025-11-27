@@ -213,7 +213,7 @@
                                 <div>
                                     <p class="font-semibold text-gray-900">{{ $lesson['title'] }}</p>
                                     <p class="text-sm text-gray-600">
-                                        {{ $lesson['category'] }} ? {{ $lesson['hours'] }} ชั่วโมง
+                                        {{ $lesson['category'] }} : {{ $lesson['hours'] }} ชั่วโมง
                                     </p>
 
                                     @if(!empty($lesson['details']))
@@ -387,12 +387,19 @@
                                         @if($assignment['due_date'])
                                             <span class="mx-1 text-gray-400">|</span>
                                             ส่งภายใน:
-                                            {{ \Illuminate\Support\Carbon::parse($assignment['due_date'])->timezone('Asia/Bangkok')->locale('th')->isoFormat('D MMM YYYY') }}
+                                            {{ \Illuminate\Support\Carbon::parse($assignment['due_date'])->timezone('Asia/Bangkok')->addYears(543)->locale('th')->isoFormat('D MMM YYYY') }}
                                         @endif
                                     </p>
 
                                     @if(!empty($assignment['notes']))
                                         <p class="text-sm text-gray-500 mt-1">{{ $assignment['notes'] }}</p>
+                                    @endif
+
+                                    @if(!empty($assignment['created_at']))
+                                        <p class="text-xs text-gray-400 mt-1">
+                                            เพิ่มเมื่อ
+                                            {{ \Illuminate\Support\Carbon::parse($assignment['created_at'])->timezone('Asia/Bangkok')->addYears(543)->locale('th')->isoFormat('D MMM YYYY HH:mm') }}
+                                        </p>
                                     @endif
                                 </div>
 
@@ -429,16 +436,17 @@
                                     @endforeach
                                 </select>
 
+                                <textarea name="notes"
+                                          class="border rounded-xl px-3 py-2 md:col-span-2"
+                                          rows="1"
+                                          placeholder="รายละเอียดงาน">{{ $assignment['notes'] }}</textarea>
+
                                 <input type="date" name="due_date" class="border rounded-xl px-3 py-2"
                                        value="{{ $assignment['due_date'] }}">
 
                                 <input type="number" step="0.1" name="score"
                                        class="border rounded-xl px-3 py-2"
                                        value="{{ $assignment['score'] }}" required>
-
-                                <textarea name="notes"
-                                          class="border rounded-xl px-3 py-2"
-                                          rows="1">{{ $assignment['notes'] }}</textarea>
 
                                 <div class="md:col-span-4 text-right">
                                     <button class="px-5 py-2 bg-blue-600 text-white rounded-xl">บันทึกการแก้ไข</button>
@@ -467,14 +475,14 @@
                         @endforeach
                     </select>
 
+                    <textarea name="notes" class="border rounded-xl px-3 py-2 md:col-span-2" rows="1"
+                              placeholder="รายละเอียดงาน"></textarea>
+
                     <input type="date" name="due_date" class="border rounded-xl px-3 py-2">
 
                     <input type="number" step="0.1" name="score"
                            class="border rounded-xl px-3 py-2"
                            placeholder="คะแนนเต็ม" required>
-
-                    <textarea name="notes" class="border rounded-xl px-3 py-2" rows="1"
-                              placeholder="หมายเหตุ (ถ้ามี)"></textarea>
 
                     <div class="md:col-span-4 text-right">
                         <button class="px-5 py-2 bg-blue-600 text-white rounded-xl">บันทึกงาน / คะแนนเก็บ</button>
@@ -545,4 +553,8 @@
 </script>
 
 @endsection
+
+
+
+
 

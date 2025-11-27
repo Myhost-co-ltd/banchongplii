@@ -1,6 +1,7 @@
 @php
     $fontRegular = 'file:///' . str_replace('\\', '/', storage_path('fonts/LeelawUI.ttf'));
     $fontBold    = 'file:///' . str_replace('\\', '/', storage_path('fonts/LeelaUIb.ttf'));
+    $printedAt   = now()->timezone('Asia/Bangkok')->addYears(543)->format('d/m/Y H:i');
 @endphp
 <!DOCTYPE html>
 <html lang="th">
@@ -32,7 +33,7 @@
 <body>
     <div class="header">
         <h1>รายชื่อนักเรียนที่รับผิดชอบ</h1>
-        <span class="muted">ครู: {{ $teacher->name ?? '-' }} | พิมพ์เมื่อ {{ now()->format('d/m/Y H:i') }}</span>
+        <span class="muted">ครู: {{ $teacher->name ?? '-' }} | พิมพ์เมื่อ {{ $printedAt }}</span>
     </div>
 
     @foreach(($studentsByRoom ?? collect()) as $room => $list)

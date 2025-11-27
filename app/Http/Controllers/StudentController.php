@@ -95,7 +95,7 @@ class StudentController extends Controller
 
         return redirect()
             ->route('dashboard')
-            ->with('status', '??????????????????????');
+            ->with('status', 'เพิ่มข้อมูลนักเรียนเรียบร้อยแล้ว');
     }
 
     /**
@@ -155,8 +155,7 @@ class StudentController extends Controller
             'assignedRooms' => $assignedRooms,
             // newToday kept for backward compatibility
             'newToday' => $attendanceToday,
-<<<<<<< HEAD
-        ]);
+        ];
     }
 
     public function export(Request $request)
@@ -214,27 +213,5 @@ class StudentController extends Controller
             : 'students.pdf';
 
         return $pdf->download($fileName);
-    }
-
-    /**
-     * Persist a new student into storage.
-     */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'student_code' => 'required|string|max:20|unique:students,student_code',
-            'title' => 'required|string|max:20',
-            'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
-        ]);
-
-        Student::create($validated);
-
-        return redirect()
-            ->route('dashboard')
-            ->with('status', 'เพิ่มข้อมูลนักเรียนเรียบร้อยแล้ว');
-=======
-        ];
->>>>>>> b4a503de30d69066aa64bfb4eab3682c67130fd5
     }
 }

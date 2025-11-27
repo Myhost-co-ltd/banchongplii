@@ -17,7 +17,6 @@ class Course extends Model
         'name',
         'grade',
         'rooms',
-        'course_rooms',
         'term',
         'year',
         'description',
@@ -28,7 +27,6 @@ class Course extends Model
 
     protected $casts = [
         'rooms' => 'array',
-        'course_rooms' => 'array',
         'teaching_hours' => 'array',
         'lessons' => 'array',
         'assignments' => 'array',
@@ -48,12 +46,6 @@ class Course extends Model
     protected static function booted(): void
     {
         static::saving(function (Course $course): void {
-            // Keep rooms and course_rooms in sync so both columns reflect the same array.
-            if (! is_null($course->rooms)) {
-                $course->course_rooms = $course->course_rooms ?? $course->rooms;
-            } elseif (! is_null($course->course_rooms)) {
-                $course->rooms = $course->course_rooms;
-            }
         });
 
         static::saved(function (Course $course): void {
@@ -69,7 +61,7 @@ class Course extends Model
                 $course->syncAssignmentsTable();
             }
 
-            if ($course->wasChanged('rooms') || $course->wasChanged('course_rooms')) {
+            if ($course->wasChanged('rooms')) {
                 $course->syncCourseRoomsTable();
             }
         });
@@ -149,7 +141,7 @@ class Course extends Model
 
     public function syncCourseRoomsTable(): void
     {
-        $items = $this->course_rooms ?? $this->rooms ?? [];
+        $items = $this->rooms ?? [];
         $now = now();
         $courseId = $this->id;
         $rows = collect($items)->map(function ($item) use ($courseId, $now) {

@@ -2,6 +2,8 @@
     $termLabel = $selectedTerm === '2' ? 'ภาคเรียนที่ 2' : 'ภาคเรียนที่ 1';
     $fontRegular = 'file:///' . str_replace('\\', '/', storage_path('fonts/LeelawUI.ttf'));
     $fontBold = 'file:///' . str_replace('\\', '/', storage_path('fonts/LeelaUIb.ttf'));
+    $printedAt = now()->timezone('Asia/Bangkok');
+    $printedAtTh = $printedAt->copy()->addYears(543)->format('d/m/Y H:i');
 @endphp
 <!DOCTYPE html>
 <html lang="th">
@@ -38,15 +40,6 @@
             text-align: center;
             font-size: 18px;
             font-weight: 700;
-        }
-
-        footer {
-            position: fixed;
-            bottom: -45px;
-            left: 0; right: 0;
-            text-align: right;
-            font-size: 11px;
-            color: #6b7280;
         }
 
         .section { margin-bottom: 22px; }
@@ -87,12 +80,12 @@
 
 <body>
 <header>รายงานรายละเอียดรายวิชา</header>
-<footer>หน้า {PAGE_NUM} / {PAGE_COUNT}</footer>
 
-<h1 style="font-size:20px; margin-bottom:6px;">รายงานรายละเอียดรายวิชา</h1>
+<p style="font-size:15px; font-weight:700; margin:0 0 6px 0;">
+    ผู้สอน: {{ $teacher->name ?? '-' }}
+</p>
 <p class="muted">
-    ผู้สอน: {{ $teacher->name ?? '-' }} |
-    สร้างเมื่อ {{ now()->format('d/m/Y H:i') }}
+    สร้างเมื่อ {{ $printedAtTh }}
 </p>
 
 <div class="section">
@@ -117,7 +110,6 @@
 </div>
 
 <div class="section">
-    <h3>ชั่วโมงสอน (เป้าหมาย vs ใช้จริง)</h3>
     <table>
         <thead>
             <tr>
@@ -182,7 +174,13 @@
                 <tr>
                     <td>{{ $assignment['title'] ?? '-' }}</td>
                     <td>{{ $assignment['score'] ?? '-' }}</td>
-                    <td>{{ $assignment['due_date'] ?? '-' }}</td>
+                    <td>
+                        @if(!empty($assignment['due_date']))
+                            {{ \Illuminate\Support\Carbon::parse($assignment['due_date'])->timezone('Asia/Bangkok')->addYears(543)->locale('th')->isoFormat('D MMM YYYY') }}
+                        @else
+                            -
+                        @endif
+                    </td>
                 </tr>
             @empty
                 <tr><td colspan="3" class="muted">ยังไม่มีงานหรือแบบฝึกหัด</td></tr>
@@ -198,3 +196,5 @@
 
 </body>
 </html>
+
+
