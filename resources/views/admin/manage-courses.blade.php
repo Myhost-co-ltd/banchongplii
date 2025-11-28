@@ -83,6 +83,7 @@
                                     data-i18n-th="{{ $preset }}"
                                     data-i18n-en="{{ $presetEn }}">{{ $preset }}</option>
                         @endforeach
+                        <option value="__custom__" data-i18n-th="+ เพิ่มวิชาใหม่..." data-i18n-en="+ Add new subject...">+ เพิ่มวิชาใหม่...</option>
                     </select>
                     <p class="text-xs text-gray-500 mt-1"
                        data-i18n-th="เลือกแล้วระบบจะเติมชื่อหลักสูตรให้อัตโนมัติ (ยังแก้ไขได้)"
@@ -439,9 +440,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (presetCourseSelect && courseNameInput) {
         presetCourseSelect.addEventListener('change', (event) => {
             const value = event.target.value;
-            if (value) {
+            if (value && value !== '__custom__') {
                 courseNameInput.value = value;
+            } else if (value === '__custom__') {
+                courseNameInput.value = '';
+                courseNameInput.focus();
             }
+        });
+
+        function addPresetIfMissing(name) {
+            const trimmed = (name || '').trim();
+            if (!trimmed) return;
+            const exists = Array.from(presetCourseSelect.options).some(
+                opt => opt.value.toLowerCase() === trimmed.toLowerCase()
+            );
+            if (!exists) {
+                const opt = document.createElement('option');
+                opt.value = trimmed;
+                opt.textContent = trimmed;
+                presetCourseSelect.appendChild(opt);
+            }
+        }
+
+        // เมื่อพิมพ์วิชาใหม่ ให้เพิ่มเข้า dropdown ด้วย
+        courseNameInput.addEventListener('blur', () => {
+            addPresetIfMissing(courseNameInput.value);
         });
     }
 

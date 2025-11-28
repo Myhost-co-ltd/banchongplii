@@ -20,9 +20,9 @@ class TeacherCourseController extends Controller
             ->latest()
             ->get();
 
+        // รวมรายชื่อหลักสูตรทั้งหมด (ไม่จำกัดวิชาเอก) ให้เลือกหรือเป็นตัวอย่างค่าอัตโนมัติ
         $adminCourseOptions = Course::query()
             ->select('id', 'name', 'grade', 'term', 'year')
-            ->when($teacherMajor, fn ($q) => $q->where('name', $teacherMajor))
             ->orderBy('name')
             ->get();
 
@@ -35,24 +35,8 @@ class TeacherCourseController extends Controller
 
     public function store(Request $request)
     {
-        $teacherMajor = Auth::user()->major ?? null;
-        $adminCourseOptions = Course::query()
-            ->select('name')
-            ->when($teacherMajor, fn ($q) => $q->where('name', $teacherMajor))
-            ->orderBy('name')
-            ->pluck('name')
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
-
         $validated = $request->validate([
-            'name'        => [
-                $teacherMajor ? 'nullable' : 'required',
-                'string',
-                'max:255',
-                $teacherMajor ? Rule::in($teacherMajor) : 'sometimes',
-            ],
+            'name'        => ['required', 'string', 'max:255'],
             'grade'       => 'required|string|max:20',
             'rooms'       => 'required|array|min:1',
             'rooms.*'     => 'string|max:20',
@@ -61,7 +45,7 @@ class TeacherCourseController extends Controller
             'description' => 'nullable|string|max:5000',
         ]);
 
-        $courseName = $teacherMajor ?? $validated['name'];
+        $courseName = $validated['name'];
 
         Course::create([
             'user_id'     => Auth::id(),

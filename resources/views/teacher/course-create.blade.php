@@ -3,6 +3,9 @@
 @section('title', 'สร้างหลักสูตรการสอน | ระบบครู')
 
 @section('content')
+@php
+    $usedGrades = ($courses ?? collect())->pluck('grade')->filter()->unique();
+@endphp
 <div class="space-y-8 overflow-y-auto pr-2 pb-10">
 
     {{-- Header --}}
@@ -40,20 +43,30 @@
                     </div>
                     <p class="text-xs text-gray-500 mt-1">วิชาเอกของคุณ: <span class="font-semibold text-blue-700">{{ $teacherMajor }}</span></p>
                 @else
-                    <select id="nameSelect"
-                            name="name"
-                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
-                        <option value="">-- เลือกหลักสูตร --</option>
-                        @foreach(($adminCourseOptions ?? collect()) as $adminCourse)
-                            <option value="{{ $adminCourse->name }}"
-                                    data-grade="{{ $adminCourse->grade }}"
-                                    data-term="{{ $adminCourse->term }}"
-                                    data-year="{{ $adminCourse->year }}"
-                                    @selected(old('name') === $adminCourse->name)>
-                                {{ $adminCourse->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <div class="space-y-2">
+                        <select id="nameSelect"
+                                name="name"
+                                class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+                            <option value="">-- เลือกหลักสูตร --</option>
+                            @foreach(($adminCourseOptions ?? collect()) as $adminCourse)
+                                <option value="{{ $adminCourse->name }}"
+                                        data-grade="{{ $adminCourse->grade }}"
+                                        data-term="{{ $adminCourse->term }}"
+                                        data-year="{{ $adminCourse->year }}"
+                                        @selected(old('name') === $adminCourse->name)>
+                                    {{ $adminCourse->name }}
+                                </option>
+                            @endforeach
+                            <option value="__custom__" @selected(old('name') === '__custom__')>+ เพิ่มวิชาใหม่...</option>
+                        </select>
+
+                        <input type="text" id="customCourseInput"
+                               name="name_custom"
+                               value="{{ old('name_custom') }}"
+                               class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none @if(old('name') !== '__custom__') hidden @endif"
+                               placeholder="พิมพ์ชื่อหลักสูตร/วิชาใหม่">
+                        <p class="text-xs text-gray-500">ถ้าไม่พบวิชาที่ต้องการ เลือก “+ เพิ่มวิชาใหม่...” แล้วพิมพ์ชื่อ</p>
+                    </div>
                 @endif
             </div>
 
@@ -64,11 +77,17 @@
                         class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400">
                     <option value="">-- เลือกชั้นเรียน --</option>
                     @for ($grade = 1; $grade <= 6; $grade++)
-                        <option value="ป.{{ $grade }}" @selected(old('grade') === 'ป.'.$grade)>
+                        @php $val = 'ป.'.$grade; $isUsed = $usedGrades->contains($val); @endphp
+                        <option value="{{ $val }}"
+                                @selected(old('grade') === $val)
+                                @if($isUsed && old('grade') !== $val) disabled @endif>
                             ป.{{ $grade }}
                         </option>
                     @endfor
                 </select>
+                @if($usedGrades->isNotEmpty())
+                    <p class="text-xs text-orange-600 mt-1">ชั้นเรียนที่สร้างแล้วจะถูกปิดไว้ (สร้างได้ชั้นละ 1 หลักสูตร)</p>
+                @endif
             </div>
 
             {{-- ห้องเรียน --}}
@@ -242,7 +261,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (yearInput) yearInput.value = year;
             }
             // term ช่องถูกคอมเมนต์ไว้ ถ้าเปิดใช้งานอีกครั้งให้เติมค่าที่นี่
+
+            // toggle custom course input
+            const isCustom = option.value === '__custom__';
+            const customInput = document.getElementById('customCourseInput');
+            if (customInput) {
+                customInput.classList.toggle('hidden', !isCustom);
+                customInput.name = isCustom ? 'name' : 'name_custom';
+                if (isCustom) customInput.focus();
+            }
         });
+
+        // initial custom toggle
+        const selected = nameSelect.selectedOptions[0];
+        const customInput = document.getElementById('customCourseInput');
+        if (selected?.value === '__custom__' && customInput) {
+            customInput.classList.remove('hidden');
+            customInput.name = 'name';
+        }
     }
 
     // เวลาเปลี่ยนชั้นเรียน → สร้างห้องใหม่ให้เลือก
