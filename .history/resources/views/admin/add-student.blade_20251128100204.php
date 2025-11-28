@@ -34,13 +34,17 @@
     // Fixed grade list: ป.1 - ป.6
     $baseGrades   = collect(['ป.1', 'ป.2', 'ป.3', 'ป.4', 'ป.5', 'ป.6']);
 
-    // ✅ ใช้ $rooms เดิมที่ controller ส่งมา (เช่น ป.1/1 ถึง ป.1/10)
-    $roomOptions  = collect($rooms ?? [])->filter()->values();
+    // ดึง "ห้องเรียน" จากคอลัมน์ classroom ของนักเรียน (ป.4/1, ป.5/2 ...)
+    $roomOptions  = collect($students ?? [])
+        ->pluck('classroom')
+        ->filter()
+        ->unique()
+        ->values();
 
     // ใช้รายการระดับชั้นแบบ fix
     $gradeOptions = $baseGrades;
 
-    // ห้องเรียนแยกตามระดับชั้น (จากห้องเต็ม เช่น ป.1/1 -> ป.1)
+    // ห้องเรียนแยกตามระดับชั้น (จาก classroom เช่น ป.4/1 -> ป.4)
     $roomsByGrade = [];
 
     foreach ($roomOptions as $room) {
@@ -185,8 +189,9 @@
                     // ชั้นจาก column room (ป.4, ป.5, ม.1 ฯลฯ)
                     $gradeDisplay = $normalizeGrade($student->room ?? '');
 
-                    // ห้องเต็มจาก column classroom (ป.4/1, ป.4/3 ...)
+                    // ห้องจาก column classroom (ป.4/1, ป.4/3 ...)
                     $roomDisplay  = $student->classroom ?: '';
+
                 @endphp
 
                 <tr class="border-b hover:bg-gray-50 transition student-row"
@@ -562,7 +567,7 @@ function filterRoom() {
     const selectedRoom  = roomSelect ? roomSelect.value : 'all';
 
     document.querySelectorAll(".student-row").forEach(row => {
-        const rowRoom  = (row.dataset.room || '').trim();   // ห้องเต็ม เช่น ป.4/1
+        const rowRoom  = (row.dataset.room || '').trim();   // classroom เช่น ป.4/1
         const rowGrade = normalizeGrade(row.dataset.grade || getGradeFromRoom(rowRoom));
 
         const gradeMatch = (selectedGrade === 'all') || (rowGrade === selectedGrade);

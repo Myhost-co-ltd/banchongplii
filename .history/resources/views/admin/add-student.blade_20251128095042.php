@@ -33,14 +33,12 @@
 
     // Fixed grade list: ป.1 - ป.6
     $baseGrades   = collect(['ป.1', 'ป.2', 'ป.3', 'ป.4', 'ป.5', 'ป.6']);
-
-    // ✅ ใช้ $rooms เดิมที่ controller ส่งมา (เช่น ป.1/1 ถึง ป.1/10)
     $roomOptions  = collect($rooms ?? [])->filter()->values();
 
     // ใช้รายการระดับชั้นแบบ fix
     $gradeOptions = $baseGrades;
 
-    // ห้องเรียนแยกตามระดับชั้น (จากห้องเต็ม เช่น ป.1/1 -> ป.1)
+    // ห้องเรียนแยกตามระดับชั้น
     $roomsByGrade = [];
 
     foreach ($roomOptions as $room) {
@@ -144,7 +142,7 @@
         <select id="roomFilter"
                 class="border border-gray-300 rounded-xl px-3 py-2 shadow-sm w-48">
             <option value="all" data-i18n-th="ทั้งหมด" data-i18n-en="All">ทั้งหมด</option>
-            @foreach($roomOptions as $room)
+            @foreach(($rooms ?? []) as $room)
                 <option value="{{ $room }}">{{ $room }}</option>
             @endforeach
         </select>
@@ -166,10 +164,9 @@
                 <th class="p-3 text-left" data-i18n-th="นามสกุล" data-i18n-en="Last Name">นามสกุล</th>
                 <th class="p-3 text-left" data-i18n-th="เพศ" data-i18n-en="Gender">เพศ</th>
 
-                {{-- ชั้น --}}
+                {{-- คอลัมน์ใหม่: ชั้น --}}
                 <th class="p-3 text-left" data-i18n-th="ชั้น" data-i18n-en="Grade">ชั้น</th>
 
-                {{-- ห้อง --}}
                 <th class="p-3 text-left" data-i18n-th="ห้อง" data-i18n-en="Room">ห้อง</th>
                 <th class="p-3 text-center" data-i18n-th="จัดการ" data-i18n-en="Actions">จัดการ</th>
             </tr>
@@ -182,11 +179,21 @@
                 @php
                     $fullName = trim(($student->title ? $student->title . ' ' : '') . $student->first_name . ' ' . $student->last_name);
 
-                    // ชั้นจาก column room (ป.4, ป.5, ม.1 ฯลฯ)
-                    $gradeDisplay = $normalizeGrade($student->room ?? '');
+                    // ดึง "ชั้น" จาก room เช่น ป.4 จาก ป.4/1
+                    $gradeDisplay = $normalizeGrade(trim(preg_split('/\s*\/\s*/', $student->room ?? '', 2)[0] ?? ''));
 
-                    // ห้องเต็มจาก column classroom (ป.4/1, ป.4/3 ...)
-                    $roomDisplay  = $student->classroom ?: '';
+                    // เตรียมข้อความ "ห้อง" ที่ต้องการให้แสดง เช่น ป.4/1
+                    $roomRaw      = trim($student->room ?? '');
+                    $roomDisplay  = $roomRaw;
+
+                    if ($roomRaw !== '') {
+                        // ถ้าในฐานข้อมูลเป็นตัวเลขล้วน เช่น "1" "2"
+                        // ให้ประกอบเป็น ป.4/1 จาก grade + room
+                        if (! str_contains($roomRaw, '/') && preg_match('/^\d+$/u', $roomRaw)) {
+                            $roomDisplay = ($gradeDisplay ?: '') . ($gradeDisplay ? '/' : '') . $roomRaw;
+                        }
+                        // ถ้ามี / หรือมี ป. / ม. อยู่แล้ว เช่น "ป.4/1" หรือ "ม.2/3" ใช้ตามเดิม
+                    }
                 @endphp
 
                 <tr class="border-b hover:bg-gray-50 transition student-row"
@@ -205,7 +212,7 @@
                     {{-- แสดงชั้น --}}
                     <td class="p-3">{{ $gradeDisplay ?: '-' }}</td>
 
-                    {{-- แสดงห้อง เช่น ป.4/1 --}}
+                    {{-- แสดงห้อง (เช่น ป.4/1) --}}
                     <td class="p-3 text-blue-600 font-semibold">{{ $roomDisplay ?: '-' }}</td>
 
                     <td class="p-3 text-center text-gray-400">
@@ -218,7 +225,7 @@
                                 data-first="{{ $student->first_name }}"
                                 data-last="{{ $student->last_name }}"
                                 data-gender="{{ $student->gender }}"
-                                data-room="{{ $student->classroom }}">
+                                data-room="{{ $student->room }}">
                             แก้ไข
                         </button>
                         <span class="mx-1 text-gray-300">|</span>
@@ -237,6 +244,7 @@
 
             @empty
                 <tr>
+                    {{-- เพิ่ม colspan เป็น 8 เพราะมีคอลัมน์เพิ่มแล้ว --}}
                     <td colspan="8" class="p-4 text-center text-gray-400"
                         data-i18n-th="ยังไม่มีข้อมูลนักเรียน" data-i18n-en="No student data yet">
                         ยังไม่มีข้อมูลนักเรียน
@@ -526,7 +534,7 @@
 @push('scripts')
 <script>
 const roomsByGrade = @json($roomsByGrade);
-const allRooms     = @json($roomOptions ?? []);
+const allRooms     = @json($rooms ?? []);
 
 // -------------------- SEARCH --------------------
 function searchStudent() {
@@ -562,7 +570,7 @@ function filterRoom() {
     const selectedRoom  = roomSelect ? roomSelect.value : 'all';
 
     document.querySelectorAll(".student-row").forEach(row => {
-        const rowRoom  = (row.dataset.room || '').trim();   // ห้องเต็ม เช่น ป.4/1
+        const rowRoom  = (row.dataset.room || '').trim();
         const rowGrade = normalizeGrade(row.dataset.grade || getGradeFromRoom(rowRoom));
 
         const gradeMatch = (selectedGrade === 'all') || (rowGrade === selectedGrade);

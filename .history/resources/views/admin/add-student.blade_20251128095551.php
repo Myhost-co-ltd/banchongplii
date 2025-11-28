@@ -32,20 +32,18 @@
     };
 
     // Fixed grade list: ป.1 - ป.6
-    $baseGrades   = collect(['ป.1', 'ป.2', 'ป.3', 'ป.4', 'ป.5', 'ป.6']);
-
-    // ✅ ใช้ $rooms เดิมที่ controller ส่งมา (เช่น ป.1/1 ถึง ป.1/10)
-    $roomOptions  = collect($rooms ?? [])->filter()->values();
+    $baseGrades = collect(['ป.1', 'ป.2', 'ป.3', 'ป.4', 'ป.5', 'ป.6']);
+    $roomOptions = collect($rooms ?? [])->filter()->values();
 
     // ใช้รายการระดับชั้นแบบ fix
     $gradeOptions = $baseGrades;
 
-    // ห้องเรียนแยกตามระดับชั้น (จากห้องเต็ม เช่น ป.1/1 -> ป.1)
+    // ห้องเรียนแยกตามระดับชั้น
     $roomsByGrade = [];
 
     foreach ($roomOptions as $room) {
         $gradePart = trim(preg_split('/\s*\/\s*/', $room, 2)[0] ?? '');
-        $gradeKey  = $normalizeGrade($gradePart);
+        $gradeKey = $normalizeGrade($gradePart);
 
         if ($gradeKey === '') {
             continue;
@@ -57,7 +55,7 @@
 <h1 class="text-3xl font-extrabold text-gray-900 mb-8 tracking-tight"
     data-i18n-th="จัดการนักเรียน"
     data-i18n-en="Manage Students">
-    จัดการนักเรียน
+    จัดการนักเรียนน
 </h1>
 
 {{-- SUCCESS --}}
@@ -144,7 +142,7 @@
         <select id="roomFilter"
                 class="border border-gray-300 rounded-xl px-3 py-2 shadow-sm w-48">
             <option value="all" data-i18n-th="ทั้งหมด" data-i18n-en="All">ทั้งหมด</option>
-            @foreach($roomOptions as $room)
+            @foreach(($rooms ?? []) as $room)
                 <option value="{{ $room }}">{{ $room }}</option>
             @endforeach
         </select>
@@ -166,10 +164,9 @@
                 <th class="p-3 text-left" data-i18n-th="นามสกุล" data-i18n-en="Last Name">นามสกุล</th>
                 <th class="p-3 text-left" data-i18n-th="เพศ" data-i18n-en="Gender">เพศ</th>
 
-                {{-- ชั้น --}}
+                {{-- คอลัมน์ใหม่: ชั้น --}}
                 <th class="p-3 text-left" data-i18n-th="ชั้น" data-i18n-en="Grade">ชั้น</th>
 
-                {{-- ห้อง --}}
                 <th class="p-3 text-left" data-i18n-th="ห้อง" data-i18n-en="Room">ห้อง</th>
                 <th class="p-3 text-center" data-i18n-th="จัดการ" data-i18n-en="Actions">จัดการ</th>
             </tr>
@@ -181,17 +178,13 @@
             @forelse (($students ?? []) as $index => $student)
                 @php
                     $fullName = trim(($student->title ? $student->title . ' ' : '') . $student->first_name . ' ' . $student->last_name);
-
-                    // ชั้นจาก column room (ป.4, ป.5, ม.1 ฯลฯ)
-                    $gradeDisplay = $normalizeGrade($student->room ?? '');
-
-                    // ห้องเต็มจาก column classroom (ป.4/1, ป.4/3 ...)
-                    $roomDisplay  = $student->classroom ?: '';
+                    // ดึงชั้นจาก room แล้ว normalize ให้เป็น ป.1–ป.6
+                    $gradeDisplay = $normalizeGrade(trim(preg_split('/\s*\/\s*/', $student->room ?? '', 2)[0] ?? ''));
                 @endphp
 
                 <tr class="border-b hover:bg-gray-50 transition student-row"
-                    data-room="{{ $roomDisplay }}"
-                    data-grade="{{ $gradeDisplay }}"
+                    data-room="{{ $student->room ?? '' }}"
+                    data-grade="{{ $normalizeGrade(trim(preg_split('/\s*\/\s*/', $student->room ?? '', 2)[0] ?? '')) }}"
                     data-name="{{ mb_strtolower($fullName) }}"
                     data-code="{{ $student->student_code }}"
                     data-gender="{{ $student->gender ?? '' }}">
@@ -205,8 +198,8 @@
                     {{-- แสดงชั้น --}}
                     <td class="p-3">{{ $gradeDisplay ?: '-' }}</td>
 
-                    {{-- แสดงห้อง เช่น ป.4/1 --}}
-                    <td class="p-3 text-blue-600 font-semibold">{{ $roomDisplay ?: '-' }}</td>
+                    {{-- แสดงห้อง --}}
+                    <td class="p-3 text-blue-600 font-semibold">{{ $student->room ?? '-' }}</td>
 
                     <td class="p-3 text-center text-gray-400">
                         <button type="button"
@@ -218,7 +211,7 @@
                                 data-first="{{ $student->first_name }}"
                                 data-last="{{ $student->last_name }}"
                                 data-gender="{{ $student->gender }}"
-                                data-room="{{ $student->classroom }}">
+                                data-room="{{ $student->room }}">
                             แก้ไข
                         </button>
                         <span class="mx-1 text-gray-300">|</span>
@@ -237,6 +230,7 @@
 
             @empty
                 <tr>
+                    {{-- เพิ่ม colspan เป็น 8 เพราะมีคอลัมน์เพิ่มแล้ว --}}
                     <td colspan="8" class="p-4 text-center text-gray-400"
                         data-i18n-th="ยังไม่มีข้อมูลนักเรียน" data-i18n-en="No student data yet">
                         ยังไม่มีข้อมูลนักเรียน
@@ -526,7 +520,7 @@
 @push('scripts')
 <script>
 const roomsByGrade = @json($roomsByGrade);
-const allRooms     = @json($roomOptions ?? []);
+const allRooms = @json($rooms ?? []);
 
 // -------------------- SEARCH --------------------
 function searchStudent() {
@@ -541,6 +535,7 @@ function searchStudent() {
 // -------------------- NORMALIZE GRADE (JS) --------------------
 function normalizeGrade(grade) {
     if (!grade) return '';
+    // Strip whitespace and normalize to prefix.number (e.g., ป.6)
     let clean = grade.replace(/\s+/g, '');
     // แปลง ม / m / p ให้เป็น ป.
     clean = clean.replace(/^(\u0E21|m|p)\.?/i, "\u0E1B.");
@@ -556,13 +551,13 @@ function getGradeFromRoom(room) {
 
 // -------------------- FILTER ROOM --------------------
 function filterRoom() {
-    const gradeSelect   = document.getElementById("gradeFilter");
-    const roomSelect    = document.getElementById("roomFilter");
+    const gradeSelect = document.getElementById("gradeFilter");
+    const roomSelect = document.getElementById("roomFilter");
     const selectedGrade = gradeSelect ? normalizeGrade(gradeSelect.value) : 'all';
-    const selectedRoom  = roomSelect ? roomSelect.value : 'all';
+    const selectedRoom = roomSelect ? roomSelect.value : 'all';
 
     document.querySelectorAll(".student-row").forEach(row => {
-        const rowRoom  = (row.dataset.room || '').trim();   // ห้องเต็ม เช่น ป.4/1
+        const rowRoom = (row.dataset.room || '').trim();
         const rowGrade = normalizeGrade(row.dataset.grade || getGradeFromRoom(rowRoom));
 
         const gradeMatch = (selectedGrade === 'all') || (rowGrade === selectedGrade);
@@ -595,9 +590,9 @@ function renderRoomOptions(selectEl, grade, selectedRoom = '') {
     grade = normalizeGrade(grade);
     selectEl.innerHTML = '';
 
-    const hasGrade   = !!grade;
+    const hasGrade = !!grade;
     const knownRooms = hasGrade ? (roomsByGrade[grade] || []) : [];
-    let roomList     = hasGrade ? knownRooms : [];
+    let roomList = hasGrade ? knownRooms : [];
 
     // fallback: ถ้าระดับชั้นนี้ยังไม่มี mapping ห้อง ให้แสดงทุกห้อง
     if (hasGrade && roomList.length === 0) {
@@ -649,24 +644,24 @@ function closeAddStudentModal() {
 }
 
 // -------------------- MODAL: EDIT --------------------
-const addForm           = document.getElementById('addStudentForm');
-const editForm          = document.getElementById('editStudentForm');
-const editModal         = document.getElementById('editStudentModal');
+const addForm         = document.getElementById('addStudentForm');
+const editForm        = document.getElementById('editStudentForm');
+const editModal       = document.getElementById('editStudentModal');
 const updateUrlTemplate = "{{ url('/admin/students/__ID__') }}";
 
-const addGradeSelect    = document.getElementById('addGradeSelect');
-const addRoomSelect     = document.getElementById('addRoomSelect');
-const editGradeSelect   = document.getElementById('editGradeSelect');
-const editRoomSelect    = document.getElementById('editRoomSelect');
+const addGradeSelect  = document.getElementById('addGradeSelect');
+const addRoomSelect   = document.getElementById('addRoomSelect');
+const editGradeSelect = document.getElementById('editGradeSelect');
+const editRoomSelect  = document.getElementById('editRoomSelect');
 
 function openEditStudentModal(button) {
     const ds = button.dataset;
 
-    editForm.action                = updateUrlTemplate.replace('__ID__', ds.id);
-    editForm.student_code.value    = ds.code || '';
-    setSelectValue(editForm.title,  ds.title || '');
-    editForm.first_name.value      = ds.first || '';
-    editForm.last_name.value       = ds.last || '';
+    editForm.action = updateUrlTemplate.replace('__ID__', ds.id);
+    editForm.student_code.value = ds.code || '';
+    setSelectValue(editForm.title, ds.title || '');
+    editForm.first_name.value = ds.first || '';
+    editForm.last_name.value  = ds.last || '';
     setSelectValue(editForm.gender, ds.gender || '');
 
     const derivedGrade = normalizeGrade(getGradeFromRoom(ds.room || ''));
