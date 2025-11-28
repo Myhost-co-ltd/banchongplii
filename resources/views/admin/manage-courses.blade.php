@@ -154,6 +154,16 @@
                     <span data-i18n-th="จำนวนหลักสูตร:" data-i18n-en="Courses:">จำนวนหลักสูตร:</span>
                     <span class="font-semibold text-gray-800">{{ $courses->count() }}</span>
                 </div>
+                @php
+                    $courseNames = $courses->pluck('name')->filter()->unique()->sort();
+                @endphp
+                <select id="subjectFilter"
+                        class="w-full md:w-48 border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">-- เลือกวิชา --</option>
+                    @foreach($courseNames as $courseName)
+                        <option value="{{ strtolower($courseName) }}">{{ $courseName }}</option>
+                    @endforeach
+                </select>
                 <input id="courseSearch"
                        type="text"
                        placeholder="ค้นหาชื่อหลักสูตร / ปีการศึกษา"
@@ -421,14 +431,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const courseCards = document.querySelectorAll('.course-card');
     const presetCourseSelect = document.getElementById('presetCourseSelect');
     const courseNameInput = document.querySelector('input[name="name"]');
+    const subjectFilter = document.getElementById('subjectFilter');
     const editCourses = [];
 
     function filterCourses() {
         const term = (searchInput.value || '').toLowerCase().trim();
+        const subject = (subjectFilter?.value || '').toLowerCase().trim();
         courseCards.forEach(card => {
             const name = card.dataset.name || '';
             const year = (card.dataset.year || '').toLowerCase();
-            const match = name.includes(term) || year.includes(term);
+            const matchText = name.includes(term) || year.includes(term);
+            const matchSubject = !subject || name === subject;
+            const match = matchText && matchSubject;
             card.classList.toggle('hidden', !match);
         });
     }
@@ -436,6 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchInput) {
         searchInput.addEventListener('input', filterCourses);
     }
+    subjectFilter?.addEventListener('change', filterCourses);
 
     if (presetCourseSelect && courseNameInput) {
         presetCourseSelect.addEventListener('change', (event) => {
