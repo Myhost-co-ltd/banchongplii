@@ -114,11 +114,11 @@
                    class="w-72 border-none focus:ring-0 placeholder-gray-400 text-gray-700">
         </div>
 
-        <p class="text-xs text-gray-500"
+        {{-- <p class="text-xs text-gray-500"
            data-i18n-th="* ไฟล์ CSV ควรมี: student_code, first_name, last_name, gender (ไม่บังคับ), room"
            data-i18n-en="* CSV file should include: student_code, first_name, last_name, gender (optional), room">
             * ไฟล์ CSV ควรมี: student_code, first_name, last_name, gender (ไม่บังคับ), room
-        </p>
+        </p> --}}
     </div>
 
 </div>

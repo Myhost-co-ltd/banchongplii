@@ -81,19 +81,17 @@
 <div class="section">
     <h2 style="font-size:17px; font-weight:700;">{{ $course->name }}</h2>
 
-    <p style="display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin:6px 0 0 0;">
+    <p style="display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:6px 0 0 0;">
         <span>ระดับชั้น: {{ $course->grade ?? '-' }}</span>
         <span>ปีการศึกษา: {{ $course->year ?? '-' }}</span>
         <span>ภาคเรียน: {{ $termLabel }}</span>
-        <span style="display:inline-flex; align-items:center; gap:6px; line-height:1.4;">
+        <span style="display:inline-flex; align-items:center; gap:6px;">
             ห้องเรียน:
-            <span style="display:inline-flex; align-items:center; gap:4px; line-height:1.4;">
-                @forelse($course->rooms ?? [] as $room)
-                    <span class="pill" style="vertical-align:middle;">{{ $room }}</span>
-                @empty
-                    <span class="muted">-</span>
-                @endforelse
-            </span>
+            @forelse($course->rooms ?? [] as $room)
+                <span class="pill" style="vertical-align:middle;">{{ $room }}</span>
+            @empty
+                <span class="muted">-</span>
+            @endforelse
         </span>
     </p>
 </div>
