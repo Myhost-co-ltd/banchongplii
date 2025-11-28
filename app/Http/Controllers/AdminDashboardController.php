@@ -17,9 +17,9 @@ class AdminDashboardController extends Controller
             ? User::where('role_id', $teacherRoleId)->count()
             : 0;
 
-        $classroomCount = Student::whereNotNull('classroom')
-            ->distinct('classroom')
-            ->count('classroom');
+        $classroomCount = Student::whereNotNull('room')
+            ->distinct('room')
+            ->count('room');
 
         return view('dashboards.admin', compact('userCount', 'teacherCount', 'classroomCount'));
     }

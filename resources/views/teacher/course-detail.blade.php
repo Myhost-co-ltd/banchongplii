@@ -118,17 +118,6 @@
                 </div>
 
                 <div>
-                    <p class="text-sm text-gray-500">ห้องเรียนที่ใช้</p>
-                    <div class="flex flex-wrap gap-2 mt-1">
-                        @forelse($course->rooms ?? [] as $room)
-                            <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-xl text-sm">{{ $room }}</span>
-                        @empty
-                            <span class="text-gray-400 text-sm">ยังไม่มีการกำหนดห้องเรียน</span>
-                        @endforelse
-                    </div>
-                </div>
-
-                <div>
                     <p class="text-sm text-gray-500">ภาคเรียนที่ดูข้อมูล</p>
                     <p class="text-lg font-semibold text-gray-900">
                         @if($currentTerm === '1')
@@ -142,15 +131,19 @@
                 </div>
 
                 <div>
-                    <p class="text-sm text-gray-500">ปีการศึกษา</p>
-                    <p class="text-lg font-semibold text-gray-900">{{ $course->year ?? '-' }}</p>
-                </div>
-
-                <div class="md:col-span-2">
-                    <p class="text-sm text-gray-500">รายละเอียดหลักสูตร</p>
-                    <p class="text-gray-700 mt-1 leading-relaxed">
-                        {{ $course->description ?? 'ยังไม่มีรายละเอียดเพิ่มเติม' }}
-                    </p>
+                    <p class="text-sm text-gray-500">ห้อง / ระดับชั้น</p>
+                    <div class="flex items-center gap-3 flex-wrap mt-1">
+                        <div class="flex flex-wrap gap-2">
+                            @forelse($course->rooms ?? [] as $room)
+                                <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-xl text-sm">{{ $room }}</span>
+                            @empty
+                                <span class="text-gray-400 text-sm">ยังไม่มีการกำหนดห้องเรียน</span>
+                            @endforelse
+                        </div>
+                        <span class="text-lg font-semibold text-gray-900">
+                            {{ $course->grade ?? '-' }}
+                        </span>
+                    </div>
                 </div>
 
             </div>

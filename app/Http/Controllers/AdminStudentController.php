@@ -13,9 +13,9 @@ class AdminStudentController extends Controller
         $students = Student::orderBy('student_code')->get();
 
         $rooms = Student::query()
-            ->select('classroom')
+            ->select('room')
             ->distinct()
-            ->pluck('classroom')
+            ->pluck('room')
             ->filter()
             ->values();
 
@@ -138,7 +138,6 @@ class AdminStudentController extends Controller
             'last_name'    => $data['last_name'],
             'gender'       => $data['gender'] ?? 'ไม่ระบุ',
             'room'         => $grade,
-            'classroom'    => $classroom,
         ]);
 
         return back()->with('status', 'บันทึกการแก้ไขเรียบร้อยแล้ว');

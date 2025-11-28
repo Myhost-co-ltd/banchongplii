@@ -54,7 +54,7 @@
         .pill {
             display: inline-block;
             background: #e0f2fe;
-            color: #0369a1;
+            color: #fff;
             padding: 2px 10px;
             border-radius: 999px;
             font-size: 11px;
@@ -85,18 +85,14 @@
 <p style="font-size:15px; font-weight:700; margin:0 0 4px 0;">
     ครูผู้รับผิดชอบ: {{ $teacher->name ?? '-' }}
 </p>
-<p class="muted" style="margin-bottom:10px;">
-    จัดทำเมื่อ {{ $printedAtTh }}
-</p>
 
 <div class="section">
     <h2 style="font-size:15px;">หลักสูตรที่รับผิดชอบ</h2>
     <table>
         <thead>
         <tr>
-            <th style="width:45%;">ชื่อหลักสูตร</th>
-            <th style="width:35%;">ห้อง</th>
-            <th style="width:20%;">ปี/ระดับ</th>
+            <th style="width:50%;">ชื่อหลักสูตร</th>
+            <th style="width:50%;">ห้อง / ปี-ระดับ</th>
         </tr>
         </thead>
         <tbody>
@@ -104,8 +100,12 @@
             @php $courseRooms = collect($course->rooms ?? [])->filter()->join(', '); @endphp
             <tr>
                 <td>{{ $course->name }}</td>
-                <td>{{ $courseRooms !== '' ? $courseRooms : '-' }}</td>
-                <td>{{ $course->grade ?? '-' }}</td>
+                <td>
+                    {{ $courseRooms !== '' ? $courseRooms : '-' }}
+                    @if(!empty($course->grade))
+                        / {{ $course->grade }}
+                    @endif
+                </td>
             </tr>
         @empty
             <tr><td colspan="3" class="muted">ยังไม่มีหลักสูตรที่รับผิดชอบ</td></tr>

@@ -165,7 +165,6 @@
 
                 {{-- คอลัมน์ใหม่: ชั้น --}}
                 <th class="p-3 text-left" data-i18n-th="ชั้น" data-i18n-en="Grade">ชั้น</th>
-
                 <th class="p-3 text-left" data-i18n-th="ห้อง" data-i18n-en="Room">ห้อง</th>
                 <th class="p-3 text-center" data-i18n-th="จัดการ" data-i18n-en="Actions">จัดการ</th>
             </tr>
@@ -261,88 +260,19 @@
               method="POST"
               class="space-y-4">
             @csrf
-            <div>
-                <label class="font-semibold text-gray-800"
-                       data-i18n-th="รหัสนักเรียน" data-i18n-en="Student Code">
-                    รหัสนักเรียน
-                </label>
-                <input type="text" name="student_code"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
-                       placeholder="เช่น 11001"
-                       data-i18n-placeholder-th="เช่น 11001"
-                       data-i18n-placeholder-en="e.g. 11001"
-                       required>
-            </div>
-            <div class="grid grid-cols-3 gap-3">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                     <label class="font-semibold text-gray-800"
-                           data-i18n-th="คำนำหน้า" data-i18n-en="Title">
-                        คำนำหน้า
-                    </label>
-                    <select name="title"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
-                        <option value=""
-                                data-i18n-th="เลือกคำนำหน้า"
-                                data-i18n-en="Select title">
-                            เลือกคำนำหน้า
-                        </option>
-                        @foreach($titleOptions as $title)
-                            <option value="{{ $title }}">{{ $title }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-span-2">
-                    <label class="font-semibold text-gray-800"
-                           data-i18n-th="ชื่อ" data-i18n-en="First Name">
-                        ชื่อ
-                    </label>
-                    <input type="text" name="first_name"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
-                           required>
-                </div>
-            </div>
-            <div>
-                <label class="font-semibold text-gray-800"
-                       data-i18n-th="นามสกุล" data-i18n-en="Last Name">
-                    นามสกุล
-                </label>
-                <input type="text" name="last_name"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
-                       required>
-            </div>
-            <div>
-                <label class="font-semibold text-gray-800"
-                       data-i18n-th="เพศ" data-i18n-en="Gender">
-                    เพศ
-                </label>
-                <select name="gender"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
-                    <option value=""
-                            data-i18n-th="เลือกเพศ"
-                            data-i18n-en="Select gender">
-                        เลือกเพศ
-                    </option>
-                    <option value="ชาย" data-i18n-th="ชาย" data-i18n-en="Male">ชาย</option>
-                    <option value="หญิง" data-i18n-th="หญิง" data-i18n-en="Female">หญิง</option>
-                    <option value="ไม่ระบุ"
-                            data-i18n-th="ไม่ระบุ"
-                            data-i18n-en="Prefer not to say">
-                        ไม่ระบุ
-                    </option>
-                </select>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="font-semibold text-gray-800"
-                           data-i18n-th="ระดับชั้น" data-i18n-en="Grade">
-                        ระดับชั้น
+                           data-i18n-th="??????" data-i18n-en="Grade">
+                        ??????
                     </label>
                     <select id="addGradeSelect"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
                         <option value=""
-                                data-i18n-th="เลือกระดับชั้น"
+                                data-i18n-th="??????????"
                                 data-i18n-en="Select grade">
-                            เลือกระดับชั้น
+                            ??????????
                         </option>
                         @foreach($gradeOptions as $grade)
                             <option value="{{ $grade }}">{{ $grade }}</option>
@@ -351,16 +281,90 @@
                 </div>
                 <div>
                     <label class="font-semibold text-gray-800"
-                           data-i18n-th="ห้อง" data-i18n-en="Room">
-                        ห้อง
+                           data-i18n-th="?????????" data-i18n-en="Student Code">
+                        ?????????
+                    </label>
+                    <input type="text" name="student_code"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+                           placeholder="?? 11001"
+                           data-i18n-placeholder-th="?? 11001"
+                           data-i18n-placeholder-en="e.g. 11001"
+                           required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                    <label class="font-semibold text-gray-800"
+                           data-i18n-th="??????" data-i18n-en="Title">
+                        ??????
+                    </label>
+                    <select name="title"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
+                        <option value=""
+                                data-i18n-th="??????????"
+                                data-i18n-en="Select title">
+                            ??????????
+                        </option>
+                        @foreach($titleOptions as $title)
+                            <option value="{{ $title }}">{{ $title }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="font-semibold text-gray-800"
+                           data-i18n-th="????" data-i18n-en="First Name">
+                        ????
+                    </label>
+                    <input type="text" name="first_name"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+                           required>
+                </div>
+                <div>
+                    <label class="font-semibold text-gray-800"
+                           data-i18n-th="??????" data-i18n-en="Last Name">
+                        ??????
+                    </label>
+                    <input type="text" name="last_name"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+                           required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                    <label class="font-semibold text-gray-800"
+                           data-i18n-th="??" data-i18n-en="Gender">
+                        ??
+                    </label>
+                    <select name="gender"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
+                        <option value=""
+                                data-i18n-th="??????"
+                                data-i18n-en="Select gender">
+                            ??????
+                        </option>
+                        <option value="???" data-i18n-th="???" data-i18n-en="Male">???</option>
+                        <option value="??" data-i18n-th="??" data-i18n-en="Female">??</option>
+                        <option value="??????"
+                                data-i18n-th="??????"
+                                data-i18n-en="Prefer not to say">
+                            ??????
+                        </option>
+                    </select>
+                </div>
+                <div>
+                    <label class="font-semibold text-gray-800"
+                           data-i18n-th="???" data-i18n-en="Room">
+                        ???
                     </label>
                     <select name="room" id="addRoomSelect"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 disabled:bg-gray-100 disabled:text-gray-400"
                             disabled>
                         <option value=""
-                                data-i18n-th="เลือกระดับชั้นก่อน"
+                                data-i18n-th="????????????"
                                 data-i18n-en="Select grade first">
-                            เลือกระดับชั้นก่อน
+                            ????????????
                         </option>
                     </select>
                 </div>
@@ -397,85 +401,18 @@
         <form id="editStudentForm" method="POST" class="space-y-4">
             @csrf
             @method('PUT')
-            <div>
-                <label class="font-semibold text-gray-800"
-                       data-i18n-th="รหัสนักเรียน" data-i18n-en="Student Code">
-                    รหัสนักเรียน
-                </label>
-                <input type="text" name="student_code"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
-                       required>
-            </div>
-            <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                     <label class="font-semibold text-gray-800"
-                           data-i18n-th="คำนำหน้า" data-i18n-en="Title">
-                        คำนำหน้า
-                    </label>
-                    <select name="title"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
-                        <option value=""
-                                data-i18n-th="เลือกคำนำหน้า"
-                                data-i18n-en="Select title">
-                            เลือกคำนำหน้า
-                        </option>
-                        @foreach($titleOptions as $title)
-                            <option value="{{ $title }}">{{ $title }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-span-2">
-                    <label class="font-semibold text-gray-800"
-                           data-i18n-th="ชื่อ" data-i18n-en="First Name">
-                        ชื่อ
-                    </label>
-                    <input type="text" name="first_name"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
-                           required>
-                </div>
-            </div>
-            <div>
-                <label class="font-semibold text-gray-800"
-                       data-i18n-th="นามสกุล" data-i18n-en="Last Name">
-                    นามสกุล
-                </label>
-                <input type="text" name="last_name"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
-                       required>
-            </div>
-            <div>
-                <label class="font-semibold text-gray-800"
-                       data-i18n-th="เพศ" data-i18n-en="Gender">
-                    เพศ
-                </label>
-                <select name="gender"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
-                    <option value=""
-                            data-i18n-th="เลือกเพศ"
-                            data-i18n-en="Select gender">
-                        เลือกเพศ
-                    </option>
-                    <option value="ชาย" data-i18n-th="ชาย" data-i18n-en="Male">ชาย</option>
-                    <option value="หญิง" data-i18n-th="หญิง" data-i18n-en="Female">หญิง</option>
-                    <option value="ไม่ระบุ"
-                            data-i18n-th="ไม่ระบุ"
-                            data-i18n-en="Prefer not to say">
-                        ไม่ระบุ
-                    </option>
-                </select>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="font-semibold text-gray-800"
-                           data-i18n-th="ระดับชั้น" data-i18n-en="Grade">
-                        ระดับชั้น
+                           data-i18n-th="??????" data-i18n-en="Grade">
+                        ??????
                     </label>
                     <select id="editGradeSelect"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
                         <option value=""
-                                data-i18n-th="เลือกระดับชั้น"
+                                data-i18n-th="??????????"
                                 data-i18n-en="Select grade">
-                            เลือกระดับชั้น
+                            ??????????
                         </option>
                         @foreach($gradeOptions as $grade)
                             <option value="{{ $grade }}">{{ $grade }}</option>
@@ -484,16 +421,87 @@
                 </div>
                 <div>
                     <label class="font-semibold text-gray-800"
-                           data-i18n-th="ห้อง" data-i18n-en="Room">
-                        ห้อง
+                           data-i18n-th="?????????" data-i18n-en="Student Code">
+                        ?????????
+                    </label>
+                    <input type="text" name="student_code"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+                           required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                    <label class="font-semibold text-gray-800"
+                           data-i18n-th="??????" data-i18n-en="Title">
+                        ??????
+                    </label>
+                    <select name="title"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
+                        <option value=""
+                                data-i18n-th="??????????"
+                                data-i18n-en="Select title">
+                            ??????????
+                        </option>
+                        @foreach($titleOptions as $title)
+                            <option value="{{ $title }}">{{ $title }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="font-semibold text-gray-800"
+                           data-i18n-th="????" data-i18n-en="First Name">
+                        ????
+                    </label>
+                    <input type="text" name="first_name"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+                           required>
+                </div>
+                <div>
+                    <label class="font-semibold text-gray-800"
+                           data-i18n-th="??????" data-i18n-en="Last Name">
+                        ??????
+                    </label>
+                    <input type="text" name="last_name"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+                           required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                    <label class="font-semibold text-gray-800"
+                           data-i18n-th="??" data-i18n-en="Gender">
+                        ??
+                    </label>
+                    <select name="gender"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
+                        <option value=""
+                                data-i18n-th="??????"
+                                data-i18n-en="Select gender">
+                            ??????
+                        </option>
+                        <option value="???" data-i18n-th="???" data-i18n-en="Male">???</option>
+                        <option value="??" data-i18n-th="??" data-i18n-en="Female">??</option>
+                        <option value="??????"
+                                data-i18n-th="??????"
+                                data-i18n-en="Prefer not to say">
+                            ??????
+                        </option>
+                    </select>
+                </div>
+                <div>
+                    <label class="font-semibold text-gray-800"
+                           data-i18n-th="???" data-i18n-en="Room">
+                        ???
                     </label>
                     <select name="room" id="editRoomSelect"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 disabled:bg-gray-100 disabled:text-gray-400"
                             disabled>
                         <option value=""
-                                data-i18n-th="เลือกระดับชั้นก่อน"
+                                data-i18n-th="????????????"
                                 data-i18n-en="Select grade first">
-                            เลือกระดับชั้นก่อน
+                            ????????????
                         </option>
                     </select>
                 </div>
@@ -635,6 +643,9 @@ function openAddStudentModal() {
     if (addForm?.gender) {
         setSelectValue(addForm.gender, '');
     }
+    if (addTitleSelect) {
+        setSelectValue(addTitleSelect, '');
+    }
     renderRoomOptions(addRoomSelect, '', '');
 }
 
@@ -652,6 +663,27 @@ const addGradeSelect  = document.getElementById('addGradeSelect');
 const addRoomSelect   = document.getElementById('addRoomSelect');
 const editGradeSelect = document.getElementById('editGradeSelect');
 const editRoomSelect  = document.getElementById('editRoomSelect');
+const addTitleSelect  = addForm?.title;
+const editTitleSelect = editForm?.title;
+const addGenderSelect  = addForm?.gender;
+const editGenderSelect = editForm?.gender;
+
+function applyTitleFromGender(genderValue, titleSelect) {
+    if (!titleSelect) return;
+    if (genderValue === 'ชาย') {
+        setSelectValue(titleSelect, 'นาย');
+    } else if (genderValue === 'หญิง') {
+        setSelectValue(titleSelect, 'นางสาว');
+    }
+}
+
+addGenderSelect?.addEventListener('change', (e) => {
+    applyTitleFromGender(e.target.value, addTitleSelect);
+});
+
+editGenderSelect?.addEventListener('change', (e) => {
+    applyTitleFromGender(e.target.value, editTitleSelect);
+});
 
 function openEditStudentModal(button) {
     const ds = button.dataset;
@@ -662,6 +694,7 @@ function openEditStudentModal(button) {
     editForm.first_name.value = ds.first || '';
     editForm.last_name.value  = ds.last || '';
     setSelectValue(editForm.gender, ds.gender || '');
+    applyTitleFromGender(ds.gender || '', editTitleSelect);
 
     const derivedGrade = normalizeGrade(getGradeFromRoom(ds.room || ''));
     setSelectValue(editGradeSelect, derivedGrade);
@@ -713,3 +746,4 @@ updateRoomFilterOptions(gradeFilter ? gradeFilter.value : 'all');
 @endpush
 
 @endsection
+

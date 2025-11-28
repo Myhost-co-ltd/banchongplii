@@ -2,8 +2,6 @@
     $termLabel = $selectedTerm === '2' ? 'ภาคเรียนที่ 2' : 'ภาคเรียนที่ 1';
     $fontRegular = 'file:///' . str_replace('\\', '/', storage_path('fonts/LeelawUI.ttf'));
     $fontBold = 'file:///' . str_replace('\\', '/', storage_path('fonts/LeelaUIb.ttf'));
-    $printedAt = now()->timezone('Asia/Bangkok');
-    $printedAtTh = $printedAt->copy()->addYears(543)->format('d/m/Y H:i');
 @endphp
 <!DOCTYPE html>
 <html lang="th">
@@ -38,8 +36,7 @@
 
         .pill {
             display: inline-block;
-            background: #e0e7ff;
-            color: #1d4ed8;
+            color: black;
             padding: 3px 10px;
             border-radius: 999px;
             font-size: 11px;
@@ -53,7 +50,7 @@
         }
 
         th {
-            background: #1d4ed8;
+            background: #fff;
             color: #fff;
             padding: 6px;
             border: 1px solid #cbd5e1;
@@ -80,29 +77,25 @@
 <p style="font-size:15px; font-weight:700; margin:0 0 6px 0;">
     ผู้สอน: {{ $teacher->name ?? '-' }}
 </p>
-<p class="muted">
-    สร้างเมื่อ {{ $printedAtTh }}
-</p>
 
 <div class="section">
     <h2 style="font-size:17px; font-weight:700;">{{ $course->name }}</h2>
 
-    <p>
-        ระดับชั้น: {{ $course->grade ?? '-' }} |
-        ปีการศึกษา: {{ $course->year ?? '-' }} |
-        ภาคเรียน: {{ $termLabel }}
+    <p style="display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin:6px 0 0 0;">
+        <span>ระดับชั้น: {{ $course->grade ?? '-' }}</span>
+        <span>ปีการศึกษา: {{ $course->year ?? '-' }}</span>
+        <span>ภาคเรียน: {{ $termLabel }}</span>
+        <span style="display:inline-flex; align-items:center; gap:6px; line-height:1.4;">
+            ห้องเรียน:
+            <span style="display:inline-flex; align-items:center; gap:4px; line-height:1.4;">
+                @forelse($course->rooms ?? [] as $room)
+                    <span class="pill" style="vertical-align:middle;">{{ $room }}</span>
+                @empty
+                    <span class="muted">-</span>
+                @endforelse
+            </span>
+        </span>
     </p>
-
-    <p>
-        ห้องเรียน:
-        @forelse($course->rooms ?? [] as $room)
-            <span class="pill">{{ $room }}</span>
-        @empty
-            <span class="muted">-</span>
-        @endforelse
-    </p>
-
-    <p>รายละเอียดวิชา: {{ $course->description ?? '-' }}</p>
 </div>
 
 <div class="section">

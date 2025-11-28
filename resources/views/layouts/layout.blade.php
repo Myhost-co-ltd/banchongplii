@@ -69,6 +69,14 @@
                  class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" required>
         </div>
 
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="อีเมล" data-i18n-en="Email">อีเมล</label>
+          <input type="email" name="email" value="{{ old('email', auth()->user()->email ?? '') }}"
+                 class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                 placeholder="name@example.com" required
+                 data-i18n-placeholder-th="name@example.com" data-i18n-placeholder-en="name@example.com">
+        </div>
+
         <hr class="my-2">
 
         <div>

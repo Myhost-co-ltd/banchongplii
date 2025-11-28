@@ -77,6 +77,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('dashboard.teacher');
     Route::get('/teacher/homeroom/export', [StudentController::class, 'exportHomeroom'])
         ->name('teacher.homeroom.export');
+    Route::get('/teacher/students/export', [StudentController::class, 'export'])
+        ->name('teacher.students.export');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
     // Course create + list
