@@ -8,10 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-           $table->string('major', 100)->nullable();
+        Schema::table('use $table->string('major', 100)->nullable()->after('phone');
         });
-    }
+    }rs', function (Blueprint $table) {
+           
 
     public function down(): void
     {
