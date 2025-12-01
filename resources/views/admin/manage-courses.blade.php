@@ -64,6 +64,8 @@
                                 'การงานอาชีพ',
                                 'คอมพิวเตอร์',
                             ];
+                            $existingCourseNames = ($courses ?? collect())->pluck('name')->filter()->unique()->sort()->values();
+                            $majorOptions = array_values(array_unique(array_merge($majorOptions, $existingCourseNames->toArray())));
                             $majorTranslations = [
                                 'คณิตศาสตร์' => 'Mathematics',
                                 'วิทยาศาสตร์' => 'Science',
@@ -89,7 +91,28 @@
                        data-i18n-th="เลือกแล้วระบบจะเติมชื่อหลักสูตรให้อัตโนมัติ (ยังแก้ไขได้)"
                        data-i18n-en="Selecting will auto-fill the course name (you can still edit)">
                         เลือกแล้วระบบจะเติมชื่อหลักสูตรให้อัตโนมัติ (ยังแก้ไขได้)
-                    </p>
+                        </p>
+                    <div id="customSubjectWrapper" class="mt-3 hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="เพิ่มวิชาใหม่" data-i18n-en="Add new subject">เพิ่มวิชาใหม่</label>
+                        <div class="flex gap-2">
+                            <input type="text"
+                                   id="customSubjectInput"
+                                   class="flex-1 border rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                                   placeholder="กรอกชื่อวิชาใหม่"
+                                   data-i18n-placeholder-th="กรอกชื่อวิชาใหม่"
+                                   data-i18n-placeholder-en="Enter new subject name">
+                            <button type="button"
+                                    id="addCustomSubjectBtn"
+                                    class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700">
+                                <span data-i18n-th="เพิ่มในรายการ" data-i18n-en="Add to list">เพิ่มในรายการ</span>
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1"
+                           data-i18n-th="กดเพิ่มแล้วระบบจะเลือกวิชาให้อัตโนมัติ"
+                           data-i18n-en="Click add to select it automatically">
+                            กดเพิ่มแล้วระบบจะเลือกวิชาให้อัตโนมัติ
+                        </p>
+                    </div>
                 </div>
 
                 <div>
@@ -432,6 +455,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const presetCourseSelect = document.getElementById('presetCourseSelect');
     const courseNameInput = document.querySelector('input[name="name"]');
     const subjectFilter = document.getElementById('subjectFilter');
+    const customSubjectWrapper = document.getElementById('customSubjectWrapper');
+    const customSubjectInput = document.getElementById('customSubjectInput');
+    const addCustomSubjectBtn = document.getElementById('addCustomSubjectBtn');
     const editCourses = [];
 
     function filterCourses() {
@@ -455,11 +481,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (presetCourseSelect && courseNameInput) {
         presetCourseSelect.addEventListener('change', (event) => {
             const value = event.target.value;
-            if (value && value !== '__custom__') {
-                courseNameInput.value = value;
-            } else if (value === '__custom__') {
+            const isCustom = value === '__custom__';
+            if (isCustom) {
                 courseNameInput.value = '';
-                courseNameInput.focus();
+                showCustomSubjectInput();
+                customSubjectInput?.focus();
+            } else {
+                if (value) {
+                    courseNameInput.value = value;
+                }
+                hideCustomSubjectInput();
             }
         });
 
@@ -473,13 +504,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 const opt = document.createElement('option');
                 opt.value = trimmed;
                 opt.textContent = trimmed;
-                presetCourseSelect.appendChild(opt);
+                const customOption = Array.from(presetCourseSelect.options).find(opt => opt.value === '__custom__');
+                if (customOption?.parentElement) {
+                    customOption.parentElement.insertBefore(opt, customOption);
+                } else {
+                    presetCourseSelect.appendChild(opt);
+                }
             }
+            presetCourseSelect.value = trimmed;
+            return trimmed;
+        }
+
+        function showCustomSubjectInput() {
+            customSubjectWrapper?.classList.remove('hidden');
+        }
+
+        function hideCustomSubjectInput() {
+            customSubjectWrapper?.classList.add('hidden');
+            if (customSubjectInput) customSubjectInput.value = '';
         }
 
         // เมื่อพิมพ์วิชาใหม่ ให้เพิ่มเข้า dropdown ด้วย
         courseNameInput.addEventListener('blur', () => {
             addPresetIfMissing(courseNameInput.value);
+        });
+
+        const addCustomSubject = () => {
+            const created = addPresetIfMissing(customSubjectInput?.value || '');
+            if (!created) return;
+            courseNameInput.value = created;
+            hideCustomSubjectInput();
+            courseNameInput.focus();
+        };
+
+        addCustomSubjectBtn?.addEventListener('click', addCustomSubject);
+        customSubjectInput?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addCustomSubject();
+            }
         });
     }
 
