@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class Course extends Model
@@ -17,7 +18,6 @@ class Course extends Model
         'name',
         'grade',
         'rooms',
-        'course_rooms',
         'term',
         'year',
         'description',
@@ -28,7 +28,6 @@ class Course extends Model
 
     protected $casts = [
         'rooms' => 'array',
-        'course_rooms' => 'array',
         'teaching_hours' => 'array',
         'lessons' => 'array',
         'assignments' => 'array',
@@ -48,12 +47,6 @@ class Course extends Model
     protected static function booted(): void
     {
         static::saving(function (Course $course): void {
-            // Keep rooms and course_rooms in sync so both columns reflect the same array.
-            if (! is_null($course->rooms)) {
-                $course->course_rooms = $course->course_rooms ?? $course->rooms;
-            } elseif (! is_null($course->course_rooms)) {
-                $course->rooms = $course->course_rooms;
-            }
         });
 
         static::saved(function (Course $course): void {
@@ -69,7 +62,7 @@ class Course extends Model
                 $course->syncAssignmentsTable();
             }
 
-            if ($course->wasChanged('rooms') || $course->wasChanged('course_rooms')) {
+            if ($course->wasChanged('rooms')) {
                 $course->syncCourseRoomsTable();
             }
         });
@@ -149,9 +142,13 @@ class Course extends Model
 
     public function syncCourseRoomsTable(): void
     {
-        $items = $this->course_rooms ?? $this->rooms ?? [];
+        $items = $this->rooms ?? [];
         $now = now();
         $courseId = $this->id;
+        $hasTeacherId = Schema::hasColumn('course_rooms', 'teacher_id');
+        $hasTeacherName = Schema::hasColumn('course_rooms', 'teacher_name');
+        $hasTerm = Schema::hasColumn('course_rooms', 'term');
+
         $rows = collect($items)->map(function ($item) use ($courseId, $now) {
             $isArray = is_array($item);
             $room = $isArray ? ($item['room'] ?? $item['name'] ?? null) : (string) $item;
@@ -166,6 +163,17 @@ class Course extends Model
                 'created_at' => $now,
                 'updated_at' => $now,
             ];
+        })->map(function ($row) use ($hasTeacherId, $hasTeacherName, $hasTerm) {
+            if (! $hasTeacherId) {
+                unset($row['teacher_id']);
+            }
+            if (! $hasTeacherName) {
+                unset($row['teacher_name']);
+            }
+            if (! $hasTerm) {
+                unset($row['term']);
+            }
+            return $row;
         })->filter(fn ($row) => $row['room'] !== null && $row['room'] !== '');
 
         DB::transaction(function () use ($rows): void {

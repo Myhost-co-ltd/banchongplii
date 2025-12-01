@@ -8,24 +8,26 @@
 </head>
 
 <body class="min-h-screen flex items-center justify-center bg-[#cfd3db] font-sans">
-    @php($logo = asset('images/school-logo.png'))
+   @php
+    // รูปใหม่ของโรงเรียนบ้านช่องพลี
+    $logoPng = asset('images/school-logo-bcp.png');   // เปลี่ยนเป็นชื่อไฟล์โลโก้ใหม่
+    $logoFallback = asset('images/school-logo-bcp.png'); // ใช้รูปเดียวกันเป็น fallback
+@endphp
 
     <!-- กล่องฟอร์ม -->
     <div class="bg-white shadow-xl rounded-2xl p-8 w-[90%] max-w-md flex flex-col items-center border border-gray-300">
 
         <!-- โลโก้ -->
         <div class="flex flex-col items-center mb-6">
-            <div class="w-32 h-32 overflow-hidden flex items-center justify-center mb-3">
-                <img src="{{ $logo }}"
-                     alt="ตราโรงเรียน"
-                     class="w-full h-full object-contain"
-                     onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
-                <div class="hidden text-blue-700 text-sm font-semibold text-center leading-tight">
-                    โรงเรียนบ้านช่องพลี
-                </div>
-            </div>
-            <h1 class="text-2xl font-semibold text-orange-700">โรงเรียนบ้านช่องพลี</h1>
-        </div>
+    <div class="w-32 h-32 overflow-hidden flex items-center justify-center mb-3">
+        <img src="{{ $logoPng }}"
+             alt="ตราโรงเรียนบ้านช่องพลี"
+             class="w-full h-full object-contain"
+             onerror="this.onerror=null; this.src='{{ $logoFallback }}';">
+    </div>
+
+    <h1 class="text-2xl font-semibold text-blue-700">โรงเรียนบ้านช่องพลี</h1>
+</div>
 
         <!-- ฟอร์ม -->
         <form method="POST" action="{{ route('login.submit') }}" class="w-full space-y-3">
@@ -73,7 +75,7 @@
             </div>
 
             <!-- ปุ่ม -->
-            <div class="flex items-center justify-between pt-2">
+            <div class="flex items-center justify-center pt-2">
                 <button type="submit"
                     class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded shadow flex items-center gap-2">
                     <span>➜</span>

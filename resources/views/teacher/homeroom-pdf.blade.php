@@ -2,6 +2,10 @@
     $fontRegular = 'file:///' . str_replace('\\', '/', storage_path('fonts/LeelawUI.ttf'));
     $fontBold = 'file:///' . str_replace('\\', '/', storage_path('fonts/LeelaUIb.ttf'));
     $roomsList = ($rooms ?? collect())->filter();
+    $printedAt = ($generatedAt ?? now())->timezone('Asia/Bangkok');
+    $printedAtTh = $printedAt->copy()->addYears(543)->format('d/m/Y H:i');
+    $logoFile = public_path('images/school-logo.png');
+    $logoPath = file_exists($logoFile) ? ('file:///' . str_replace('\\', '/', $logoFile)) : null;
 @endphp
 <!DOCTYPE html>
 <html lang="th">
@@ -50,7 +54,7 @@
         .pill {
             display: inline-block;
             background: #e0f2fe;
-            color: #0369a1;
+            color: #fff;
             padding: 2px 10px;
             border-radius: 999px;
             font-size: 11px;
@@ -59,7 +63,7 @@
         }
         table { width: 100%; border-collapse: collapse; margin-top: 6px; }
         th {
-            background: #1d4ed8;
+            background: #fff;
             color: #fff;
             padding: 6px;
             border: 1px solid #cbd5e1;
@@ -72,10 +76,14 @@
 <header>สรุปหลักสูตรและนักเรียนที่รับผิดชอบ</header>
 <footer>หน้า {PAGE_NUM} / {PAGE_COUNT}</footer>
 
-<h1 style="font-size:18px; margin-bottom:4px;">สรุปหลักสูตรและนักเรียนที่รับผิดชอบ</h1>
-<p class="muted" style="margin-bottom:10px;">
-    ครูผู้รับผิดชอบ: {{ $teacher->name ?? '-' }} |
-    จัดทำเมื่อ {{ ($generatedAt ?? now())->format('d/m/Y H:i') }}
+@if($logoPath)
+    <div style="text-align:center; margin: 0 0 8px 0;">
+        <img src="{{ $logoPath }}" alt="โลโก้โรงเรียน" style="height:70px; object-fit:contain;">
+    </div>
+@endif
+
+<p style="font-size:15px; font-weight:700; margin:0 0 4px 0;">
+    ครูผู้รับผิดชอบ: {{ $teacher->name ?? '-' }}
 </p>
 
 <div class="section">
@@ -83,9 +91,8 @@
     <table>
         <thead>
         <tr>
-            <th style="width:45%;">ชื่อหลักสูตร</th>
-            <th style="width:35%;">ห้อง</th>
-            <th style="width:20%;">ปี/ระดับ</th>
+            <th style="width:50%;">ชื่อหลักสูตร</th>
+            <th style="width:50%;">ห้อง / ปี-ระดับ</th>
         </tr>
         </thead>
         <tbody>
@@ -93,8 +100,12 @@
             @php $courseRooms = collect($course->rooms ?? [])->filter()->join(', '); @endphp
             <tr>
                 <td>{{ $course->name }}</td>
-                <td>{{ $courseRooms !== '' ? $courseRooms : '-' }}</td>
-                <td>{{ $course->grade ?? '-' }}</td>
+                <td>
+                    {{ $courseRooms !== '' ? $courseRooms : '-' }}
+                    @if(!empty($course->grade))
+                        / {{ $course->grade }}
+                    @endif
+                </td>
             </tr>
         @empty
             <tr><td colspan="3" class="muted">ยังไม่มีหลักสูตรที่รับผิดชอบ</td></tr>

@@ -1,4 +1,4 @@
-﻿@extends('layouts.layout')
+﻿﻿@extends('layouts.layout')
 
 @section('title', 'แดชบอร์ดครู')
 
@@ -34,14 +34,14 @@
 
     <!-- Course List -->
     <div class="bg-white rounded-3xl shadow-md p-8 border border-gray-100">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+        {{-- <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
             <h3 class="text-xl font-semibold text-gray-800" data-i18n-th="หลักสูตรที่รับผิดชอบ" data-i18n-en="Courses in charge">หลักสูตรที่รับผิดชอบ</h3>
             <a href="{{ route('teacher.homeroom.export') }}"
                class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-xl text-sm hover:bg-green-700 transition shadow-sm"
                data-i18n-th="Export PDF" data-i18n-en="Export PDF">
                 Export PDF
             </a>
-        </div>
+        </div> --}}
 
         <table class="min-w-full border border-gray-200 rounded-xl overflow-hidden text-sm">
             <thead class="bg-blue-600 text-white">
@@ -69,6 +69,12 @@
                                 ลบ
                             </button>
                         </form>
+                        {{-- <span class="mx-1 text-gray-300">|</span>
+                        <a href="{{ route('teacher.students.export', ['course_id' => $course->id]) }}"
+                           class="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition"
+                           data-i18n-th="Export นักเรียน" data-i18n-en="Export students">
+                            Export นักเรียน
+                        </a> --}}
                     </td>
                 </tr>
                 @empty
@@ -100,14 +106,44 @@
         </div>
 
         @php
-            $studentsByRoom = collect($students ?? [])->groupBy(fn($s) => $s->classroom ?? '-');
+            $normalizeGrade = function ($value) {
+                $v = preg_replace('/\s+/u', '', (string) $value);
+                if ($v === '') {
+                    return '';
+                }
+                $v = preg_replace('/^(?:\x{0E21}|[MmPp])\.?/u', 'ป.', $v);
+                if (! str_contains($v, '.')) {
+                    $v = preg_replace('/^([^\d]+)(\d+)/u', '$1.$2', $v);
+                }
+                return $v;
+            };
+
+            $studentsByRoom = collect($students ?? [])->groupBy(function ($s) use ($normalizeGrade) {
+                return $s->classroom ?? $normalizeGrade($s->room ?? '') ?: '-';
+            });
             $roomLoop = ($assignedRooms ?? collect())->isNotEmpty() ? $assignedRooms : $studentsByRoom->keys();
         @endphp
 
 
         @forelse($roomLoop as $room)
             <div class="mb-6">
-                <h4 class="text-md font-semibold text-blue-700 mb-2">ห้อง {{ $room }}</h4>
+                <div class="flex items-center justify-between gap-3 mb-2">
+                    <h4 class="text-md font-semibold text-blue-700">ห้อง {{ $room }}</h4>
+                    @php
+                        $courseForRoom = collect($courses ?? [])->first(function ($c) use ($room) {
+                            return collect($c->rooms ?? [])->contains($room);
+                        });
+                        $exportParams = ['room' => $room];
+                        if ($courseForRoom) {
+                            $exportParams['course_id'] = $courseForRoom->id;
+                        }
+                    @endphp
+                <a href="{{ route('teacher.students.export', $exportParams) }}"
+    class="inline-flex items-center gap-1 px-5 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition"
+    title="Export PDF ห้อง {{ $room }}">
+    Export ห้อง
+</a>
+                </div>
                 <table class="min-w-full border border-gray-200 rounded-xl overflow-hidden text-sm">
                     <thead class="bg-blue-600 text-white">
                         <tr>
@@ -119,13 +155,16 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
-                        @forelse($studentsByRoom->get($room, collect()) as $student)
+                        @php
+                            $list = $studentsByRoom->get($room, $studentsByRoom->get($normalizeGrade($room), collect()));
+                        @endphp
+                        @forelse($list as $student)
                             <tr class="hover:bg-blue-50">
                                 <td class="py-2 px-4 font-semibold text-blue-700">{{ $student->student_code }}</td>
                                 <td class="py-2 px-4">{{ $student->first_name }}</td>
                                 <td class="py-2 px-4">{{ $student->last_name }}</td>
                                 <td class="py-2 px-4 text-center">{{ $student->room ?? '-' }}</td>
-                                <td class="py-2 px-4 text-center">{{ $student->classroom ?? '-' }}</td>
+                                <td class="py-2 px-4 text-center">{{ $student->classroom ?? $student->room ?? '-' }}</td>
                             </tr>
                         @empty
                             <tr>
@@ -196,4 +235,3 @@
 </script>
 
 @endsection
-

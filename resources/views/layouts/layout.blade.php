@@ -15,7 +15,8 @@
       $roleName = Auth::user()->role_name;
       $sidebarView = $roleName ? 'layouts.sidebars.' . $roleName : null;
     @endphp
-    <button id="sidebarToggleFab" type="button" class="sidebar-fab hidden" aria-pressed="false" title="แสดงเมนู">
+    <button id="sidebarToggleFab" type="button" class="sidebar-fab hidden" aria-pressed="false"
+            title="แสดงเมนู" data-i18n-title-th="แสดงเมนู" data-i18n-title-en="Show menu">
       ☰
     </button>
     @if ($sidebarView && view()->exists($sidebarView))
@@ -39,8 +40,8 @@
         ✕
       </button>
 
-      <h2 class="text-2xl font-semibold text-gray-900 mb-2">จัดการโปรไฟล์</h2>
-      <p class="text-sm text-gray-500 mb-4">ปรับชื่อผู้ใช้ และเปลี่ยนรหัสผ่านได้จากที่นี่</p>
+      <h2 class="text-2xl font-semibold text-gray-900 mb-2" data-i18n-th="จัดการโปรไฟล์" data-i18n-en="Manage profile">จัดการโปรไฟล์</h2>
+      <p class="text-sm text-gray-500 mb-4" data-i18n-th="ปรับชื่อผู้ใช้ และเปลี่ยนรหัสผ่านได้จากที่นี่" data-i18n-en="Update your display name and change password here">ปรับชื่อผู้ใช้ และเปลี่ยนรหัสผ่านได้จากที่นี่</p>
 
       @if ($errors->any())
         <div class="mb-4 border border-red-200 bg-red-50 text-red-700 rounded-2xl p-3 text-sm">
@@ -63,43 +64,54 @@
         @method('PUT')
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อที่แสดง</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="ชื่อที่แสดง" data-i18n-en="Display name">ชื่อที่แสดง</label>
           <input type="text" name="name" value="{{ old('name', auth()->user()->name ?? '') }}"
                  class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" required>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="อีเมล" data-i18n-en="Email">อีเมล</label>
+          <input type="email" name="email" value="{{ old('email', auth()->user()->email ?? '') }}"
+                 class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                 placeholder="name@example.com" required
+                 data-i18n-placeholder-th="name@example.com" data-i18n-placeholder-en="name@example.com">
         </div>
 
         <hr class="my-2">
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่านปัจจุบัน</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="รหัสผ่านปัจจุบัน" data-i18n-en="Current password">รหัสผ่านปัจจุบัน</label>
           <input type="password" name="current_password"
                  class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-                 placeholder="กรอกเมื่อจะเปลี่ยนรหัสผ่าน">
+                 placeholder="กรอกเมื่อจะเปลี่ยนรหัสผ่าน"
+                 data-i18n-placeholder-th="กรอกเมื่อจะเปลี่ยนรหัสผ่าน" data-i18n-placeholder-en="Fill in only if changing password">
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่านใหม่</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="รหัสผ่านใหม่" data-i18n-en="New password">รหัสผ่านใหม่</label>
             <input type="password" name="password"
                    class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-                   placeholder="อย่างน้อย 6 ตัวอักษร">
+                   placeholder="อย่างน้อย 6 ตัวอักษร"
+                   data-i18n-placeholder-th="อย่างน้อย 6 ตัวอักษร" data-i18n-placeholder-en="At least 6 characters">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">ยืนยันรหัสผ่านใหม่</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="ยืนยันรหัสผ่านใหม่" data-i18n-en="Confirm new password">ยืนยันรหัสผ่านใหม่</label>
             <input type="password" name="password_confirmation"
                    class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-                   placeholder="ใส่ซ้ำให้ตรงกัน">
+                   placeholder="ใส่ซ้ำให้ตรงกัน"
+                   data-i18n-placeholder-th="ใส่ซ้ำให้ตรงกัน" data-i18n-placeholder-en="Repeat to match">
           </div>
         </div>
 
         <div class="flex justify-end gap-3 pt-2">
           <button type="button" onclick="closeProfileModal()"
                   class="px-4 py-2 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50">
-            ยกเลิก
+            <span data-i18n-th="ยกเลิก" data-i18n-en="Cancel">ยกเลิก</span>
           </button>
           <button type="submit"
                   class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700">
-            บันทึกการเปลี่ยนแปลง
+            <span data-i18n-th="บันทึกการเปลี่ยนแปลง" data-i18n-en="Save changes">บันทึกการเปลี่ยนแปลง</span>
           </button>
         </div>
       </form>
@@ -112,8 +124,6 @@
       const toggleBtn = document.getElementById('sidebarToggle');
       const toggleFab = document.getElementById('sidebarToggleFab');
       const STORAGE_KEY = 'sidebarCollapsed';
-      const LANG_KEY = 'appLocale';
-      const langButtons = document.querySelectorAll('[data-lang-toggle]');
 
       function applyState(collapsed) {
         if (!sidebar) return;
@@ -147,39 +157,6 @@
         applyState(newState);
         saveState(newState);
       });
-
-      function setLanguage(lang) {
-        document.documentElement.setAttribute('lang', lang);
-        localStorage.setItem(LANG_KEY, lang);
-        langButtons.forEach(btn => {
-          btn.setAttribute('aria-label', lang === 'th' ? 'เปลี่ยนเป็นภาษาอังกฤษ' : 'Switch to Thai');
-          const labelEl = btn.querySelector('[data-lang-label]');
-          if (labelEl) labelEl.textContent = lang.toUpperCase();
-        });
-        document.querySelectorAll('[data-i18n-th]').forEach(el => {
-          const text = lang === 'th'
-            ? el.dataset.i18nTh
-            : (el.dataset.i18nEn || el.dataset.i18nTh);
-          if (text) el.textContent = text;
-        });
-        document.querySelectorAll('[data-i18n-placeholder-th]').forEach(el => {
-          const text = lang === 'th'
-            ? el.dataset.i18nPlaceholderTh
-            : (el.dataset.i18nPlaceholderEn || el.dataset.i18nPlaceholderTh);
-          if (text) el.setAttribute('placeholder', text);
-        });
-      }
-
-      const storedLang = localStorage.getItem(LANG_KEY) || document.documentElement.getAttribute('lang') || 'th';
-      setLanguage(storedLang);
-
-      langButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const current = localStorage.getItem(LANG_KEY) || 'th';
-          const next = current === 'th' ? 'en' : 'th';
-          setLanguage(next);
-        });
-      });
     })();
 
     function openProfileModal() {
@@ -199,6 +176,7 @@
     });
   </script>
 
+  @include('layouts.partials.localization')
   @stack('scripts')
 </body>
 </html>

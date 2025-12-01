@@ -77,6 +77,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('dashboard.teacher');
     Route::get('/teacher/homeroom/export', [StudentController::class, 'exportHomeroom'])
         ->name('teacher.homeroom.export');
+    Route::get('/teacher/students/export', [StudentController::class, 'export'])
+        ->name('teacher.students.export');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
     // Course create + list
@@ -184,6 +186,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('teacher.courses.assignments.update');
     Route::delete('/teacher/course/{course}/assignments/{assignment}', [TeacherCourseController::class, 'destroyAssignment'])
         ->name('teacher.courses.assignments.destroy');
+    Route::get('/teacher/students/export', [StudentController::class, 'export'])
+        ->name('teacher.students.export');
 
 
 

@@ -28,25 +28,7 @@
         }
 
         @page {
-            margin: 90px 40px 70px;
-        }
-
-        header {
-            position: fixed;
-            top: -70px;
-            left: 0; right: 0;
-            text-align: center;
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        footer {
-            position: fixed;
-            bottom: -45px;
-            left: 0; right: 0;
-            text-align: right;
-            font-size: 11px;
-            color: #6b7280;
+            margin: 60px 40px 60px;
         }
 
         .section { margin-bottom: 22px; }
@@ -54,8 +36,7 @@
 
         .pill {
             display: inline-block;
-            background: #e0e7ff;
-            color: #1d4ed8;
+            color: black;
             padding: 3px 10px;
             border-radius: 999px;
             font-size: 11px;
@@ -69,55 +50,55 @@
         }
 
         th {
-            background: #1d4ed8;
+            background: #fff;
             color: #fff;
             padding: 6px;
             border: 1px solid #cbd5e1;
             font-weight: 700;
+            text-align: center;
         }
 
         td {
             padding: 6px;
             border: 1px solid #e5e7eb;
+            text-align: center;
         }
 
         h1,h2,h3 { margin: 0 0 6px 0; }
+
+        table, tr, td, th { page-break-inside: avoid; }
+        .section { page-break-inside: avoid; }
     </style>
 </head>
 
 <body>
-<header>รายงานรายละเอียดรายวิชา</header>
-<footer>หน้า {PAGE_NUM} / {PAGE_COUNT}</footer>
+<h1 style="font-size:18px; font-weight:700; text-align:center; margin:0 0 10px 0;">รายงานรายละเอียดรายวิชา</h1>
 
-<h1 style="font-size:20px; margin-bottom:6px;">รายงานรายละเอียดรายวิชา</h1>
-<p class="muted">
-    ผู้สอน: {{ $teacher->name ?? '-' }} |
-    สร้างเมื่อ {{ now()->format('d/m/Y H:i') }}
+<p style="font-size:15px; font-weight:700; margin:0 0 6px 0;">
+    ผู้สอน: {{ $teacher->name ?? '-' }}
 </p>
 
 <div class="section">
     <h2 style="font-size:17px; font-weight:700;">{{ $course->name }}</h2>
 
-    <p>
-        ระดับชั้น: {{ $course->grade ?? '-' }} |
-        ปีการศึกษา: {{ $course->year ?? '-' }} |
-        ภาคเรียน: {{ $termLabel }}
+    <p style="display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin:6px 0 0 0;">
+        <span>ระดับชั้น: {{ $course->grade ?? '-' }}</span>
+        <span>ปีการศึกษา: {{ $course->year ?? '-' }}</span>
+        <span>ภาคเรียน: {{ $termLabel }}</span>
+        <span style="display:inline-flex; align-items:center; gap:6px; line-height:1.4;">
+            ห้องเรียน:
+            <span style="display:inline-flex; align-items:center; gap:4px; line-height:1.4;">
+                @forelse($course->rooms ?? [] as $room)
+                    <span class="pill" style="vertical-align:middle;">{{ $room }}</span>
+                @empty
+                    <span class="muted">-</span>
+                @endforelse
+            </span>
+        </span>
     </p>
-
-    <p>
-        ห้องเรียน:
-        @forelse($course->rooms ?? [] as $room)
-            <span class="pill">{{ $room }}</span>
-        @empty
-            <span class="muted">-</span>
-        @endforelse
-    </p>
-
-    <p>รายละเอียดวิชา: {{ $course->description ?? '-' }}</p>
 </div>
 
 <div class="section">
-    <h3>ชั่วโมงสอน (เป้าหมาย vs ใช้จริง)</h3>
     <table>
         <thead>
             <tr>
@@ -182,7 +163,13 @@
                 <tr>
                     <td>{{ $assignment['title'] ?? '-' }}</td>
                     <td>{{ $assignment['score'] ?? '-' }}</td>
-                    <td>{{ $assignment['due_date'] ?? '-' }}</td>
+                    <td>
+                        @if(!empty($assignment['due_date']))
+                            {{ \Illuminate\Support\Carbon::parse($assignment['due_date'])->timezone('Asia/Bangkok')->addYears(543)->locale('th')->isoFormat('D MMM YYYY') }}
+                        @else
+                            -
+                        @endif
+                    </td>
                 </tr>
             @empty
                 <tr><td colspan="3" class="muted">ยังไม่มีงานหรือแบบฝึกหัด</td></tr>
@@ -198,3 +185,5 @@
 
 </body>
 </html>
+
+
