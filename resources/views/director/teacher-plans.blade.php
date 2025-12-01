@@ -13,7 +13,7 @@
     </div>
 
     {{-- SUMMARY BOXES แบบการ์ดใหญ่ --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         {{-- จำนวนหลักสูตร --}}
         <div class="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-100 rounded-3xl shadow-md px-8 py-6">
             <p class="text-sm font-medium text-blue-700">จำนวนหลักสูตรทั้งหมด</p>
@@ -27,6 +27,22 @@
             <p class="text-sm font-medium text-emerald-700">จำนวนครูผู้สอนทั้งหมด</p>
             <p class="mt-4 text-4xl font-bold text-emerald-900">
                 {{ $teacherCount }}
+            </p>
+        </div>
+
+        {{-- ครูที่ครบชั่วโมง/งาน --}}
+        <div class="bg-gradient-to-r from-sky-50 to-sky-100 border border-sky-100 rounded-3xl shadow-md px-8 py-6">
+            <p class="text-sm font-medium text-sky-700">ครูที่ครบชั่วโมง/งาน</p>
+            <p class="mt-4 text-4xl font-bold text-sky-900">
+                {{ $completeTeacherCount }}
+            </p>
+        </div>
+
+        {{-- ครูที่ยังไม่ครบ --}}
+        <div class="bg-gradient-to-r from-amber-50 to-amber-100 border border-amber-100 rounded-3xl shadow-md px-8 py-6">
+            <p class="text-sm font-medium text-amber-700">ครูที่ยังไม่ครบ</p>
+            <p class="mt-4 text-4xl font-bold text-amber-900">
+                {{ $incompleteTeacherCount }}
             </p>
         </div>
     </div>
@@ -118,10 +134,15 @@
                                     $hasHours = !empty($course->teaching_hours);
                                     $hasAssignments = !empty($course->assignments);
                                     $isComplete = $hasHours && $hasAssignments;
+                                    $isMissingBoth = ! $hasHours && ! $hasAssignments;
                                 @endphp
                                 @if($isComplete)
                                     <span class="inline-flex items-center text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200" title="เพิ่มเนื้อหาและสั่งงานครบแล้ว">
                                         ✅ ครบชั่วโมง/งาน
+                                    </span>
+                                @elseif($isMissingBoth)
+                                    <span class="inline-flex items-center text-xs px-2 py-1 rounded-full bg-rose-100 text-rose-700 border border-rose-200" title="ยังไม่ได้เพิ่มชั่วโมงสอนและงาน">
+                                        ⭕ ยังไม่ครบ
                                     </span>
                                 @else
                                     <span class="inline-flex items-center text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200" title="ยังไม่ครบทั้งชั่วโมงสอนและงาน">

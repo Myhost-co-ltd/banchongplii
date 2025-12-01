@@ -104,6 +104,24 @@ class DirectorController extends Controller
             ->unique('id')
             ->count();
 
+        $teacherStatus = $courses
+            ->filter(fn ($course) => $course->teacher)
+            ->groupBy(fn ($course) => $course->teacher->id)
+            ->map(function ($teacherCourses) {
+                $hasIncompleteCourse = $teacherCourses->contains(function ($course) {
+                    $hasHours = ! empty($course->teaching_hours);
+                    $hasAssignments = ! empty($course->assignments);
+                    return ! ($hasHours && $hasAssignments);
+                });
+
+                return [
+                    'complete' => ! $hasIncompleteCourse,
+                ];
+            });
+
+        $completeTeacherCount = $teacherStatus->filter(fn ($status) => $status['complete'])->count();
+        $incompleteTeacherCount = $teacherStatus->filter(fn ($status) => ! $status['complete'])->count();
+
         return view('dashboards.director', [
             'studentCount' => $studentCount,
             'teacherCount' => $teacherCount,
@@ -113,6 +131,8 @@ class DirectorController extends Controller
             'teachersByMajor' => $teachersByMajor,
             'teacherWithMajorCount' => $teacherWithMajorCount,
             'courses' => $courses,
+            'completeTeacherCount' => $completeTeacherCount,
+            'incompleteTeacherCount' => $incompleteTeacherCount,
         ]);
     }
 
@@ -187,6 +207,23 @@ class DirectorController extends Controller
         $teacherCount = $courses->pluck('teacher')->filter()->unique('id')->count();
         $studentCount = Student::count();
         $roomsCount = $courses->flatMap(fn ($course) => $course->rooms ?? [])->unique()->count();
+        $teacherStatus = $courses
+            ->filter(fn ($course) => $course->teacher)
+            ->groupBy(fn ($course) => $course->teacher->id)
+            ->map(function ($teacherCourses) {
+                $hasIncompleteCourse = $teacherCourses->contains(function ($course) {
+                    $hasHours = ! empty($course->teaching_hours);
+                    $hasAssignments = ! empty($course->assignments);
+                    return ! ($hasHours && $hasAssignments);
+                });
+
+                return [
+                    'complete' => ! $hasIncompleteCourse,
+                ];
+            });
+
+        $completeTeacherCount = $teacherStatus->filter(fn ($status) => $status['complete'])->count();
+        $incompleteTeacherCount = $teacherStatus->filter(fn ($status) => ! $status['complete'])->count();
 
         if ($request->ajax()) {
             $html = view('director.partials.teacher-plan-results', [
@@ -194,6 +231,8 @@ class DirectorController extends Controller
                 'teacherCount'  => $teacherCount,
                 'studentCount'  => $studentCount,
                 'roomsCount'    => $roomsCount,
+                'completeTeacherCount' => $completeTeacherCount,
+                'incompleteTeacherCount' => $incompleteTeacherCount,
             ])->render();
 
             return response()->json([
@@ -214,6 +253,8 @@ class DirectorController extends Controller
             'search'        => $search,
             'studentCount'  => $studentCount,
             'roomsCount'    => $roomsCount,
+            'completeTeacherCount' => $completeTeacherCount,
+            'incompleteTeacherCount' => $incompleteTeacherCount,
         ]);
     }
 

@@ -81,18 +81,21 @@
 <div class="section">
     <h2 style="font-size:17px; font-weight:700;">{{ $course->name }}</h2>
 
-    <p style="display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:6px 0 0 0;">
-        <span>ระดับชั้น: {{ $course->grade ?? '-' }}</span>
-        <span>ปีการศึกษา: {{ $course->year ?? '-' }}</span>
-        <span>ภาคเรียน: {{ $termLabel }}</span>
-        <span style="display:inline-flex; align-items:center; gap:6px;">
-            ห้องเรียน:
-            @forelse($course->rooms ?? [] as $room)
-                <span class="pill" style="vertical-align:middle;">{{ $room }}</span>
-            @empty
-                <span class="muted">-</span>
-            @endforelse
-        </span>
+    {{-- ✅ บรรทัดที่ 1: ข้อมูลหลัก --}}
+    <p style="margin:6px 0 6px 0;">
+        <span>ระดับชั้น: **{{ $course->grade ?? '-' }}**</span>
+        <span style="margin-left: 20px;">ปีการศึกษา: **{{ $course->year ?? '-' }}**</span>
+        <span style="margin-left: 20px;">ภาคเรียน: **{{ $termLabel }}**</span>
+    </p>
+
+    {{-- ✅ บรรทัดที่ 2: ห้องเรียน (แยกออกมา) --}}
+    <p style="margin:0;">
+        <span style="font-weight:700; vertical-align:top; margin-right: 10px;">ห้องเรียน:</span>
+        @forelse($course->rooms ?? [] as $room)
+            <span class="pill" style="vertical-align:middle; background:#e5e7eb; border: 1px solid #d1d5db;">{{ $room }}</span>
+        @empty
+            <span class="muted">-</span>
+        @endforelse
     </p>
 </div>
 
@@ -183,5 +186,3 @@
 
 </body>
 </html>
-
-

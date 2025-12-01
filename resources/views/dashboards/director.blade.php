@@ -15,7 +15,7 @@
     </div>
 
     <!-- สถิติหลัก -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
 
         <div class="p-6 bg-gradient-to-br from-blue-50 to-blue-200 border border-blue-300 rounded-2xl shadow">
             <h3 class="text-gray-600" data-i18n-th="จำนวนนักเรียนทั้งหมด" data-i18n-en="Total students">จำนวนนักเรียนทั้งหมด</h3>
@@ -30,6 +30,16 @@
         <div class="p-6 bg-gradient-to-br from-purple-50 to-purple-200 border border-purple-300 rounded-2xl shadow">
             <h3 class="text-gray-600" data-i18n-th="ห้องเรียนทั้งหมด" data-i18n-en="Total classrooms">ห้องเรียนทั้งหมด</h3>
             <p class="text-4xl font-bold text-purple-800 mt-1">{{ number_format($classCount ?? 0) }}</p>
+        </div>
+
+        <div class="p-6 bg-gradient-to-br from-sky-50 to-sky-200 border border-sky-300 rounded-2xl shadow">
+            <h3 class="text-gray-600" data-i18n-th="ครูที่มีชั่วโมงสอนครบ" data-i18n-en="Teachers complete (hours & assignments)">ครูที่มีชั่วโมงสอนครบ</h3>
+            <p class="text-4xl font-bold text-sky-800 mt-1">{{ number_format($completeTeacherCount ?? 0) }}</p>
+        </div>
+
+        <div class="p-6 bg-gradient-to-br from-amber-50 to-amber-200 border border-amber-300 rounded-2xl shadow">
+            <h3 class="text-gray-600" data-i18n-th="ครูที่มีชั่วโมงสอนไม่ครบ" data-i18n-en="Teachers incomplete">ครูที่มีชั่วโมงสอนไม่ครบ</h3>
+            <p class="text-4xl font-bold text-amber-800 mt-1">{{ number_format($incompleteTeacherCount ?? 0) }}</p>
         </div>
 
     </div>
@@ -66,7 +76,7 @@
                 <tbody class="divide-y divide-gray-100">
                     @forelse($majorsList as $major)
                         @php($teachersForMajor = ($teachersByMajor[$major] ?? collect()))
-                        <tr class="hover:bg-blue-50" data-major-row="{{ trim($major) }}" data-has-teacher="{{ $teachersForMajor->isNotEmpty() ? '1' : '0' }}">
+                        <tr class="hover:bg-blue-50 cursor-pointer" data-major-row="{{ trim($major) }}" data-has-teacher="{{ $teachersForMajor->isNotEmpty() ? '1' : '0' }}">
                             <td class="py-2 px-4 font-semibold text-gray-900">{{ $major }}</td>
                             <td class="py-2 px-4 text-center">
                                 <button type="button"
@@ -85,9 +95,16 @@
                                         <div class="font-semibold text-gray-900">ครูผู้รับผิดชอบ ({{ $teachersForMajor->count() }} คน)</div>
                                         <ul class="list-disc list-inside space-y-1">
                                             @foreach($teachersForMajor as $teacher)
-                                                <li>
-                                                    <span class="font-medium">{{ $teacher->name }}</span>
-                                                    <span class="text-gray-500">({{ $teacher->email ?? '-' }})</span>
+                                                <li class="flex items-center justify-between gap-3">
+                                                    <span>
+                                                        <span class="font-medium">{{ $teacher->name }}</span>
+                                                        <span class="text-gray-500">({{ $teacher->email ?? '-' }})</span>
+                                                    </span>
+                                                    <a href="{{ route('director.teacher-plans', ['q' => $teacher->name]) }}"
+                                                       class="text-blue-600 hover:text-white hover:bg-blue-600 border border-blue-200 rounded-full px-3 py-1 text-xs font-semibold transition"
+                                                       title="ดูรายละเอียดแผนสอนของครูคนนี้">
+                                                        ดูรายละเอียด
+                                                    </a>
                                                 </li>
                                             @endforeach
                                         </ul>
@@ -209,6 +226,31 @@
         }
 
         applyFilter();
+
+        // Allow clicking the whole row to toggle details (in addition to the button)
+        majorRows.forEach(row => {
+            row.addEventListener('click', (e) => {
+                // Prevent double toggle when the button itself was clicked
+                if (e.target.closest('button')) {
+                    return;
+                }
+
+                const major = row.dataset.majorRow;
+                const toggleBtn = document.querySelector(`[data-major-toggle="${major}"]`);
+                if (!toggleBtn) return;
+
+                const detailRow = document.querySelector(`[data-major-detail="${major}"]`);
+                if (!detailRow) return;
+
+                const isHidden = detailRow.classList.contains('hidden');
+                hideAllDetails();
+
+                if (isHidden) {
+                    detailRow.classList.remove('hidden');
+                    toggleBtn.textContent = 'ซ่อนรายชื่อ';
+                }
+            });
+        });
     });
 </script>
 @endsection
