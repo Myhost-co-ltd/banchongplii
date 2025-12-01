@@ -104,6 +104,46 @@ class DirectorController extends Controller
             ->unique('id')
             ->count();
 
+        $teacherStatus = $courses
+            ->filter(fn ($course) => $course->teacher)
+            ->groupBy(fn ($course) => $course->teacher->id)
+            ->map(function ($teacherCourses) {
+                $teacher = $teacherCourses->first()->teacher;
+
+                $courseDetails = $teacherCourses->map(function ($course) {
+                    $hasHours = ! empty($course->teaching_hours);
+                    $hasAssignments = ! empty($course->assignments);
+
+                    return [
+                        'id' => $course->id,
+                        'name' => $course->name,
+                        'grade' => $course->grade,
+                        'complete' => $hasHours && $hasAssignments,
+                        'has_hours' => $hasHours,
+                        'has_assignments' => $hasAssignments,
+                    ];
+                })->values();
+
+                $isComplete = $courseDetails->every(fn ($detail) => $detail['complete']);
+
+                return [
+                    'teacher' => [
+                        'id' => $teacher->id,
+                        'name' => $teacher->name,
+                        'email' => $teacher->email,
+                        'major' => $teacher->major,
+                    ],
+                    'courses' => $courseDetails,
+                    'complete' => $isComplete,
+                ];
+            });
+
+        $completeTeachers = $teacherStatus->where('complete', true)->values();
+        $incompleteTeachers = $teacherStatus->where('complete', false)->values();
+
+        $completeTeacherCount = $completeTeachers->count();
+        $incompleteTeacherCount = $incompleteTeachers->count();
+
         return view('dashboards.director', [
             'studentCount' => $studentCount,
             'teacherCount' => $teacherCount,
@@ -113,6 +153,10 @@ class DirectorController extends Controller
             'teachersByMajor' => $teachersByMajor,
             'teacherWithMajorCount' => $teacherWithMajorCount,
             'courses' => $courses,
+            'completeTeacherCount' => $completeTeacherCount,
+            'incompleteTeacherCount' => $incompleteTeacherCount,
+            'completeTeachers' => $completeTeachers,
+            'incompleteTeachers' => $incompleteTeachers,
         ]);
     }
 
@@ -187,6 +231,23 @@ class DirectorController extends Controller
         $teacherCount = $courses->pluck('teacher')->filter()->unique('id')->count();
         $studentCount = Student::count();
         $roomsCount = $courses->flatMap(fn ($course) => $course->rooms ?? [])->unique()->count();
+        $teacherStatus = $courses
+            ->filter(fn ($course) => $course->teacher)
+            ->groupBy(fn ($course) => $course->teacher->id)
+            ->map(function ($teacherCourses) {
+                $hasIncompleteCourse = $teacherCourses->contains(function ($course) {
+                    $hasHours = ! empty($course->teaching_hours);
+                    $hasAssignments = ! empty($course->assignments);
+                    return ! ($hasHours && $hasAssignments);
+                });
+
+                return [
+                    'complete' => ! $hasIncompleteCourse,
+                ];
+            });
+
+        $completeTeacherCount = $teacherStatus->filter(fn ($status) => $status['complete'])->count();
+        $incompleteTeacherCount = $teacherStatus->filter(fn ($status) => ! $status['complete'])->count();
 
         if ($request->ajax()) {
             $html = view('director.partials.teacher-plan-results', [
@@ -194,6 +255,8 @@ class DirectorController extends Controller
                 'teacherCount'  => $teacherCount,
                 'studentCount'  => $studentCount,
                 'roomsCount'    => $roomsCount,
+                'completeTeacherCount' => $completeTeacherCount,
+                'incompleteTeacherCount' => $incompleteTeacherCount,
             ])->render();
 
             return response()->json([
@@ -214,6 +277,8 @@ class DirectorController extends Controller
             'search'        => $search,
             'studentCount'  => $studentCount,
             'roomsCount'    => $roomsCount,
+            'completeTeacherCount' => $completeTeacherCount,
+            'incompleteTeacherCount' => $incompleteTeacherCount,
         ]);
     }
 

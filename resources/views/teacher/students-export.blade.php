@@ -21,11 +21,25 @@
             src: url('{{ $fontBold }}') format('truetype');
         }
         body { font-family: 'LeelawUI', DejaVu Sans, sans-serif; font-size: 13px; color: #1f2937; }
-        h1 {  margin: 0 0 12px; font-size: 22px; text-align: center; }
-        h2 { margin: 16px 0 8px; font-size: 15px; }
+        h1 {  margin: 0 0 12px; font-size: 22px; text-align: center; }
+        h2 { margin: 16px 0 8px; font-size: 15px; font-weight: 700; } /* เน้นหัวข้อแต่ละห้อง */
         table { width: 100%; border-collapse: collapse; margin-top: 6px; }
         th, td { border: 1px solid #e5e7eb; padding: 6px 8px; text-align: left; }
+<<<<<<< HEAD
         th { background: #f3f4f6; color: #111827; font-weight: 700; }
+=======
+        .center-text { text-align: center; } /* สำหรับจัดกลางในตาราง */
+        
+        /* สไตล์หัวตาราง (Thead) */
+        th { 
+            background: #2563eb; /* Blue 600 */
+            color: #ffffff; /* White text */
+            border: 1px solid #1e40af; /* Blue 800 */
+            font-weight: 700;
+            text-align: center;
+        }
+        
+>>>>>>> fab68d7ffadc22ee25c39c6c11316a121d9a3cf1
         .muted { color: #6b7280; font-size: 12px; }
         .header { text-align: left; margin-bottom: 12px; }
         .page { width: 700px; margin: 0 auto; }
@@ -50,6 +64,7 @@
                     <span><strong>ห้อง:</strong> {{ $roomsList->join(', ') }}</span>
                 @endif
             </div>
+            <p class="muted" style="margin-top: 4px;">พิมพ์เมื่อ: {{ $printedAt }}</p>
         </div>
 
         @php
@@ -64,26 +79,28 @@
         @endif
 
         @foreach(($studentsByRoom ?? collect()) as $room => $list)
-            <h2>ห้อง {{ $room }}</h2>
+            <h2>ห้องเรียน: {{ $room }}</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>รหัส</th>
-                        <th>ชื่อ</th>
-                        <th>นามสกุล</th>
-                        <th>ห้อง</th>
+                        <th style="width: 15%;">รหัส</th>
+                        <th style="width: 15%;">คำนำหน้า</th>
+                        <th style="width: 25%;">ชื่อ</th>
+                        <th style="width: 25%;">นามสกุล</th>
+                        <th style="width: 10%;">ห้องเรียน</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($list as $student)
                         <tr>
-                            <td>{{ $student->student_code }}</td>
+                            <td class="center-text">{{ $student->student_code }}</td>
+                            <td class="center-text">{{ $student->title ?? '-' }}</td>
                             <td>{{ $student->first_name }}</td>
                             <td>{{ $student->last_name }}</td>
-                            <td>{{ $student->classroom ?? $student->room ?? '-' }}</td>
+                            <td class="center-text">{{ $student->classroom ?? $student->room ?? '-' }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="muted" style="text-align:center;">ยังไม่มีนักเรียนในห้องนี้</td></tr>
+                        <tr><td colspan="5" class="muted" style="text-align:center;">ยังไม่มีนักเรียนในห้องนี้</td></tr>
                     @endforelse
                 </tbody>
             </table>

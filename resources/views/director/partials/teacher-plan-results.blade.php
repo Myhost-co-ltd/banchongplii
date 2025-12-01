@@ -1,12 +1,20 @@
 {{-- SUMMARY BOXES --}}
-<div class="flex flex-wrap gap-4">
-    <div class="inline-flex items-center gap-3 px-5 py-3 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 shadow-sm">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="inline-flex items-center justify-between px-5 py-3 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 shadow-sm">
         <span class="text-sm font-medium text-blue-700">จำนวนหลักสูตร</span>
         <span class="text-2xl font-semibold leading-none">{{ $courses->count() }}</span>
     </div>
-    <div class="inline-flex items-center gap-3 px-5 py-3 rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50 to-indigo-100 text-indigo-800 shadow-sm">
+    <div class="inline-flex items-center justify-between px-5 py-3 rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50 to-indigo-100 text-indigo-800 shadow-sm">
         <span class="text-sm font-medium text-indigo-700">จำนวนครูผู้สอน</span>
         <span class="text-2xl font-semibold leading-none">{{ $teacherCount }}</span>
+    </div>
+    <div class="inline-flex items-center justify-between px-5 py-3 rounded-2xl border border-sky-100 bg-gradient-to-r from-sky-50 to-sky-100 text-sky-800 shadow-sm">
+        <span class="text-sm font-medium text-sky-700">ครูที่ครบชั่วโมง/งาน</span>
+        <span class="text-2xl font-semibold leading-none">{{ $completeTeacherCount }}</span>
+    </div>
+    <div class="inline-flex items-center justify-between px-5 py-3 rounded-2xl border border-amber-100 bg-gradient-to-r from-amber-50 to-amber-100 text-amber-800 shadow-sm">
+        <span class="text-sm font-medium text-amber-700">ครูที่ยังไม่ครบ</span>
+        <span class="text-2xl font-semibold leading-none">{{ $incompleteTeacherCount }}</span>
     </div>
 </div>
 

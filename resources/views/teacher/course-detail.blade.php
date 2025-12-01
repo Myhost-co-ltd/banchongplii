@@ -146,6 +146,13 @@
                     </div>
                 </div>
 
+                <div class="md:col-span-2">
+                    <p class="text-sm text-gray-500">รายละเอียดหลักสูตร</p>
+                    <p class="text-gray-700 mt-1 leading-relaxed">
+                        {{ $course->description ?? 'ยังไม่มีรายละเอียดเพิ่มเติม' }}
+                    </p>
+                </div>
+
             </div>
         </div>
 
