@@ -111,21 +111,36 @@
             const sidebar = document.getElementById('appSidebar');
             const toggleBtn = document.getElementById('sidebarToggle');
             const toggleFab = document.getElementById('sidebarToggleFab');
+            const body = document.body;
             const STORAGE_KEY = 'sidebarCollapsed';
             const mainContent = document.getElementById('adminMainContent');
+            const MOBILE_BREAKPOINT = 1024;
+            let currentCollapsed = false;
+            const navLinks = sidebar ? sidebar.querySelectorAll('a') : [];
 
-            function applyState(collapsed) {
+            function isMobile() {
+                return window.innerWidth < MOBILE_BREAKPOINT;
+            }
+
+            function applyState(collapsed, opts = {}) {
                 if (!sidebar) return;
+                currentCollapsed = collapsed;
                 sidebar.classList.toggle('sidebar-collapsed', collapsed);
                 if (toggleBtn) toggleBtn.setAttribute('aria-pressed', collapsed ? 'true' : 'false');
                 if (mainContent) {
                     mainContent.classList.toggle('no-sidebar', collapsed);
                     mainContent.classList.toggle('with-sidebar', !collapsed);
                 }
+                if (body) {
+                    body.classList.toggle('sidebar-open', !collapsed && isMobile());
+                }
                 if (toggleFab) {
                     toggleFab.classList.toggle('hidden', !collapsed);
                     toggleFab.style.display = collapsed ? 'flex' : 'none';
                     toggleFab.setAttribute('aria-pressed', collapsed ? 'true' : 'false');
+                }
+                if (!opts.skipSave) {
+                    saveState(collapsed);
                 }
             }
 
@@ -137,17 +152,33 @@
                 localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0');
             }
 
-            applyState(loadState());
+            const initialCollapsed = isMobile() ? true : loadState();
+            applyState(initialCollapsed, { skipSave: true });
 
             toggleBtn?.addEventListener('click', () => {
-                const newState = !sidebar?.classList.contains('sidebar-collapsed');
+                const newState = !currentCollapsed;
                 applyState(newState);
-                saveState(newState);
             });
 
             toggleFab?.addEventListener('click', () => {
                 applyState(false);
-                saveState(false);
+            });
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (isMobile()) {
+                        applyState(true);
+                    }
+                });
+            });
+
+            window.addEventListener('resize', () => {
+                if (isMobile() && !currentCollapsed) {
+                    applyState(true);
+                }
+                if (!isMobile() && currentCollapsed !== loadState()) {
+                    applyState(loadState(), { skipSave: true });
+                }
             });
         })();
     </script>
