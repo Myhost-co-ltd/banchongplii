@@ -229,11 +229,24 @@ class StudentController extends Controller
             $assignedRooms = collect([$filterRoom]);
         }
 
+        $fontPath  = strtr(storage_path('fonts'), '\\', '/');
+        $fontCache = strtr(storage_path('fonts/cache'), '\\', '/');
+        if (! is_dir($fontCache)) {
+            @mkdir($fontCache, 0775, true);
+        }
+
+        $leelaRegularPath = "{$fontPath}/LeelawUI.ttf";
+        $leelaBoldPath    = "{$fontPath}/LeelaUIb.ttf";
+
         $pdf = Pdf::setOptions([
-                'isRemoteEnabled' => true,
-                'fontDir'   => storage_path('fonts'),
-                'fontCache' => storage_path('fonts'),
-                'defaultFont' => 'leelawadee',
+                'isRemoteEnabled'      => true,
+                'isHtml5ParserEnabled' => true,
+                'chroot'               => base_path(),
+                'tempDir'              => $fontCache,
+                'defaultFont'          => 'LeelawUI',
+                'fontDir'              => $fontPath,
+                'fontCache'            => $fontCache,
+                'enable_font_subsetting' => true,
             ])
             ->loadView('teacher.students-export', [
                 'teacher' => $user,
@@ -241,6 +254,19 @@ class StudentController extends Controller
                 'assignedRooms' => $assignedRooms,
                 'courseName' => $courseName,
             ]);
+
+        // Ensure Thai glyphs render in PDF
+        $metrics = $pdf->getDomPDF()->getFontMetrics();
+        $metrics->registerFont([
+            'family' => 'LeelawUI',
+            'style' => 'normal',
+            'weight' => 'normal',
+        ], $leelaRegularPath);
+        $metrics->registerFont([
+            'family' => 'LeelawUI',
+            'style' => 'normal',
+            'weight' => 'bold',
+        ], $leelaBoldPath);
 
         $baseName = 'students';
         if ($courseName) {

@@ -25,6 +25,9 @@
         h2 { margin: 16px 0 8px; font-size: 15px; font-weight: 700; } /* เน้นหัวข้อแต่ละห้อง */
         table { width: 100%; border-collapse: collapse; margin-top: 6px; }
         th, td { border: 1px solid #e5e7eb; padding: 6px 8px; text-align: left; }
+<<<<<<< HEAD
+        th { background: #f3f4f6; color: #111827; font-weight: 700; }
+=======
         .center-text { text-align: center; } /* สำหรับจัดกลางในตาราง */
         
         /* สไตล์หัวตาราง (Thead) */
@@ -36,6 +39,7 @@
             text-align: center;
         }
         
+>>>>>>> fab68d7ffadc22ee25c39c6c11316a121d9a3cf1
         .muted { color: #6b7280; font-size: 12px; }
         .header { text-align: left; margin-bottom: 12px; }
         .page { width: 700px; margin: 0 auto; }

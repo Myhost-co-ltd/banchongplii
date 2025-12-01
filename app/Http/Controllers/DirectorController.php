@@ -108,19 +108,41 @@ class DirectorController extends Controller
             ->filter(fn ($course) => $course->teacher)
             ->groupBy(fn ($course) => $course->teacher->id)
             ->map(function ($teacherCourses) {
-                $hasIncompleteCourse = $teacherCourses->contains(function ($course) {
+                $teacher = $teacherCourses->first()->teacher;
+
+                $courseDetails = $teacherCourses->map(function ($course) {
                     $hasHours = ! empty($course->teaching_hours);
                     $hasAssignments = ! empty($course->assignments);
-                    return ! ($hasHours && $hasAssignments);
-                });
+
+                    return [
+                        'id' => $course->id,
+                        'name' => $course->name,
+                        'grade' => $course->grade,
+                        'complete' => $hasHours && $hasAssignments,
+                        'has_hours' => $hasHours,
+                        'has_assignments' => $hasAssignments,
+                    ];
+                })->values();
+
+                $isComplete = $courseDetails->every(fn ($detail) => $detail['complete']);
 
                 return [
-                    'complete' => ! $hasIncompleteCourse,
+                    'teacher' => [
+                        'id' => $teacher->id,
+                        'name' => $teacher->name,
+                        'email' => $teacher->email,
+                        'major' => $teacher->major,
+                    ],
+                    'courses' => $courseDetails,
+                    'complete' => $isComplete,
                 ];
             });
 
-        $completeTeacherCount = $teacherStatus->filter(fn ($status) => $status['complete'])->count();
-        $incompleteTeacherCount = $teacherStatus->filter(fn ($status) => ! $status['complete'])->count();
+        $completeTeachers = $teacherStatus->where('complete', true)->values();
+        $incompleteTeachers = $teacherStatus->where('complete', false)->values();
+
+        $completeTeacherCount = $completeTeachers->count();
+        $incompleteTeacherCount = $incompleteTeachers->count();
 
         return view('dashboards.director', [
             'studentCount' => $studentCount,
@@ -133,6 +155,8 @@ class DirectorController extends Controller
             'courses' => $courses,
             'completeTeacherCount' => $completeTeacherCount,
             'incompleteTeacherCount' => $incompleteTeacherCount,
+            'completeTeachers' => $completeTeachers,
+            'incompleteTeachers' => $incompleteTeachers,
         ]);
     }
 

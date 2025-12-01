@@ -158,7 +158,6 @@ class Course extends Model
                 'id'         => $isArray ? ($item['id'] ?? (string) Str::uuid()) : (string) Str::uuid(),
                 'course_id'  => $courseId,
                 'teacher_id' => $this->user_id,
-                'teacher_name' => optional($this->teacher)->name,
                 'term'       => $term ?? $this->term,
                 'room'       => $room,
                 'created_at' => $now,
