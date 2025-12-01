@@ -17,6 +17,9 @@
         'การงานอาชีพ',
         'คอมพิวเตอร์',
     ];
+    $courseNames = \App\Models\Course::query()->pluck('name')->filter()->unique()->sort()->values()->toArray();
+    $teacherMajors = collect($teachers ?? [])->pluck('major')->filter()->unique()->sort()->values()->toArray();
+    $majorOptions = array_values(array_unique(array_merge($majorOptions, $courseNames, $teacherMajors)));
 @endphp
 
 <h1 class="text-3xl font-bold text-gray-800 mb-6" data-i18n-th="จัดการข้อมูลครู" data-i18n-en="Manage Teachers">จัดการข้อมูลครู</h1>
