@@ -230,11 +230,16 @@
                                 <span class="px-3 py-1 rounded-full bg-white border text-gray-600">
                                     <span data-i18n-th="ปีการศึกษา" data-i18n-en="Academic year">ปีการศึกษา</span> {{ $course->year ?? '-' }}
                                 </span>
-                                <div class="flex items-center gap-3 text-sm ml-2">
+                                <div class="flex flex-col items-start gap-2 text-sm ml-2">
                                     <button type="button"
                                             class="text-blue-600 hover:underline"
                                             onclick="toggleCourseEdit('course-edit-{{ $course->id }}')">
                                         <span data-i18n-th="แก้ไข" data-i18n-en="Edit">แก้ไข</span>
+                                    </button>
+                                    <button type="button"
+                                            class="text-gray-600 hover:underline"
+                                            onclick="toggleCourseBody('course-body-{{ $course->id }}')">
+                                        <span data-i18n-th="แสดงรายละเอียด" data-i18n-en="Show details">แสดงรายละเอียด</span>
                                     </button>
                                     <form method="POST"
                                           action="{{ route('admin.courses.destroy', $course) }}"
@@ -243,11 +248,6 @@
                                         @method('DELETE')
                                         <button class="text-red-600 hover:underline" type="submit" data-i18n-th="ลบ" data-i18n-en="Delete">ลบ</button>
                                     </form>
-                                    <button type="button"
-                                            class="text-gray-600 hover:underline"
-                                            onclick="toggleCourseBody('course-body-{{ $course->id }}')">
-                                        <span data-i18n-th="แสดงรายละเอียด" data-i18n-en="Show details">แสดงรายละเอียด</span>
-                                    </button>
                                 </div>
                             </div>
                         </div>

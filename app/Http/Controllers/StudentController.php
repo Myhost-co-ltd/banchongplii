@@ -86,12 +86,18 @@ class StudentController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'student_code' => 'required|string|max:20|unique:students,student_code',
-            'title' => 'required|string|max:20',
-            'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
-        ]);
+        $validated = $request->validate(
+            [
+                'student_code' => 'required|string|max:20|unique:students,student_code',
+                'title' => 'required|string|max:20',
+                'first_name' => 'required|string|max:100|regex:/^(?!.*\\d)[\\p{L}\\s]+$/u',
+                'last_name' => 'required|string|max:100|regex:/^(?!.*\\d)[\\p{L}\\s]+$/u',
+            ],
+            [
+                'first_name.regex' => 'ชื่อต้องเป็นตัวอักษรเท่านั้น',
+                'last_name.regex'  => 'นามสกุลต้องเป็นตัวอักษรเท่านั้น',
+            ]
+        );
 
         Student::create($validated);
 
@@ -279,3 +285,6 @@ class StudentController extends Controller
         return $pdf->download($fileName);
     }
 }
+
+
+

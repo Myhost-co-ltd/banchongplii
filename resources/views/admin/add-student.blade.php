@@ -91,10 +91,10 @@
             @csrf
             <label class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2 px-5 rounded-xl shadow-md cursor-pointer font-medium">
                 <span data-i18n-th="นำเข้านักเรียนExcel" data-i18n-en="Import CSV">นำเข้านักเรียน</span>
-                <input type="file" name="file" accept=".csv,text/csv" class="hidden"
+                <input type="file" name="file" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hidden"
                        onchange="document.getElementById('importForm').submit()">
             </label>
-            <a href="{{ asset('import_templates/students_sample.csv') }}"
+            <a href="{{ asset('import_templates/students_sample.xlsx') }}"
                class="text-sm text-blue-600 hover:underline ml-2"
                data-i18n-th="ดาวน์โหลดไฟล์ตัวอย่าง" data-i18n-en="Download sample CSV">
                 ดาวน์โหลดไฟล์ตัวอย่าง
@@ -167,6 +167,7 @@
             <tr class="text-sm uppercase tracking-wide">
                 <th class="p-3 text-left" data-i18n-th="#" data-i18n-en="#">#</th>
                 <th class="p-3 text-left" data-i18n-th="รหัส" data-i18n-en="Code">รหัส</th>
+                <th class="p-3 text-left" data-i18n-th="คำนำหน้า" data-i18n-en="Title">คำนำหน้า</th>
                 <th class="p-3 text-left" data-i18n-th="ชื่อ" data-i18n-en="First Name">ชื่อ</th>
                 <th class="p-3 text-left" data-i18n-th="นามสกุล" data-i18n-en="Last Name">นามสกุล</th>
                 <th class="p-3 text-left" data-i18n-th="เพศ" data-i18n-en="Gender">เพศ</th>
@@ -188,17 +189,19 @@
                     $roomDisplay  = $roomValue ?: '';
                 @endphp
 
-                <tr class="border-b hover:bg-gray-50 transition student-row"
-                    data-room="{{ $roomDisplay }}"
-                    data-grade="{{ $gradeDisplay }}"
-                    data-name="{{ mb_strtolower($fullName) }}"
-                    data-code="{{ $student->student_code }}"
-                    data-gender="{{ $student->gender ?? '' }}">
+                  <tr class="border-b hover:bg-gray-50 transition student-row"
+                      data-room="{{ $roomDisplay }}"
+                      data-grade="{{ $gradeDisplay }}"
+                      data-name="{{ mb_strtolower($fullName) }}"
+                      data-code="{{ $student->student_code }}"
+                      data-gender="{{ $student->gender ?? '' }}"
+                      data-title="{{ $student->title ?? '' }}">
 
-                    <td class="p-3">{{ $index + 1 }}</td>
-                    <td class="p-3 font-semibold text-blue-700">{{ $student->student_code }}</td>
-                    <td class="p-3">{{ $student->first_name }}</td>
-                    <td class="p-3">{{ $student->last_name }}</td>
+                      <td class="p-3">{{ $index + 1 }}</td>
+                      <td class="p-3 font-semibold text-blue-700">{{ $student->student_code }}</td>
+                      <td class="p-3">{{ $student->title ?? '-' }}</td>
+                      <td class="p-3">{{ $student->first_name }}</td>
+                      <td class="p-3">{{ $student->last_name }}</td>
                     <td class="p-3">{{ $student->gender ?? '-' }}</td>
                     <td class="p-3">{{ $gradeDisplay ?: '-' }}</td>
                     <td class="p-3 text-blue-600 font-semibold">{{ $roomDisplay ?: '-' }}</td>
@@ -360,6 +363,8 @@
                     </label>
                     <input type="text" name="first_name"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+                            pattern="^[ก-๙A-Za-z\s]+$"
+                            title="กรุณากรอกตัวอักษรไทยหรืออังกฤษเท่านั้น"
                             required>
                 </div>
                 <div>
@@ -369,6 +374,8 @@
                     </label>
                     <input type="text" name="last_name"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+                            pattern="^[ก-๙A-Za-z\s]+$"
+                            title="กรุณากรอกตัวอักษรไทยหรืออังกฤษเท่านั้น"
                             required>
                 </div>
             </div>
@@ -437,24 +444,28 @@
                     </select>
                 </div>
                 <div>
-                    <label class="font-semibold text-gray-800"
-                           data-i18n-th="ชื่อ" data-i18n-en="First Name">
-                        ชื่อ
-                    </label>
-                    <input type="text" name="first_name"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
-                           required>
+                        <label class="font-semibold text-gray-800"
+                               data-i18n-th="ชื่อ" data-i18n-en="First Name">
+                            ชื่อ
+                        </label>
+                        <input type="text" name="first_name"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+                               pattern="^[ก-๙A-Za-z\s]+$"
+                               title="กรุณากรอกตัวอักษรไทยหรืออังกฤษเท่านั้น"
+                               required>
+                    </div>
+                    <div>
+                        <label class="font-semibold text-gray-800"
+                               data-i18n-th="นามสกุล" data-i18n-en="Last Name">
+                            นามสกุล
+                        </label>
+                        <input type="text" name="last_name"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+                               pattern="^[ก-๙A-Za-z\s]+$"
+                               title="กรุณากรอกตัวอักษรไทยหรืออังกฤษเท่านั้น"
+                               required>
+                    </div>
                 </div>
-                <div>
-                    <label class="font-semibold text-gray-800"
-                           data-i18n-th="นามสกุล" data-i18n-en="Last Name">
-                        นามสกุล
-                    </label>
-                    <input type="text" name="last_name"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
-                           required>
-                </div>
-            </div>
 
             {{-- แถว 3: ระดับชั้น ห้องเรียน --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">

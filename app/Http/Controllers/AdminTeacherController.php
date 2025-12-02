@@ -33,8 +33,11 @@ class AdminTeacherController extends Controller
                 'major'      => 'nullable|string|max:100',
             ],
             [
+                'first_name.required' => 'กรุณากรอกชื่อ',
+                'last_name.required'  => 'กรุณากรอกนามสกุล',
                 'email.unique' => 'อีเมลนี้มีอยู่ในระบบแล้ว',
                 'phone.unique' => 'เบอร์โทรนี้มีอยู่ในระบบแล้ว',
+                'name.unique'  => 'ชื่อ-นามสกุลนี้มีอยู่ในระบบแล้ว',
             ],
             [
                 'first_name' => 'ชื่อ',
@@ -47,8 +50,14 @@ class AdminTeacherController extends Controller
 
         $teacherRoleId = Role::firstOrCreate(['name' => 'teacher'])->id;
 
+        $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
+        $duplicateName = User::whereRaw('LOWER(name) = ?', [mb_strtolower($fullName)])->exists();
+        if ($duplicateName) {
+            return back()->withErrors(['first_name' => 'ชื่อ-นามสกุลนี้มีอยู่ในระบบแล้ว'])->withInput();
+        }
+
         User::create([
-            'name'     => trim($data['first_name'] . ' ' . $data['last_name']),
+            'name'     => $fullName,
             'email'    => $data['email'],
             'phone'    => $data['phone'] ?? null,
             'major'    => $data['major'] ?? null,
@@ -73,8 +82,11 @@ class AdminTeacherController extends Controller
                 'major'      => 'nullable|string|max:100',
             ],
             [
+                'first_name.required' => 'กรุณากรอกชื่อ',
+                'last_name.required'  => 'กรุณากรอกนามสกุล',
                 'email.unique' => 'อีเมลนี้มีอยู่ในระบบแล้ว',
                 'phone.unique' => 'เบอร์โทรนี้มีอยู่ในระบบแล้ว',
+                'name.unique'  => 'ชื่อ-นามสกุลนี้มีอยู่ในระบบแล้ว',
             ],
             [
                 'first_name' => 'ชื่อ',
@@ -85,8 +97,16 @@ class AdminTeacherController extends Controller
             ]
         );
 
+        $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
+        $duplicateName = User::whereRaw('LOWER(name) = ?', [mb_strtolower($fullName)])
+            ->where('id', '!=', $teacher->id)
+            ->exists();
+        if ($duplicateName) {
+            return back()->withErrors(['first_name' => 'ชื่อ-นามสกุลนี้มีอยู่ในระบบแล้ว'])->withInput();
+        }
+
         $teacher->update([
-            'name'     => trim($data['first_name'] . ' ' . $data['last_name']),
+            'name'     => $fullName,
             'email'    => $data['email'],
             'phone'    => $data['phone'] ?? null,
             'major'    => $data['major'] ?? null,

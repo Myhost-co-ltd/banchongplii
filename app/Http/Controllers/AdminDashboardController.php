@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Role;
+use App\Models\Course;
 use App\Models\Student;
 use App\Models\User;
 
@@ -22,6 +23,48 @@ class AdminDashboardController extends Controller
             ->distinct('room')
             ->count('room');
 
-        return view('dashboards.admin', compact('teacherCount', 'studentCount', 'classroomCount'));
+        // นับครูที่มี/ไม่มีชั่วโมงสอนครบจากข้อมูลหลักสูตร พร้อมรายการชื่อครู
+        $courses = Course::select('id', 'user_id', 'name', 'grade', 'teaching_hours', 'assignments')
+            ->with('teacher:id,name,email')
+            ->get();
+
+        $teacherStatus = $courses
+            ->filter(fn ($course) => $course->teacher)
+            ->groupBy(fn ($course) => $course->teacher->id)
+            ->map(function ($teacherCourses) {
+                $hasIncompleteCourse = $teacherCourses->contains(function ($course) {
+                    $hasHours = ! empty($course->teaching_hours);
+                    $hasAssignments = ! empty($course->assignments);
+                    return ! ($hasHours && $hasAssignments);
+                });
+
+                return [
+                    'teacher' => $teacherCourses->first()->teacher,
+                    'complete' => ! $hasIncompleteCourse,
+                ];
+            });
+
+        $completeTeacherCount = $teacherStatus->filter(fn ($status) => $status['complete'])->count();
+        $incompleteTeacherCount = $teacherStatus->filter(fn ($status) => ! $status['complete'])->count();
+
+        $completeTeachers = $teacherStatus
+            ->filter(fn ($status) => $status['complete'])
+            ->pluck('teacher')
+            ->filter();
+
+        $incompleteTeachers = $teacherStatus
+            ->filter(fn ($status) => ! $status['complete'])
+            ->pluck('teacher')
+            ->filter();
+
+        return view('dashboards.admin', compact(
+            'teacherCount',
+            'studentCount',
+            'classroomCount',
+            'completeTeacherCount',
+            'incompleteTeacherCount',
+            'completeTeachers',
+            'incompleteTeachers'
+        ));
     }
 }
