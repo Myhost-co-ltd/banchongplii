@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>@yield('title', 'ระบบโรงเรียน')</title>
   @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -172,6 +175,14 @@
       const shouldOpenProfile = {!! session()->pull('profile_modal', false) ? 'true' : 'false' !!};
       if (shouldOpenProfile) {
         openProfileModal();
+      }
+    });
+
+    // ป้องกันย้อนกลับจาก cache หลัง logout (Safari/Firefox bfcache)
+    window.addEventListener('pageshow', (event) => {
+      const navType = performance.getEntriesByType('navigation')[0]?.type;
+      if (event.persisted || navType === 'back_forward') {
+        window.location.reload();
       }
     });
   </script>
