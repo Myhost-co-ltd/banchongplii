@@ -90,7 +90,7 @@
         <form id="importForm" action="{{ route('admin.students.import') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <label class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2 px-5 rounded-xl shadow-md cursor-pointer font-medium">
-                <span data-i18n-th="นำเข้า CSV" data-i18n-en="Import CSV">Import CSV</span>
+                <span data-i18n-th="นำเข้านักเรียนExcel" data-i18n-en="Import CSV">นำเข้านักเรียน</span>
                 <input type="file" name="file" accept=".csv,text/csv" class="hidden"
                        onchange="document.getElementById('importForm').submit()">
             </label>
@@ -181,9 +181,10 @@
 
             @forelse (($students ?? []) as $index => $student)
                 @php
-                    $fullName = trim(($student->title ? $student->title . ' ' : '') . $student->first_name . ' ' . $student->last_name);
-                    $roomValue    = $student->room ?: ($student->classroom ?? '');
-                    $gradeDisplay = $normalizeGrade($roomValue);
+                    $fullName    = trim(($student->title ? $student->title . ' ' : '') . $student->first_name . ' ' . $student->last_name);
+                    $roomValue   = $student->room ?: ($student->classroom ?? '');
+                    $gradePart   = $roomValue ? (preg_split('/\s*\/\s*/', $roomValue, 2)[0] ?? '') : '';
+                    $gradeDisplay = $normalizeGrade($gradePart);
                     $roomDisplay  = $roomValue ?: '';
                 @endphp
 
@@ -545,6 +546,7 @@ function searchStudent() {
         const code = row.dataset.code || '';
         row.style.display = (name.includes(input) || code.includes(input)) ? "" : "none";
     });
+    updateRowNumbers();
 }
 
 // -------------------- NORMALIZE GRADE (JS) --------------------
@@ -578,6 +580,8 @@ function filterRoom() {
 
         row.style.display = (gradeMatch && roomMatch) ? "" : "none";
     });
+
+    updateRowNumbers();
 }
 
 function updateRoomFilterOptions(grade) {
@@ -627,6 +631,18 @@ function renderRoomOptions(selectEl, grade, selectedRoom = '') {
     }
 
     selectEl.disabled = !hasGrade;
+}
+
+// -------------------- RENUMBER VISIBLE ROWS --------------------
+function updateRowNumbers() {
+    let counter = 1;
+    document.querySelectorAll('.student-row').forEach(row => {
+        const visible = row.style.display !== 'none';
+        if (visible) {
+            const cell = row.querySelector('td');
+            if (cell) cell.textContent = counter++;
+        }
+    });
 }
 
 function setSelectValue(select, value) {
@@ -741,12 +757,16 @@ if (roomFilter) {
 
 // initial sync
 updateRoomFilterOptions(gradeFilter ? gradeFilter.value : 'all');
+updateRowNumbers();
 
 // -------------------- AUTO STUDENT CODE --------------------
 function suggestNextStudentCode() {
     if (!addForm || !addForm.student_code) return;
     const selectedGrade = normalizeGrade(addGradeSelect ? addGradeSelect.value : '');
-    if (!selectedGrade) {
+    const selectedRoom  = addRoomSelect ? (addRoomSelect.value || '').trim() : '';
+    const hasRoom = !!selectedRoom;
+
+    if (!selectedGrade && !hasRoom) {
         addForm.student_code.value = '';
         return;
     }
@@ -756,8 +776,13 @@ function suggestNextStudentCode() {
     let maxLength = 5;
 
     rows.forEach(row => {
-        const rowGrade = normalizeGrade(row.dataset.grade || getGradeFromRoom(row.dataset.room || ''));
-        if (rowGrade !== selectedGrade) return;
+        const rowRoom  = (row.dataset.room || '').trim();
+        const rowGrade = normalizeGrade(row.dataset.grade || getGradeFromRoom(rowRoom));
+
+        const gradeMatch = selectedGrade ? (rowGrade === selectedGrade) : true;
+        const roomMatch  = hasRoom ? (rowRoom === selectedRoom) : true;
+        if (!gradeMatch || !roomMatch) return;
+
         const codeStr = (row.dataset.code || '').trim();
         if (!codeStr) return;
         const numeric = parseInt(codeStr, 10);
@@ -767,7 +792,8 @@ function suggestNextStudentCode() {
         }
     });
 
-    const nextCode = (maxCode ? maxCode + 1 : 10001).toString().padStart(maxLength, '0');
+    const fallbackStart = 1;
+    const nextCode = (maxCode ? maxCode + 1 : fallbackStart).toString().padStart(maxLength, '0');
     addForm.student_code.value = nextCode;
 }
 

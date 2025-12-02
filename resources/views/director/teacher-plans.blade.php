@@ -51,9 +51,9 @@
     <div class="space-y-4">
 
         <form id="teacherPlanFilter" method="GET"
-              class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+            class="flex flex-col lg:flex-row lg:items-center lg:justify-start gap-3">
 
-            {{-- LEFT: หลักสูตร + ชั้น --}}
+            {{-- LEFT: หลักสูตร + ชั้น (คงไว้) --}}
             <div class="flex flex-wrap items-center gap-3">
 
                 {{-- หลักสูตร --}}
@@ -61,12 +61,11 @@
                     <label for="course" class="text-sm text-gray-600 whitespace-nowrap">หลักสูตร</label>
                     <select id="course"
                             name="course"
-                            class="rounded-xl border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
-                            onchange="this.form.submit()">
+                            class="rounded-xl border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm">
                         <option value="">เลือกหลักสูตร</option>
                         @foreach ($courseOptions as $course)
                             <option value="{{ $course }}"
-                                    {{ $course === $selectedCourse ? 'selected' : '' }}>
+                                {{ $course === $selectedCourse ? 'selected' : '' }}>
                                 {{ $course }}
                             </option>
                         @endforeach
@@ -79,15 +78,14 @@
                     <select id="grade"
                             name="grade"
                             class="rounded-xl border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
-                            {{ empty($gradeOptions) ? 'disabled' : '' }}
-                            onchange="this.form.submit()">
+                            {{ empty($gradeOptions) ? 'disabled' : '' }}>
                         @if (empty($gradeOptions))
                             <option value="">เลือกหลักสูตรก่อน</option>
                         @else
                             <option value="">ทุกชั้น</option>
                             @foreach ($gradeOptions as $grade)
                                 <option value="{{ $grade }}"
-                                        {{ $grade === $selectedGrade ? 'selected' : '' }}>
+                                    {{ $grade === $selectedGrade ? 'selected' : '' }}>
                                     {{ $grade }}
                                 </option>
                             @endforeach
@@ -96,33 +94,27 @@
                 </div>
             </div>
 
-            {{-- RIGHT: ค้นหา --}}
+            {{-- ค้นหาหลักสูตร / ครู --}}
             <div class="flex items-center gap-2 bg-white border border-gray-200 shadow-sm rounded-2xl px-4 py-2.5">
-                <label for="q" class="text-sm text-gray-600 whitespace-nowrap">ค้นหา</label>
-                <input id="q"
-                       name="q"
-                       value="{{ $search }}"
-                       placeholder="ชื่อหลักสูตร / ชื่อครู / ชั้น"
-                       class="rounded-xl border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm w-56" />
-                <button type="submit"
-                        class="text-xs px-3 py-1 rounded-xl bg-blue-600 text-white hover:bg-blue-500">
-                    ค้นหา
-                </button>
-                @if ($search !== '')
-                    <button type="button"
-                            class="text-xs text-gray-500 hover:text-gray-700"
-                            onclick="document.getElementById('q').value=''; document.getElementById('teacherPlanFilter').submit();">
-                        ล้าง
-                    </button>
-                @endif
+                <label for="search" class="text-sm text-gray-600 whitespace-nowrap">ค้นหา</label>
+                <input id="search"
+                       type="text"
+                       class="rounded-xl border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
+                       placeholder="ชื่อหลักสูตรหรือครู">
             </div>
+            
+            {{-- เพิ่มปุ่ม Submit เพื่อให้ Dropdown ยังทำงานได้หากไม่มี JS --}}
+            <button type="submit" hidden></button> 
+
         </form>
     </div>
 
     {{-- LIST COURSES --}}
     <div class="grid grid-cols-1 gap-4">
         @forelse ($courses as $course)
-            <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+            <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm course-card"
+                 data-course="{{ mb_strtolower($course->name ?? '') }}"
+                 data-teacher="{{ mb_strtolower(optional($course->teacher)->name ?? '') }}">
                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                     {{-- ซ้าย: ข้อมูลหลักสูตร --}}
                     <div class="space-y-2">
@@ -186,11 +178,11 @@
                             <p class="font-semibold text-gray-900">
                                 {{ optional($course->teacher)->name ?? 'ยังไม่มีครูผู้สอน' }}
                             </p>
-                            @if (! empty(optional($course->teacher)->email))
+                            {{-- @if (! empty(optional($course->teacher)->email))
                                 <p class="text-sm text-gray-600">
                                     {{ $course->teacher->email }}
                                 </p>
-                            @endif
+                            @endif --}}
                             @if ($isComplete)
                                 <p class="text-xs text-emerald-600">ครูคนนี้เพิ่มเนื้อหาครบชั่วโมงและสั่งงานครบแล้ว</p>
                             @endif
@@ -198,7 +190,7 @@
 
                         {{-- ปุ่มดูรายละเอียดหลักสูตรของครูที่สร้าง --}}
                         <a href="{{ route('director.course-detail', $course) }}"
-                           class="inline-flex items-center justify-center px-4 py-2 text-sm rounded-xl bg-blue-600 text-white hover:bg-blue-500">
+                            class="inline-flex items-center justify-center px-4 py-2 text-sm rounded-xl bg-blue-600 text-white hover:bg-blue-500">
                             รายละเอียด
                         </a>
                     </div>
@@ -215,14 +207,35 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const form = document.getElementById('teacherPlanFilter');
-        const searchInput = document.getElementById('q');
-        let debounceTimer;
+        const courseSelect = document.getElementById('course');
+        const gradeSelect = document.getElementById('grade');
+        const searchInput = document.getElementById('search');
+        const cards = Array.from(document.querySelectorAll('.course-card'));
 
-        if (searchInput && form) {
-            searchInput.addEventListener('input', () => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => form.submit(), 300);
-            });
+        // 1. จัดการ Event สำหรับ Dropdown (Submit ทันที)
+        if (courseSelect && form) {
+            courseSelect.addEventListener('change', () => form.submit());
+        }
+        if (gradeSelect && form) {
+            gradeSelect.addEventListener('change', () => form.submit());
+        }
+
+        // 2. ค้นหาทันทีจากบางตัวอักษร (ไม่มีปุ่ม)
+        if (searchInput) {
+            const filterCards = () => {
+                const query = searchInput.value.trim().toLowerCase();
+                cards.forEach(card => {
+                    if (!query) {
+                        card.classList.remove('hidden');
+                        return;
+                    }
+                    const courseName = card.dataset.course || '';
+                    const teacherName = card.dataset.teacher || '';
+                    const match = courseName.includes(query) || teacherName.includes(query);
+                    card.classList.toggle('hidden', !match);
+                });
+            };
+            searchInput.addEventListener('input', filterCards);
         }
     });
 </script>

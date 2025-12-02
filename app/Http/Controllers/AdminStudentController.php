@@ -34,16 +34,24 @@ class AdminStudentController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'student_code' => 'required|string|max:20|unique:students,student_code',
+            'student_code' => 'nullable|string|max:20|unique:students,student_code',
             'title'        => 'nullable|string|max:20',
             'first_name'   => 'required|string|max:100',
             'last_name'    => 'required|string|max:100',
             'gender'       => 'nullable|string|in:ชาย,หญิง,ไม่ระบุ',
             'room'         => 'nullable|string|max:20',
+        ], [
+            'student_code.unique' => 'รหัสนักเรียนนี้มีอยู่ในระบบแล้ว',
+            'student_code.max'    => 'รหัสนักเรียนต้องไม่เกิน 20 ตัวอักษร',
         ]);
 
+        $studentCode = $data['student_code'] ?? '';
+        if ($studentCode === '') {
+            $studentCode = $this->nextStudentCodeForRoom($data['room'] ?? null);
+        }
+
         Student::create([
-            'student_code' => $data['student_code'],
+            'student_code' => $studentCode,
             'title'        => $data['title'] ?? '',
             'first_name'   => $data['first_name'],
             'last_name'    => $data['last_name'],
@@ -75,6 +83,9 @@ class AdminStudentController extends Controller
         $skipped = 0;
         $rowNumber = 0;
 
+        // cache next code per room during this import session to avoid duplicates
+        $nextCodeCache = [];
+
         while (($row = fgetcsv($handle, 1000, $delimiter)) !== false) {
             $rowNumber++;
 
@@ -92,9 +103,13 @@ class AdminStudentController extends Controller
 
             $mapped = $this->mapRow($header, $row);
 
-            if (! $mapped['student_code'] || ! $mapped['first_name'] || ! $mapped['last_name']) {
+            if (! $mapped['first_name'] || ! $mapped['last_name']) {
                 $skipped++;
                 continue;
+            }
+
+            if (empty($mapped['student_code'])) {
+                $mapped['student_code'] = $this->nextStudentCodeForRoom($mapped['room'] ?? null, $nextCodeCache);
             }
 
             $student = Student::updateOrCreate(
@@ -126,6 +141,9 @@ class AdminStudentController extends Controller
             'last_name'    => 'required|string|max:100',
             'gender'       => 'nullable|string|in:ชาย,หญิง,ไม่ระบุ',
             'room'         => 'nullable|string|max:20',
+        ], [
+            'student_code.unique' => 'รหัสนักเรียนนี้มีอยู่ในระบบแล้ว',
+            'student_code.max'    => 'รหัสนักเรียนต้องไม่เกิน 20 ตัวอักษร',
         ]);
 
         $student->update([
@@ -190,6 +208,45 @@ class AdminStudentController extends Controller
             'gender'       => $normalizedGender,
             'room'         => $classroom ?: $grade,
         ];
+    }
+
+    /**
+     * สร้างรหัสนักเรียนถัดไปจากข้อมูลในฐาน + cache ระหว่าง import
+     */
+    private function nextStudentCodeForRoom(?string $room, array &$cache = null): string
+    {
+        $key = $room && trim($room) !== '' ? trim($room) : '_all';
+
+        // ใช้ cache ในรอบ import เพื่อลด query และกันรหัสซ้ำในไฟล์เดียวกัน
+        if ($cache !== null && isset($cache[$key])) {
+            [$currentMax, $pad] = $cache[$key];
+        } else {
+            $query = Student::query();
+            if ($room && trim($room) !== '') {
+                $query->where('room', trim($room));
+            }
+
+            $maxCode = $query->max('student_code');
+            [$currentMax, $pad] = $this->extractNumericParts($maxCode);
+        }
+
+        $next = $currentMax + 1;
+        $pad  = max($pad, 5);
+
+        if ($cache !== null) {
+            $cache[$key] = [$next, $pad];
+        }
+
+        return str_pad((string) $next, $pad, '0', STR_PAD_LEFT);
+    }
+
+    private function extractNumericParts(?string $code): array
+    {
+        if ($code && preg_match('/(\d+)/', $code, $m)) {
+            return [(int) $m[1], strlen($m[1])];
+        }
+
+        return [0, 5];
     }
 
     private function detectDelimiter($handle): string
