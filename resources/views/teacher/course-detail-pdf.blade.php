@@ -50,7 +50,7 @@
         }
 
         th {
-            background: #fff;
+            background: #2563eb;
             color: #fff;
             padding: 6px;
             border: 1px solid #cbd5e1;

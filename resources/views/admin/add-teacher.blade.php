@@ -59,13 +59,13 @@
     </div>
 </div>
 
-<div class="mb-6">
+{{-- <div class="mb-6">
     <label class="font-semibold text-gray-700" data-i18n-th="เลือกบทบาท:" data-i18n-en="Select role:">เลือกบทบาท:</label>
     <select id="roleFilter" onchange="filterRole()" class="input w-48 ml-3">
         <option value="all" data-i18n-th="ทั้งหมด" data-i18n-en="All">ทั้งหมด</option>
         <option value="teacher" data-i18n-th="ครู" data-i18n-en="Teacher">ครู</option>
     </select>
-</div>
+</div> --}}
 
 <div class="bg-white p-6 rounded-2xl shadow-md border overflow-x-auto">
     <table class="w-full border-collapse">

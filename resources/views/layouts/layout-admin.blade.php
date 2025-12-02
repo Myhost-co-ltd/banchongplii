@@ -35,40 +35,48 @@
 
                 <!-- Dashboard -->
                 <a href="{{ route('dashboard.admin') }}"
-                   class="block py-2.5 px-4 rounded-xl transition-all duration-200
+                   class="block py-2.5 px-4 rounded-xl transition-all duration-200 nav-link
                    {{ request()->routeIs('dashboard.admin') 
                         ? 'bg-gray-700 font-semibold shadow-inner' 
                         : 'hover:bg-gray-700' }}"
+                   data-nav
+                   @if(request()->routeIs('dashboard.admin')) data-current="1" @endif
                     data-i18n-th="แดชบอร์ด" data-i18n-en="Dashboard">
                     แดชบอร์ด
                 </a>
 
                 <!-- Student -->
                 <a href="{{ route('admin.add-student') }}"
-                   class="block py-2.5 px-4 rounded-xl transition-all duration-200
+                   class="block py-2.5 px-4 rounded-xl transition-all duration-200 nav-link
                    {{ request()->routeIs('admin.add-student') 
                         ? 'bg-gray-700 font-semibold shadow-inner' 
                         : 'hover:bg-gray-700' }}"
+                   data-nav
+                   @if(request()->routeIs('admin.add-student')) data-current="1" @endif
                     data-i18n-th="จัดการข้อมูลนักเรียน" data-i18n-en="Manage Students">
                     จัดการข้อมูลนักเรียน
                 </a>
 
                 <!-- Teacher -->
                 <a href="{{ route('admin.add-teacher') }}"
-                   class="block py-2.5 px-4 rounded-xl transition-all duration-200
+                   class="block py-2.5 px-4 rounded-xl transition-all duration-200 nav-link
                    {{ request()->routeIs('admin.add-teacher') 
                         ? 'bg-gray-700 font-semibold shadow-inner' 
                         : 'hover:bg-gray-700' }}"
+                   data-nav
+                   @if(request()->routeIs('admin.add-teacher')) data-current="1" @endif
                     data-i18n-th="จัดการข้อมูลครู" data-i18n-en="Manage Teachers">
                     จัดการข้อมูลครู
                 </a>
 
                 <!-- Course -->
                 <a href="{{ route('admin.courses.index') }}"
-                   class="block py-2.5 px-4 rounded-xl transition-all duration-200
+                   class="block py-2.5 px-4 rounded-xl transition-all duration-200 nav-link
                    {{ request()->routeIs('admin.courses.*') 
                         ? 'bg-gray-700 font-semibold shadow-inner' 
                         : 'hover:bg-gray-700' }}"
+                   data-nav
+                   @if(request()->routeIs('admin.courses.*')) data-current="1" @endif
                     data-i18n-th="จัดการหลักสูตร" data-i18n-en="Manage Courses">
                     จัดการหลักสูตร
                 </a>
@@ -260,7 +268,13 @@
             });
 
             navLinks.forEach(link => {
-                link.addEventListener('click', () => {
+                // block reload if already active (match by data-current or same path) to avoid flicker
+                link.addEventListener('click', (e) => {
+                    const samePath = link.pathname === window.location.pathname;
+                    if (link.dataset.current === '1' || samePath) {
+                        e.preventDefault();
+                        return;
+                    }
                     if (isMobile()) {
                         applyState(true);
                     }

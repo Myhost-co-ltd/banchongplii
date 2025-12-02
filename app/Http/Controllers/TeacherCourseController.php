@@ -41,7 +41,7 @@ class TeacherCourseController extends Controller
             'rooms'       => 'required|array|min:1',
             'rooms.*'     => 'string|max:20',
             'term'        => 'nullable|in:1,2',
-            'year'        => ['nullable', 'integer', 'min:1', $this->yearNotInPastRule()],
+            'year'        => 'nullable|string|max:10',
             'description' => 'nullable|string|max:5000',
         ]);
 
@@ -240,11 +240,11 @@ class TeacherCourseController extends Controller
         $assignmentRemaining = max(0, 70 - $assignmentTotal);
 
         $lessonCapacity = [];
-        $hourTargets = $hours->groupBy('category')->map(fn ($group) => (float) $group->sum('hours'));
-        $lessonUsed = $lessons->groupBy('category')->map(fn ($group) => (float) $group->sum('hours'));
+        $hourTargets = $hours->groupBy('category')->map(fn ($group) => (int) round($group->sum('hours')));
+        $lessonUsed = $lessons->groupBy('category')->map(fn ($group) => (int) round($group->sum('hours')));
 
         foreach ($hourTargets as $category => $allowedHours) {
-            $usedHours = $lessonUsed[$category] ?? 0.0;
+            $usedHours = $lessonUsed[$category] ?? 0;
             $remaining = max(0, $allowedHours - $usedHours);
             $lessonCapacity[$category] = [
                 'allowed'   => $allowedHours,
@@ -253,8 +253,8 @@ class TeacherCourseController extends Controller
             ];
         }
 
-        $lessonAllowedTotal = (float) $hourTargets->sum();
-        $lessonUsedTotal = (float) $lessonUsed->sum();
+        $lessonAllowedTotal = (int) round($hourTargets->sum());
+        $lessonUsedTotal = (int) round($lessonUsed->sum());
         $lessonRemainingTotal = max(0, $lessonAllowedTotal - $lessonUsedTotal);
 
         return [
@@ -299,7 +299,7 @@ class TeacherCourseController extends Controller
         $data = $request->validate([
             'term'     => 'required|in:1,2',
             'category' => 'required|string|max:255',
-            'hours'    => 'required|numeric|min:0.1',
+            'hours'    => 'required|integer|min:1',
             'unit'     => 'required|string|max:50',
             'note'     => 'nullable|string|max:1000',
         ]);
@@ -326,7 +326,7 @@ class TeacherCourseController extends Controller
         $data = $request->validate([
             'term'     => 'required|in:1,2',
             'category' => 'required|string|max:255',
-            'hours'    => 'required|numeric|min:0.1',
+            'hours'    => 'required|integer|min:1',
             'unit'     => 'required|string|max:50',
             'note'     => 'nullable|string|max:1000',
         ]);
@@ -379,7 +379,7 @@ class TeacherCourseController extends Controller
             'term'     => 'required|in:1,2',
             'category' => 'required|string|in:ทฤษฎี,ปฏิบัติ',
             'title'    => 'required|string|max:255',
-            'hours'    => 'required|numeric|min:0.1',
+            'hours'    => 'required|integer|min:1',
             'period'   => 'nullable|string|max:100',
             'details'  => 'nullable|string|max:2000',
         ]);
@@ -425,7 +425,7 @@ class TeacherCourseController extends Controller
             'term'     => 'required|in:1,2',
             'category' => 'required|string|in:ทฤษฎี,ปฏิบัติ',
             'title'    => 'required|string|max:255',
-            'hours'    => 'required|numeric|min:0.1',
+            'hours'    => 'required|integer|min:1',
             'period'   => 'nullable|string|max:100',
             'details'  => 'nullable|string|max:2000',
         ]);
@@ -440,7 +440,7 @@ class TeacherCourseController extends Controller
                     $data['term'],
                     $data['category'],
                     $data['hours'],
-                    (float) ($item['hours'] ?? 0),
+                    (int) ($item['hours'] ?? 0),
                     (string) ($item['category'] ?? '')
                 );
 
@@ -471,14 +471,14 @@ class TeacherCourseController extends Controller
         Course $course,
         string $term,
         string $category,
-        float $incomingHours,
-        float $existingHours = 0,
+        int $incomingHours,
+        int $existingHours = 0,
         string $existingCategory = ''
     ): void {
-        $targetHours = collect($course->teaching_hours ?? [])
+        $targetHours = (int) round(collect($course->teaching_hours ?? [])
             ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $term)
             ->where('category', $category)
-            ->sum('hours');
+            ->sum('hours'));
 
         if ($targetHours <= 0) {
             throw ValidationException::withMessages([
@@ -486,17 +486,17 @@ class TeacherCourseController extends Controller
             ]);
         }
 
-        $usedHours = collect($course->lessons ?? [])
+        $usedHours = (int) round(collect($course->lessons ?? [])
             ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $term)
             ->filter(fn ($item) => ($item['category'] ?? '') === $category)
-            ->sum('hours');
+            ->sum('hours'));
 
         // remove existing hours when editing same category
         if ($existingCategory === $category) {
             $usedHours -= $existingHours;
         }
 
-        if ($usedHours + $incomingHours > $targetHours + 1e-6) {
+        if ($usedHours + $incomingHours > $targetHours) {
             throw ValidationException::withMessages([
                 'lesson' => 'ชั่วโมงรวมเกินกว่าที่กำหนดในหมวดนี้',
             ]);
@@ -510,7 +510,7 @@ class TeacherCourseController extends Controller
         $data = $request->validate([
             'term'     => 'required|in:1,2',
             'title'    => 'required|string|max:255',
-            'due_date' => 'nullable|date',
+            'due_date' => 'nullable|date|after_or_equal:today',
             'score'    => 'nullable|numeric|min:0',
             'notes'    => 'nullable|string|max:2000',
         ]);
@@ -550,7 +550,7 @@ class TeacherCourseController extends Controller
         $data = $request->validate([
             'term'     => 'required|in:1,2',
             'title'    => 'required|string|max:255',
-            'due_date' => 'nullable|date',
+            'due_date' => 'nullable|date|after_or_equal:today',
             'score'    => 'nullable|numeric|min:0',
             'notes'    => 'nullable|string|max:2000',
         ]);

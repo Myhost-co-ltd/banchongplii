@@ -40,20 +40,12 @@
             font-weight: 700;
         }
 
-        footer {
-            position: fixed;
-            bottom: -40px; left: 0; right: 0;
-            text-align: right;
-            font-size: 11px;
-            color: #6b7280;
-        }
-
         h1, h2, h3 { margin: 0 0 6px 0; }
         .section { margin-bottom: 18px; }
         .muted { color: #6b7280; }
         .pill {
             display: inline-block;
-            background: #e0f2fe;
+            background: #2563eb;
             color: #fff;
             padding: 2px 10px;
             border-radius: 999px;
@@ -63,19 +55,18 @@
         }
         table { width: 100%; border-collapse: collapse; margin-top: 6px; }
         th {
-            background: #fff;
+            background: #2563eb;
             color: #fff;
             padding: 6px;
             border: 1px solid #cbd5e1;
             font-weight: 700;
+            text-align: center;
         }
         td { padding: 6px; border: 1px solid #e5e7eb; }
     </style>
 </head>
 <body>
 <header>สรุปหลักสูตรและนักเรียนที่รับผิดชอบ</header>
-<footer>หน้า {PAGE_NUM} / {PAGE_COUNT}</footer>
-
 @if($logoPath)
     <div style="text-align:center; margin: 0 0 8px 0;">
         <img src="{{ $logoPath }}" alt="โลโก้โรงเรียน" style="height:70px; object-fit:contain;">

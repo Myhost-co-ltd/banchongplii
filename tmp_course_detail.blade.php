@@ -7,7 +7,6 @@
     $courseOptions = collect($courses ?? []);
     $currentTerm = $selectedTerm ?? request('term');
     $tz = config('app.timezone', 'Asia/Bangkok');
-    $todayDate = now($tz)->toDateString();
 
     $hoursByTerm = collect($hours ?? []);
     $lessonsByTerm = collect($lessons ?? []);
@@ -21,36 +20,22 @@
     <div class="bg-white rounded-3xl shadow-md p-8 border border-gray-100">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div class="space-y-3">
-                <p class="text-sm text-slate-500 uppercase tracking-widest"
-                   data-i18n-th="รายละเอียดหลักสูตร"
-                   data-i18n-en="Course Details">
-                    รายละเอียดหลักสูตร
-                </p>
-                <h1 class="text-3xl font-bold text-gray-900"
-                    data-i18n-th="จัดการหลักสูตร"
-                    data-i18n-en="Course Management">
-                    จัดการหลักสูตร
-                </h1>
+                <p class="text-sm text-slate-500 uppercase tracking-widest">รายละเอียดหลักสูตร</p>
+                <h1 class="text-3xl font-bold text-gray-900">จัดการหลักสูตร</h1>
 
                 <div class="flex flex-wrap gap-3">
                     <a href="{{ route('teacher.course-create') }}"
-                       class="px-4 py-2 bg-gray-100 rounded-xl text-gray-700 text-sm"
-                       data-i18n-th="กลับไปหน้าสร้างหลักสูตร"
-                       data-i18n-en="Back to create course">
+                       class="px-4 py-2 bg-gray-100 rounded-xl text-gray-700 text-sm">
                         กลับไปหน้าสร้างหลักสูตร
                     </a>
 
                     @if($course)
                         <a href="{{ route('teacher.courses.edit', $course) }}"
-                           class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm"
-                           data-i18n-th="แก้ไขหลักสูตร"
-                           data-i18n-en="Edit course">
+                           class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm">
                             แก้ไขหลักสูตร
                         </a>
                         <a href="{{ route('teacher.courses.export', ['course' => $course->id, 'term' => $currentTerm]) }}"
-                           class="px-4 py-2 bg-green-600 text-white rounded-xl text-sm"
-                           data-i18n-th="ส่งออก PDF"
-                           data-i18n-en="Export PDF">
+                           class="px-4 py-2 bg-green-600 text-white rounded-xl text-sm">
                             Export PDF
                         </a>
                     @endif
@@ -62,11 +47,7 @@
                 {{-- เลือกหลักสูตร --}}
                 @if($courseOptions->isNotEmpty())
                     <div>
-                        <label for="courseSelector" class="block text-sm font-semibold text-gray-700 mb-2"
-                               data-i18n-th="เลือกหลักสูตร"
-                               data-i18n-en="Select course">
-                            เลือกหลักสูตร
-                        </label>
+                        <label for="courseSelector" class="block text-sm font-semibold text-gray-700 mb-2">เลือกหลักสูตร</label>
 
                         <select id="courseSelector"
                             class="w-full border border-gray-200 rounded-2xl px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
@@ -80,9 +61,7 @@
                         </select>
                     </div>
                 @else
-                    <div class="border border-dashed border-gray-200 rounded-2xl p-4 text-sm text-gray-500"
-                         data-i18n-th="ยังไม่มีหลักสูตรที่ถูกสร้างไว้ในระบบ"
-                         data-i18n-en="No course has been created in the system yet">
+                    <div class="border border-dashed border-gray-200 rounded-2xl p-4 text-sm text-gray-500">
                         ยังไม่มีหลักสูตรที่ถูกสร้างไว้ในระบบ
                     </div>
                 @endif
@@ -90,32 +69,20 @@
                 {{-- เลือกภาคเรียน --}}
                 @if($course)
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1"
-                               data-i18n-th="เลือกภาคเรียน"
-                               data-i18n-en="Select term">
-                            เลือกภาคเรียน
-                        </label>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">เลือกภาคเรียน</label>
 
                         <form id="termForm" action="{{ route('course.detail', $course) }}" method="GET">
                             <select name="term"
                                 class="w-full border border-gray-200 rounded-2xl px-4 py-2 focus:ring-2 focus:ring-blue-500"
                                 onchange="document.getElementById('termForm').submit()">
 
-                                <option value="" data-i18n-th="-- เลือกภาคเรียน --" data-i18n-en="-- Select term --">-- เลือกภาคเรียน --</option>
-                                <option value="1" {{ $currentTerm === '1' ? 'selected' : '' }}
-                                        data-i18n-th="ภาคเรียนที่ 1" data-i18n-en="Term 1">
-                                    ภาคเรียนที่ 1
-                                </option>
-                                <option value="2" {{ $currentTerm === '2' ? 'selected' : '' }}
-                                        data-i18n-th="ภาคเรียนที่ 2" data-i18n-en="Term 2">
-                                    ภาคเรียนที่ 2
-                                </option>
+                                <option value="">-- เลือกภาคเรียน --</option>
+                                <option value="1" {{ $currentTerm === '1' ? 'selected' : '' }}>ภาคเรียนที่ 1</option>
+                                <option value="2" {{ $currentTerm === '2' ? 'selected' : '' }}>ภาคเรียนที่ 2</option>
                             </select>
                         </form>
 
-                        <p class="text-xs text-gray-400 mt-1"
-                           data-i18n-th="* โปรดเลือกภาคเรียนก่อนเพื่อดูข้อมูลในภาคเรียนนั้น"
-                           data-i18n-en="* Please select a term to view data in that term">
+                        <p class="text-xs text-gray-400 mt-1">
                             * โปรดเลือกภาคเรียนก่อนเพื่อดูข้อมูลในภาคเรียนนั้น
                         </p>
                     </div>
@@ -128,21 +95,13 @@
     {{-- ถ้ายังไม่ได้เลือกหลักสูตร --}}
     @unless($course)
         <div class="bg-white rounded-3xl shadow-md p-10 border border-gray-100 text-center">
-            <h3 class="text-2xl font-semibold text-gray-900 mb-2"
-                data-i18n-th="ยังไม่ได้เลือกหลักสูตร"
-                data-i18n-en="No course selected yet">
-                ยังไม่ได้เลือกหลักสูตร
-            </h3>
-            <p class="text-gray-600 mb-6 max-w-3xl mx-auto"
-               data-i18n-th="กรุณาเลือกหลักสูตรจากหน้าสร้างหลักสูตรก่อน จึงจะสามารถดูรายละเอียดภาคเรียน ชั่วโมงสอน รายบทเรียน และงาน/คะแนนเก็บได้"
-               data-i18n-en="Please pick a course from the create course page first to view term details, teaching hours, lessons, and score structure.">
+            <h3 class="text-2xl font-semibold text-gray-900 mb-2">ยังไม่ได้เลือกหลักสูตร</h3>
+            <p class="text-gray-600 mb-6 max-w-3xl mx-auto">
                 กรุณาเลือกหลักสูตรจากหน้าสร้างหลักสูตรก่อน จึงจะสามารถดูรายละเอียดภาคเรียน ชั่วโมงสอน
                 รายบทเรียน และงาน/คะแนนเก็บได้
             </p>
             <a href="{{ route('teacher.course-create') }}"
-               class="inline-flex items-center px-5 py-3 bg-blue-600 text-white rounded-2xl shadow hover:bg-blue-500 transition"
-               data-i18n-th="เพิ่มหลักสูตรใหม่"
-               data-i18n-en="Create a course now">
+               class="inline-flex items-center px-5 py-3 bg-blue-600 text-white rounded-2xl shadow hover:bg-blue-500 transition">
                 เพิ่มหลักสูตรใหม่
             </a>
         </div>
@@ -154,20 +113,12 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                 <div>
-                    <p class="text-sm text-gray-500"
-                       data-i18n-th="ชื่อหลักสูตร"
-                       data-i18n-en="Course name">
-                        ชื่อหลักสูตร
-                    </p>
+                    <p class="text-sm text-gray-500">ชื่อหลักสูตร</p>
                     <p class="text-2xl font-semibold text-gray-900">{{ $course->name }}</p>
                 </div>
 
                 <div>
-                    <p class="text-sm text-gray-500"
-                       data-i18n-th="ภาคเรียนที่ดูข้อมูล"
-                       data-i18n-en="Term in view">
-                        ภาคเรียนที่ดูข้อมูล
-                    </p>
+                    <p class="text-sm text-gray-500">ภาคเรียนที่ดูข้อมูล</p>
                     <p class="text-lg font-semibold text-gray-900">
                         @if($currentTerm === '1')
                             ภาคเรียนที่ 1
@@ -180,11 +131,7 @@
                 </div>
 
                 <div>
-                    <p class="text-sm text-gray-500"
-                       data-i18n-th="ห้อง / ระดับชั้น"
-                       data-i18n-en="Rooms / Grade">
-                        ห้อง / ระดับชั้น
-                    </p>
+                    <p class="text-sm text-gray-500">ห้อง / ระดับชั้น</p>
                     <div class="flex items-center gap-3 flex-wrap mt-1">
                         <div class="flex flex-wrap gap-2">
                             @forelse($course->rooms ?? [] as $room)
@@ -200,11 +147,7 @@
                 </div>
 
                 <div class="md:col-span-2">
-                    <p class="text-sm text-gray-500"
-                       data-i18n-th="รายละเอียดหลักสูตร"
-                       data-i18n-en="Course description">
-                        รายละเอียดหลักสูตร
-                    </p>
+                    <p class="text-sm text-gray-500">รายละเอียดหลักสูตร</p>
                     <p class="text-gray-700 mt-1 leading-relaxed">
                         {{ $course->description ?? 'ยังไม่มีรายละเอียดเพิ่มเติม' }}
                     </p>
@@ -227,16 +170,8 @@
 
             {{-- ?? ชั่วโมงสอนตามหมวดหมู่ --}}
             <section class="bg-white rounded-3xl shadow-md p-6 border border-gray-100">
-                <h3 class="text-xl font-semibold text-gray-900 mb-3"
-                    data-i18n-th="ชั่วโมงสอน (ตามหมวดหมู่)"
-                    data-i18n-en="Teaching hours (by category)">
-                    ชั่วโมงสอน (ตามหมวดหมู่)
-                </h3>
-                <p class="text-sm text-gray-500"
-                   data-i18n-th="ชั่วโมงสอนที่กำหนดไว้ในหลักสูตรสำหรับภาคเรียนนี้"
-                   data-i18n-en="Planned teaching hours for this term">
-                    ชั่วโมงสอนที่กำหนดไว้ในหลักสูตรสำหรับภาคเรียนนี้
-                </p>
+                <h3 class="text-xl font-semibold text-gray-900 mb-3">ชั่วโมงสอน (ตามหมวดหมู่)</h3>
+                <p class="text-sm text-gray-500">ชั่วโมงสอนที่กำหนดไว้ในหลักสูตรสำหรับภาคเรียนนี้</p>
 
                 <div class="space-y-4 mt-4">
                     @forelse($hoursByTerm as $hour)
@@ -249,9 +184,7 @@
                             @endif
                         </div>
                     @empty
-                        <p class="text-gray-500 text-sm text-center"
-                           data-i18n-th="ยังไม่มีการตั้งค่าชั่วโมงสอนสำหรับภาคเรียนนี้"
-                           data-i18n-en="No teaching hours set for this term yet">
+                        <p class="text-gray-500 text-sm text-center">
                             ยังไม่มีการตั้งค่าชั่วโมงสอนสำหรับภาคเรียนนี้
                         </p>
                     @endforelse
@@ -263,22 +196,12 @@
 
                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h3 class="text-xl font-semibold text-gray-900"
-                            data-i18n-th="รายการบทเรียน"
-                            data-i18n-en="Lessons">
-                            รายการบทเรียน
-                        </h3>
-                        <p class="text-sm text-gray-500"
-                           data-i18n-th="เพิ่มบทเรียน พร้อมกำหนดหมวดหมู่และจำนวนชั่วโมง"
-                           data-i18n-en="Add lessons with category and hours">
-                            เพิ่มบทเรียน พร้อมกำหนดหมวดหมู่และจำนวนชั่วโมง
-                        </p>
+                        <h3 class="text-xl font-semibold text-gray-900">รายการบทเรียน</h3>
+                        <p class="text-sm text-gray-500">เพิ่มบทเรียน พร้อมกำหนดหมวดหมู่และจำนวนชั่วโมง</p>
                     </div>
                     <button type="button"
                             onclick="toggleForm('lessonForm')"
-                            class="px-4 py-2 bg-blue-600 text-white rounded-xl"
-                            data-i18n-th="เพิ่มบทเรียน"
-                            data-i18n-en="Add lesson">เพิ่มบทเรียน</button>
+                            class="px-4 py-2 bg-blue-600 text-white rounded-xl">เพิ่มบทเรียน</button>
                 </div>
 
                 <div class="space-y-4">
@@ -344,7 +267,7 @@
                                     <input type="text" name="title" class="border rounded-xl px-3 py-2"
                                            value="{{ $lesson['title'] }}" required>
 
-                                    <input type="number" step="1" min="1" name="hours"
+                                    <input type="number" step="0.1" min="0.1" name="hours"
                                            class="border rounded-xl px-3 py-2"
                                            value="{{ $lesson['hours'] }}" required>
                                 </div>
@@ -361,11 +284,7 @@
                         </div>
 
                     @empty
-                        <p class="text-gray-500 text-sm text-center"
-                           data-i18n-th="ยังไม่มีบทเรียนสำหรับหลักสูตรนี้"
-                           data-i18n-en="No lessons for this course yet">
-                            ยังไม่มีบทเรียนสำหรับหลักสูตรนี้
-                        </p>
+                        <p class="text-gray-500 text-sm text-center">ยังไม่มีบทเรียนสำหรับหลักสูตรนี้</p>
                     @endforelse
                 </div>
 
@@ -398,8 +317,8 @@
                             <input type="number"
                                    id="lessonHours"
                                    name="hours"
-                                   step="1"
-                                   min="1"
+                                   step="0.1"
+                                   min="0.1"
                                    class="border rounded-xl px-3 py-2"
                                    placeholder="จำนวนชั่วโมง" required>
                         </div>
@@ -408,7 +327,7 @@
                             @foreach($lessonCapacity as $cat => $info)
                                 <span class="inline-flex items-center px-3 py-1 bg-gray-100 rounded-xl mr-2"
                                       data-remaining="{{ $cat }}">
-                                    {{ $cat }} เหลือได้อีก {{ number_format($info['remaining'], 0) }} ชม.
+                                    {{ $cat }} เหลือได้อีก {{ number_format($info['remaining'], 1) }} ชม.
                                 </span>
                             @endforeach
                         </div>
@@ -432,14 +351,8 @@
 
                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h3 class="text-xl font-semibold text-gray-900"
-                            data-i18n-th="งาน / คะแนนเก็บ"
-                            data-i18n-en="Assignments / Scores">
-                            งาน / คะแนนเก็บ
-                        </h3>
-                        <p class="text-sm text-gray-500"
-                           data-i18n-th="กำหนดงาน คะแนนเต็ม และสัดส่วนคะแนนเก็บรวมของภาคเรียนนี้ (ไม่เกิน 70 คะแนน)"
-                           data-i18n-en="Set assignments, full marks, and score proportions for this term (max 70 points)">
+                        <h3 class="text-xl font-semibold text-gray-900">งาน / คะแนนเก็บ</h3>
+                        <p class="text-sm text-gray-500">
                             กำหนดงาน คะแนนเต็ม และสัดส่วนคะแนนเก็บรวมของภาคเรียนนี้ (ไม่เกิน 70 คะแนน)
                         </p>
 
@@ -455,9 +368,7 @@
                     </div>
 
                     <button onclick="toggleForm('assignmentForm')"
-                            class="px-4 py-2 bg-blue-600 text-white rounded-xl"
-                            data-i18n-th="เพิ่มงาน/คะแนนเก็บ"
-                            data-i18n-en="Add assignment / score">
+                            class="px-4 py-2 bg-blue-600 text-white rounded-xl">
                         เพิ่มงาน/คะแนนเก็บ
                     </button>
                 </div>
@@ -531,8 +442,7 @@
                                           placeholder="รายละเอียดงาน">{{ $assignment['notes'] }}</textarea>
 
                                 <input type="date" name="due_date" class="border rounded-xl px-3 py-2"
-                                       value="{{ $assignment['due_date'] }}"
-                                       min="{{ $todayDate }}">
+                                       value="{{ $assignment['due_date'] }}">
 
                                 <input type="number" step="0.1" name="score"
                                        class="border rounded-xl px-3 py-2"
@@ -545,11 +455,7 @@
 
                         </div>
                     @empty
-                        <p class="text-gray-500 text-center text-sm mt-4"
-                           data-i18n-th="ยังไม่มีงานหรือคะแนนเก็บสำหรับภาคเรียนนี้"
-                           data-i18n-en="No assignments or scores for this term yet">
-                            ยังไม่มีงานหรือคะแนนเก็บสำหรับภาคเรียนนี้
-                        </p>
+                        <p class="text-gray-500 text-center text-sm mt-4">ยังไม่มีงานหรือคะแนนเก็บสำหรับภาคเรียนนี้</p>
                     @endforelse
                 </div>
 
@@ -563,9 +469,7 @@
                     <input type="hidden" name="term" value="{{ $currentTerm }}">
 
                     <select name="title" class="border rounded-xl px-3 py-2" required>
-                        <option value=""
-                                data-i18n-th="เลือกบทเรียน"
-                                data-i18n-en="Select lesson">เลือกบทเรียน</option>
+                        <option value="">เลือกบทเรียน</option>
                         @foreach($lessonTitles as $title)
                             <option value="{{ $title }}">{{ $title }}</option>
                         @endforeach
@@ -574,7 +478,7 @@
                     <textarea name="notes" class="border rounded-xl px-3 py-2 md:col-span-2" rows="1"
                               placeholder="รายละเอียดงาน"></textarea>
 
-                    <input type="date" name="due_date" class="border rounded-xl px-3 py-2" min="{{ $todayDate }}">
+                    <input type="date" name="due_date" class="border rounded-xl px-3 py-2">
 
                     <input type="number" step="0.1" name="score"
                            class="border rounded-xl px-3 py-2"
@@ -615,10 +519,9 @@
             const info = capacity[cat];
 
             if (info) {
-                const maxRemaining = Math.max(0, Math.floor(Number(info.remaining ?? 0)));
-                hoursInput.max = maxRemaining || '';
-                hoursInput.placeholder = `จำนวนชั่วโมง (ไม่เกิน ${maxRemaining})`;
-                hoursInput.disabled = maxRemaining <= 0;
+                hoursInput.max = info.remaining;
+                hoursInput.placeholder = `จำนวนชั่วโมง (ไม่เกิน ${info.remaining})`;
+                hoursInput.disabled = info.remaining <= 0;
             } else {
                 hoursInput.placeholder = "จำนวนชั่วโมง";
                 hoursInput.disabled = true;
@@ -650,3 +553,8 @@
 </script>
 
 @endsection
+
+
+
+
+

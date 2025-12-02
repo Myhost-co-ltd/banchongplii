@@ -176,19 +176,7 @@
                     <input type="number" name="year"
                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400"
                            placeholder="2567"
-                           min="{{ $currentYearBe }}"
-                           data-i18n-placeholder-th="2567"
-                           data-i18n-placeholder-en="Year"
-                           value="{{ old('year') }}"
-                           data-year-be="{{ $currentYearBe }}">
-                    <p class="text-xs text-gray-500 mt-1"
-                       data-i18n-th="ระบุปีการศึกษา (ค.ศ. หรือ พ.ศ.) ต้องไม่ย้อนหลังจากปีปัจจุบัน"
-                       data-i18n-en="Academic year (AD or BE) must not be in the past">
-                        ระบุปีการศึกษา (ค.ศ. หรือ พ.ศ.) ต้องไม่ย้อนหลังจากปีปัจจุบัน
-                    </p>
-                    @error('year')
-                        <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
-                    @enderror
+                           value="{{ old('year') }}">
                 </div>
             </div>
 
@@ -292,6 +280,7 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const MIN_YEAR = 2568;
     const nameSelect     = document.getElementById('nameSelect');
     const gradeSelect    = document.getElementById('gradeSelect');
     const roomContainer  = document.getElementById('roomCheckboxes');
@@ -300,6 +289,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const oldGrade = @json(old('grade'));
     const oldRooms = @json(old('rooms', []));
+
+    if (yearInput) {
+        yearInput.min = MIN_YEAR;
+        if (yearInput.value) {
+            yearInput.value = Math.max(Number(yearInput.value) || MIN_YEAR, MIN_YEAR);
+        }
+    }
 
     function renderRoomOptions(grade, selectedRooms = []) {
         roomContainer.innerHTML = '';
@@ -349,9 +345,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 gradeSelect.value = grade;
                 renderRoomOptions(grade, []);
             }
-            if (year) {
-                const yearInput = document.querySelector('input[name=\"year\"]');
-                if (yearInput) yearInput.value = year;
+            if (year && yearInput) {
+                const clampedYear = Math.max(Number(year) || MIN_YEAR, MIN_YEAR);
+                yearInput.value = clampedYear;
             }
             // term ช่องถูกคอมเมนต์ไว้ ถ้าเปิดใช้งานอีกครั้งให้เติมค่าที่นี่
 

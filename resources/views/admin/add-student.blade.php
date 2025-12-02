@@ -5,7 +5,7 @@
 @section('content')
 
 @php
-    $titleOptions = ['ด.ช.', 'ด.ญ.', 'นาย', 'นางสาว', 'นาง'];
+    $titleOptions = ['ด.ช.', 'ด.ญ.', 'นาย', 'นางสาว'];
 
     /**
      * Normalize grade strings to the pattern ป.X (e.g., ป.1).
