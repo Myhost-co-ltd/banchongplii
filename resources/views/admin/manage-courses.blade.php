@@ -35,7 +35,7 @@
                 <p class="text-sm text-gray-500"
                    data-i18n-th="แอดมินสร้างวิชาและชั่วโมงสอนเบื้องต้น ส่วนครูจะเข้ามารับหลักสูตร เลือกชั้น/ห้อง และจัดการรายละเอียดต่อ"
                    data-i18n-en="Admins set up the subject and base hours; teachers will claim it, pick grade/room, and refine details.">
-                    แอดมินสร้างวิชาและชั่วโมงสอนเบื้องต้น ส่วนครูจะเข้ามารับหลักสูตร เลือกชั้น/ห้อง และจัดการรายละเอียดต่อ
+                    สร้างวิชาและชั่วโมงสอนเบื้องต้น ส่วนครูจะเข้ามารับหลักสูตร เลือกชั้น/ห้อง และจัดการรายละเอียดต่อ
                 </p>
             </div>
         </div>
@@ -119,9 +119,9 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="ชื่อหลักสูตร" data-i18n-en="Course name">ชื่อหลักสูตร</label>
                     <input type="text" name="name"
                            class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                           placeholder="เช่น คณิตศาสตร์พื้นฐาน ป.1"
+                           {{-- placeholder="เช่น คณิตศาสตร์พื้นฐาน ป.1"
                            data-i18n-placeholder-th="เช่น คณิตศาสตร์พื้นฐาน ป.1"
-                           data-i18n-placeholder-en="e.g. Basic Mathematics G.1"
+                           data-i18n-placeholder-en="e.g. Basic Mathematics G.1" --}}
                            value="{{ old('name') }}">
                 </div>
 
@@ -138,14 +138,13 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="ปีการศึกษา" data-i18n-en="Academic year">ปีการศึกษา</label>
                     <input type="number" name="year"
                            class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                           placeholder="2567"
-                           data-i18n-placeholder-th="2567"
-                           data-i18n-placeholder-en="2024"
+                           {{-- data-i18n-placeholder-th="2567"
+                           data-i18n-placeholder-en="2024" --}}
                            value="{{ old('year') }}">
                 </div>
             </div>
 
-            <div>
+            {{-- <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                     <span data-i18n-th="รายละเอียดหลักสูตร" data-i18n-en="Course details">รายละเอียดหลักสูตร</span>
                     <span class="text-xs text-gray-400" data-i18n-th="(ให้ครูใส่/แก้ไขได้เอง)" data-i18n-en="(Teachers can fill/edit on their own)">(ให้ครูใส่/แก้ไขได้เอง)</span>
@@ -155,7 +154,7 @@
                           placeholder="จุดประสงค์รายวิชา / เนื้อหาโดยย่อ"
                           data-i18n-placeholder-th="จุดประสงค์รายวิชา / เนื้อหาโดยย่อ"
                           data-i18n-placeholder-en="Course objectives / Summary">{{ old('description') }}</textarea>
-            </div>
+            </div> --}}
 
             <div class="text-right">
                 <button type="submit"
