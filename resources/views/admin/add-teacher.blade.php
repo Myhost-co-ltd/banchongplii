@@ -8,14 +8,12 @@
     $majorOptions = [
         'คณิตศาสตร์',
         'วิทยาศาสตร์',
-        'ภาษาไทย',
         'ภาษาอังกฤษ',
-        'สังคมศึกษา',
-        'สุขศึกษา/พลศึกษา',
-        'ศิลปะ',
-        'ดนตรี',
+        'ไทย',
+        'สังคม',
+        'พลศึกษา',
         'การงานอาชีพ',
-        'คอมพิวเตอร์',
+        'ศิลปะ/ดนตรี',
     ];
     $courseNames = \App\Models\Course::query()->pluck('name')->filter()->unique()->sort()->values()->toArray();
     $teacherMajors = collect($teachers ?? [])->pluck('major')->filter()->unique()->sort()->values()->toArray();
@@ -52,10 +50,10 @@
 
     <div class="bg-white border-2 border-blue-600 rounded-xl p-3">
         <input type="text" id="searchInput"
-                onkeyup="searchTeacher()"
-                placeholder="ค้นหาชื่อ / อีเมล / เบอร์โทร..."
-                data-i18n-placeholder-th="ค้นหาชื่อ / อีเมล / เบอร์โทร..." data-i18n-placeholder-en="Search name / email / phone..."
-                class="w-full border-0 outline-none">
+            onkeyup="searchTeacher()"
+            placeholder="ค้นหาชื่อ / อีเมล / เบอร์โทร..."
+            data-i18n-placeholder-th="ค้นหาชื่อ / อีเมล / เบอร์โทร..." data-i18n-placeholder-en="Search name / email / phone..."
+            class="w-full border-0 outline-none">
     </div>
 </div>
 
@@ -104,7 +102,7 @@
                     <p>{{ $teacher->name }}</p>
                     @if($teacher->created_at)
                         <p class="text-xs text-gray-400 mt-1">
-                            สร้างเมื่อ: {{ \Illuminate\Support\Carbon::parse($teacher->created_at)->timezone($tz)->locale('th')->isoFormat('D MMM YYYY HH:mm') }}
+                            สร้างเมื่อ: {{ \Illuminate\Support\Carbon::parse($teacher->created_at)->timezone($tz)->addYears(543)->locale('th')->isoFormat('D MMM YYYY HH:mm') }}
                         </p>
                     @endif
                 </td>
@@ -123,7 +121,7 @@
                     </button>
                     <span class="mx-1 text-gray-300">|</span>
                     <form action="{{ route('admin.teachers.destroy', $teacher) }}" method="POST" class="inline"
-                          onsubmit="return confirm('ต้องการลบครูคนนี้หรือไม่?')">
+                          onsubmit="return confirm('ยืนยันการลบครูคนนี้หรือไม่?');">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="text-red-600 font-semibold hover:underline">ลบ</button>
@@ -187,12 +185,12 @@
                 </select>
             </div>
 
-            <p class="text-xs text-gray-500" data-i18n-th="รหัสผ่านเริ่มต้น: 12345678 (กรุณาให้ครูเปลี่ยนเองภายหลัง)" data-i18n-en="Default password: 12345678 (please ask teacher to change later)">รหัสผ่านเริ่มต้น: 12345678 (กรุณาให้ครูเปลี่ยนเองภายหลัง)</p>
+            <p class="text-xs text-gray-500" data-i18n-th="รหัสผ่านเริ่มต้น: 12345678 (กรุณาแจ้งครูให้เปลี่ยนภายหลัง)" data-i18n-en="Default password: 12345678 (please ask teacher to change later)">รหัสผ่านเริ่มต้น: 12345678 (กรุณาแจ้งครูให้เปลี่ยนภายหลัง)</p>
 
             <button type="submit"
                 class="bg-blue-600 hover:bg-blue-700 w-full text-white py-2 rounded-xl"
                 data-i18n-th="เพิ่มข้อมูล" data-i18n-en="Add">
-                 เพิ่มข้อมูล
+                เพิ่มข้อมูล
             </button>
         </form>
 
@@ -200,7 +198,7 @@
 </div>
 
 {{-- ========================================= --}}
-{{-- POPUP แก้ไขครู --}}
+{{-- POPUP แก้ไข --}}
 {{-- ========================================= --}}
 <div id="editTeacherModal"
      class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
@@ -246,8 +244,8 @@
 
             <button type="submit"
                 class="bg-blue-600 hover:bg-blue-700 w-full text-white py-2 rounded-xl"
-                data-i18n-th="บันทึกการแก้ไข" data-i18n-en="Save changes">
-                 บันทึกการแก้ไข
+                data-i18n-th="บันทึกการเปลี่ยนแปลง" data-i18n-en="Save changes">
+                บันทึกการเปลี่ยนแปลง
             </button>
         </form>
 
@@ -267,13 +265,13 @@ function searchTeacher() {
         let name = row.dataset.name;
         let email = row.dataset.email;
         let phone = row.dataset.phone;
-        let classroom = row.dataset.classroom;
+        let major = row.dataset.major; // ใช้ major แทน classroom
 
         row.style.display =
             name.includes(value) ||
             email.includes(value) ||
             phone.includes(value) ||
-            classroom.includes(value)
+            major.includes(value)
             ? "" : "none";
     });
 }
@@ -307,7 +305,18 @@ function openEditTeacher(button) {
     editTeacherForm.last_name.value = ds.last || '';
     editTeacherForm.email.value = ds.email || '';
     editTeacherForm.phone.value = ds.phone || '';
-    if (editTeacherForm.major) editTeacherForm.major.value = ds.major || '';
+    
+    // ตั้งค่า Major Select Option
+    if (editTeacherForm.major) {
+        editTeacherForm.major.value = ds.major || '';
+        // ตรวจสอบและเพิ่ม option ถ้า Major เดิมไม่มีในรายการ (กรณี Major ถูกเพิ่มจาก Course)
+        if (ds.major && !Array.from(editTeacherForm.major.options).some(opt => opt.value === ds.major)) {
+             let newOption = new Option(ds.major, ds.major, true, true);
+             editTeacherForm.major.add(newOption);
+             editTeacherForm.major.value = ds.major;
+        }
+    }
+    
     editTeacherModal.classList.remove('hidden');
 }
 

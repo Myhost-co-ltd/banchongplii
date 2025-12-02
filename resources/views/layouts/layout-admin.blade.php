@@ -307,6 +307,55 @@
                 window.location.reload();
             }
         });
+
+        // Quick Thai text fix for admin add-teacher page (handles mojibake)
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.location.pathname.includes('/admin/add-teacher')) return;
+
+            const ensureText = (selector, text, attr) => {
+                document.querySelectorAll(selector).forEach(el => {
+                    if (el.textContent.includes('�') || el.textContent.trim() === '' || el.textContent === text) {
+                        el.textContent = text;
+                    }
+                    if (attr) {
+                        Object.entries(attr).forEach(([k, v]) => el.setAttribute(k, v));
+                    }
+                });
+            };
+
+            ensureText("h1[data-i18n-en='Manage Teachers']", 'จัดการข้อมูลครู', {'data-i18n-th': 'จัดการข้อมูลครู'});
+            ensureText("button[onclick='openAddTeacher()']", 'เพิ่มครู', {'data-i18n-th': 'เพิ่มครู'});
+
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                const ph = 'ค้นหาชื่อ / อีเมล / เบอร์โทร...';
+                searchInput.placeholder = ph;
+                searchInput.setAttribute('data-i18n-placeholder-th', ph);
+            }
+
+            const headers = ['#', 'ชื่อ', 'อีเมล', 'เบอร์โทร', 'บทบาท', 'วิชาเอก', 'จัดการ'];
+            const ths = document.querySelectorAll('#teacherTable thead th');
+            ths.forEach((th, idx) => {
+                if (headers[idx]) {
+                    th.textContent = headers[idx];
+                    th.setAttribute('data-i18n-th', headers[idx]);
+                }
+            });
+
+            // Fix action buttons and role text if garbled
+            document.querySelectorAll('.teacher-row button[type=\"button\"]').forEach(btn => {
+                if (btn.textContent.includes('�')) btn.textContent = 'แก้ไข';
+            });
+            document.querySelectorAll('.teacher-row form button[type=\"submit\"]').forEach(btn => {
+                if (btn.textContent.includes('�')) btn.textContent = 'ลบ';
+            });
+            document.querySelectorAll('.teacher-row td:nth-child(5)').forEach(td => {
+                if (td.textContent.includes('�') || td.textContent.trim() === '') td.textContent = 'ครู';
+            });
+            document.querySelectorAll('.teacher-row td:nth-child(2) p.text-xs').forEach(p => {
+                if (p.textContent.includes('�')) p.textContent = p.textContent.replace(/�/g, '').replace(':', ':') || 'สร้างเมื่อ:';
+            });
+        });
     </script>
 
     @include('layouts.partials.localization')

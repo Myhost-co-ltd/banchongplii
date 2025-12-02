@@ -81,8 +81,8 @@
                     </div>
                 @else
                     <div class="border border-dashed border-gray-200 rounded-2xl p-4 text-sm text-gray-500"
-                         data-i18n-th="ยังไม่มีหลักสูตรที่ถูกสร้างไว้ในระบบ"
-                         data-i18n-en="No course has been created in the system yet">
+                            data-i18n-th="ยังไม่มีหลักสูตรที่ถูกสร้างไว้ในระบบ"
+                            data-i18n-en="No course has been created in the system yet">
                         ยังไม่มีหลักสูตรที่ถูกสร้างไว้ในระบบ
                     </div>
                 @endif
@@ -300,7 +300,7 @@
                                     @if(!empty($lesson['created_at']))
                                         <p class="text-xs text-gray-400 mt-1">
                                             เพิ่มเมื่อ :
-                                            {{ \Illuminate\Support\Carbon::parse($lesson['created_at'])->timezone('Asia/Bangkok')->locale('th')->isoFormat('D MMM YYYY HH:mm') }}
+                                            {{ \Illuminate\Support\Carbon::parse($lesson['created_at'])->timezone('Asia/Bangkok')->addYears(543)->locale('th')->isoFormat('D MMM YYYY HH:mm') }}
                                         </p>
                                     @endif
                                 </div>
@@ -311,8 +311,8 @@
                                             onclick="toggleEditForm('lesson-edit-{{ $lessonId }}')">แก้ไข</button>
 
                                     <form method="POST"
-                                        action="{{ route('teacher.courses.lessons.destroy', ['course' => $course, 'lesson' => $lessonId]) }}"
-                                        onsubmit="return confirm('ต้องการลบบทเรียนนี้หรือไม่?')">
+                                            action="{{ route('teacher.courses.lessons.destroy', ['course' => $course, 'lesson' => $lessonId]) }}"
+                                            onsubmit="return confirm('ต้องการลบบทเรียนนี้หรือไม่?')">
 
                                         @csrf
                                         @method('DELETE')
@@ -323,9 +323,9 @@
 
                             {{-- ฟอร์มแก้ไขบทเรียน --}}
                             <form id="lesson-edit-{{ $lessonId }}"
-                                  method="POST"
-                                  action="{{ route('teacher.courses.lessons.update', ['course' => $course, 'lesson' => $lessonId]) }}"
-                                  class="hidden mt-3 space-y-3">
+                                    method="POST"
+                                    action="{{ route('teacher.courses.lessons.update', ['course' => $course, 'lesson' => $lessonId]) }}"
+                                    class="hidden mt-3 space-y-3">
 
                                 @csrf
                                 @method('PUT')
@@ -342,16 +342,16 @@
                                     </select>
 
                                     <input type="text" name="title" class="border rounded-xl px-3 py-2"
-                                           value="{{ $lesson['title'] }}" required>
+                                            value="{{ $lesson['title'] }}" required>
 
                                     <input type="number" step="1" min="1" name="hours"
-                                           class="border rounded-xl px-3 py-2"
-                                           value="{{ $lesson['hours'] }}" required>
+                                            class="border rounded-xl px-3 py-2"
+                                            value="{{ $lesson['hours'] }}" required>
                                 </div>
 
                                 <textarea name="details"
-                                          class="border rounded-xl px-3 py-2 w-full"
-                                          rows="2">{{ $lesson['details'] }}</textarea>
+                                            class="border rounded-xl px-3 py-2 w-full"
+                                            rows="2">{{ $lesson['details'] }}</textarea>
 
                                 <div class="text-right">
                                     <button class="px-4 py-2 bg-blue-600 text-white rounded-xl">บันทึกการแก้ไข</button>
@@ -373,9 +373,9 @@
                 {{-- ฟอร์มเพิ่มบทเรียน --}}
                 @if(!empty($lessonCapacity))
                     <form id="lessonForm"
-                          method="POST"
-                          action="{{ route('teacher.courses.lessons.store', $course) }}"
-                          class="hidden mt-6 space-y-4">
+                            method="POST"
+                            action="{{ route('teacher.courses.lessons.store', $course) }}"
+                            class="hidden mt-6 space-y-4">
 
                         @csrf
                         <input type="hidden" name="term" value="{{ $currentTerm }}">
@@ -392,31 +392,31 @@
                             </select>
 
                             <input type="text" name="title"
-                                   class="border rounded-xl px-3 py-2"
-                                   placeholder="หัวข้อบทเรียน" required>
+                                    class="border rounded-xl px-3 py-2"
+                                    placeholder="หัวข้อบทเรียน" required>
 
                             <input type="number"
-                                   id="lessonHours"
-                                   name="hours"
-                                   step="1"
-                                   min="1"
-                                   class="border rounded-xl px-3 py-2"
-                                   placeholder="จำนวนชั่วโมง" required>
+                                    id="lessonHours"
+                                    name="hours"
+                                    step="1"
+                                    min="1"
+                                    class="border rounded-xl px-3 py-2"
+                                    placeholder="จำนวนชั่วโมง" required>
                         </div>
 
                         <div class="text-sm text-gray-600" id="lessonRemaining">
                             @foreach($lessonCapacity as $cat => $info)
                                 <span class="inline-flex items-center px-3 py-1 bg-gray-100 rounded-xl mr-2"
-                                      data-remaining="{{ $cat }}">
+                                        data-remaining="{{ $cat }}">
                                     {{ $cat }} เหลือได้อีก {{ number_format($info['remaining'], 0) }} ชม.
                                 </span>
                             @endforeach
                         </div>
 
                         <textarea name="details"
-                                  rows="3"
-                                  class="border rounded-xl px-3 py-2 w-full"
-                                  placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"></textarea>
+                                    rows="3"
+                                    class="border rounded-xl px-3 py-2 w-full"
+                                    placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"></textarea>
 
                         <div class="text-right">
                             <button class="px-5 py-2 bg-blue-600 text-white rounded-xl">บันทึกบทเรียน</button>
@@ -497,20 +497,20 @@
                                             onclick="toggleEditForm('assignment-edit-{{ $assignmentId }}')">แก้ไข</button>
 
                                     <form method="POST"
-                                          action="{{ route('teacher.courses.assignments.destroy', ['course' => $course, 'assignment' => $assignmentId]) }}"
-                                          onsubmit="return confirm('ต้องการลบงานนี้หรือไม่?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button class="text-red-600 hover:underline">ลบ</button>
+                                            action="{{ route('teacher.courses.assignments.destroy', ['course' => $course, 'assignment' => $assignmentId]) }}"
+                                            onsubmit="return confirm('ต้องการลบงานนี้หรือไม่?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="text-red-600 hover:underline">ลบ</button>
                                     </form>
                                 </div>
                             </div>
 
                             {{-- ฟอร์มแก้ไขงาน --}}
                             <form id="assignment-edit-{{ $assignmentId }}"
-                                  method="POST"
-                                  action="{{ route('teacher.courses.assignments.update', ['course' => $course, 'assignment' => $assignmentId]) }}"
-                                  class="hidden grid grid-cols-1 md:grid-cols-4 gap-4 mt-3">
+                                    method="POST"
+                                    action="{{ route('teacher.courses.assignments.update', ['course' => $course, 'assignment' => $assignmentId]) }}"
+                                    class="hidden mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
 
                                 @csrf
                                 @method('PUT')
@@ -526,17 +526,17 @@
                                 </select>
 
                                 <textarea name="notes"
-                                          class="border rounded-xl px-3 py-2 md:col-span-2"
-                                          rows="1"
-                                          placeholder="รายละเอียดงาน">{{ $assignment['notes'] }}</textarea>
+                                            class="border rounded-xl px-3 py-2 md:col-span-2"
+                                            rows="1"
+                                            placeholder="รายละเอียดงาน">{{ $assignment['notes'] }}</textarea>
 
                                 <input type="date" name="due_date" class="border rounded-xl px-3 py-2"
-                                       value="{{ $assignment['due_date'] }}"
-                                       min="{{ $todayDate }}">
+                                        value="{{ $assignment['due_date'] }}"
+                                        min="{{ $todayDate }}">
 
                                 <input type="number" step="0.1" name="score"
-                                       class="border rounded-xl px-3 py-2"
-                                       value="{{ $assignment['score'] }}" required>
+                                        class="border rounded-xl px-3 py-2"
+                                        value="{{ $assignment['score'] }}" required>
 
                                 <div class="md:col-span-4 text-right">
                                     <button class="px-5 py-2 bg-blue-600 text-white rounded-xl">บันทึกการแก้ไข</button>
@@ -555,9 +555,9 @@
 
                 {{-- ฟอร์มเพิ่มงาน --}}
                 <form id="assignmentForm"
-                      method="POST"
-                      action="{{ route('teacher.courses.assignments.store', $course) }}"
-                      class="hidden mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                        method="POST"
+                        action="{{ route('teacher.courses.assignments.store', $course) }}"
+                        class="hidden mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
 
                     @csrf
                     <input type="hidden" name="term" value="{{ $currentTerm }}">
@@ -572,13 +572,13 @@
                     </select>
 
                     <textarea name="notes" class="border rounded-xl px-3 py-2 md:col-span-2" rows="1"
-                              placeholder="รายละเอียดงาน"></textarea>
+                                placeholder="รายละเอียดงาน"></textarea>
 
                     <input type="date" name="due_date" class="border rounded-xl px-3 py-2" min="{{ $todayDate }}">
 
                     <input type="number" step="0.1" name="score"
-                           class="border rounded-xl px-3 py-2"
-                           placeholder="คะแนนเต็ม" required>
+                            class="border rounded-xl px-3 py-2"
+                            placeholder="คะแนนเต็ม" required>
 
                     <div class="md:col-span-4 text-right">
                         <button class="px-5 py-2 bg-blue-600 text-white rounded-xl">บันทึกงาน / คะแนนเก็บ</button>
