@@ -35,7 +35,7 @@ class StudentController extends Controller
             ? $data['assignedRooms']
             : $data['students']->pluck('classroom')->filter()->unique();
 
-        $studentsByRoom = collect($data['students'])->groupBy(fn ($s) => $s->classroom ?? '-');
+        $studentsByRoom = collect($data['students'])->groupBy(fn ($s) => $s->classroom ?? $s->room ?? '-');
 
         $fontPath = strtr(storage_path('fonts'), '\\', '/');
         $fontCache = strtr(storage_path('fonts/cache'), '\\', '/');
