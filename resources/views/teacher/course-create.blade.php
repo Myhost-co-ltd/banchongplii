@@ -114,8 +114,9 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">ปีการศึกษา</label>
                     <input type="number" name="year"
                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400"
-                           placeholder="2567"
-                           value="{{ old('year') }}">
+                           placeholder="2568"
+                           min="2568" step="1"
+                           value="{{ max((int) (old('year') ?? 2568), 2568) }}">
                 </div>
             </div>
 
@@ -200,13 +201,22 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const MIN_YEAR = 2568;
     const nameSelect     = document.getElementById('nameSelect');
     const gradeSelect    = document.getElementById('gradeSelect');
     const roomContainer  = document.getElementById('roomCheckboxes');
     const roomSection    = document.querySelector('[data-room-section]');
+    const yearInput      = document.querySelector('input[name="year"]');
 
     const oldGrade = @json(old('grade'));
     const oldRooms = @json(old('rooms', []));
+
+    if (yearInput) {
+        yearInput.min = MIN_YEAR;
+        if (yearInput.value) {
+            yearInput.value = Math.max(Number(yearInput.value) || MIN_YEAR, MIN_YEAR);
+        }
+    }
 
     function renderRoomOptions(grade, selectedRooms = []) {
         roomContainer.innerHTML = '';
@@ -256,9 +266,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 gradeSelect.value = grade;
                 renderRoomOptions(grade, []);
             }
-            if (year) {
-                const yearInput = document.querySelector('input[name=\"year\"]');
-                if (yearInput) yearInput.value = year;
+            if (year && yearInput) {
+                const clampedYear = Math.max(Number(year) || MIN_YEAR, MIN_YEAR);
+                yearInput.value = clampedYear;
             }
             // term ช่องถูกคอมเมนต์ไว้ ถ้าเปิดใช้งานอีกครั้งให้เติมค่าที่นี่
 

@@ -7,7 +7,6 @@
     $courseOptions = collect($courses ?? []);
     $currentTerm = $selectedTerm ?? request('term');
     $tz = config('app.timezone', 'Asia/Bangkok');
-    $todayDate = now($tz)->toDateString();
 
     $hoursByTerm = collect($hours ?? []);
     $lessonsByTerm = collect($lessons ?? []);
@@ -268,7 +267,7 @@
                                     <input type="text" name="title" class="border rounded-xl px-3 py-2"
                                            value="{{ $lesson['title'] }}" required>
 
-                                    <input type="number" step="1" min="1" name="hours"
+                                    <input type="number" step="0.1" min="0.1" name="hours"
                                            class="border rounded-xl px-3 py-2"
                                            value="{{ $lesson['hours'] }}" required>
                                 </div>
@@ -318,8 +317,8 @@
                             <input type="number"
                                    id="lessonHours"
                                    name="hours"
-                                   step="1"
-                                   min="1"
+                                   step="0.1"
+                                   min="0.1"
                                    class="border rounded-xl px-3 py-2"
                                    placeholder="จำนวนชั่วโมง" required>
                         </div>
@@ -328,7 +327,7 @@
                             @foreach($lessonCapacity as $cat => $info)
                                 <span class="inline-flex items-center px-3 py-1 bg-gray-100 rounded-xl mr-2"
                                       data-remaining="{{ $cat }}">
-                                    {{ $cat }} เหลือได้อีก {{ number_format($info['remaining'], 0) }} ชม.
+                                    {{ $cat }} เหลือได้อีก {{ number_format($info['remaining'], 1) }} ชม.
                                 </span>
                             @endforeach
                         </div>
@@ -443,8 +442,7 @@
                                           placeholder="รายละเอียดงาน">{{ $assignment['notes'] }}</textarea>
 
                                 <input type="date" name="due_date" class="border rounded-xl px-3 py-2"
-                                       value="{{ $assignment['due_date'] }}"
-                                       min="{{ $todayDate }}">
+                                       value="{{ $assignment['due_date'] }}">
 
                                 <input type="number" step="0.1" name="score"
                                        class="border rounded-xl px-3 py-2"
@@ -480,7 +478,7 @@
                     <textarea name="notes" class="border rounded-xl px-3 py-2 md:col-span-2" rows="1"
                               placeholder="รายละเอียดงาน"></textarea>
 
-                    <input type="date" name="due_date" class="border rounded-xl px-3 py-2" min="{{ $todayDate }}">
+                    <input type="date" name="due_date" class="border rounded-xl px-3 py-2">
 
                     <input type="number" step="0.1" name="score"
                            class="border rounded-xl px-3 py-2"
@@ -521,10 +519,9 @@
             const info = capacity[cat];
 
             if (info) {
-                const maxRemaining = Math.max(0, Math.floor(Number(info.remaining ?? 0)));
-                hoursInput.max = maxRemaining || '';
-                hoursInput.placeholder = `จำนวนชั่วโมง (ไม่เกิน ${maxRemaining})`;
-                hoursInput.disabled = maxRemaining <= 0;
+                hoursInput.max = info.remaining;
+                hoursInput.placeholder = `จำนวนชั่วโมง (ไม่เกิน ${info.remaining})`;
+                hoursInput.disabled = info.remaining <= 0;
             } else {
                 hoursInput.placeholder = "จำนวนชั่วโมง";
                 hoursInput.disabled = true;
@@ -556,3 +553,8 @@
 </script>
 
 @endsection
+
+
+
+
+
