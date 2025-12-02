@@ -65,13 +65,26 @@
     <div class="bg-white rounded-3xl shadow p-8 border border-gray-100">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
             <div>
-                <h2 class="text-xl font-semibold text-gray-800">วิชาเอกของครู</h2>
-                <p class="text-sm text-gray-500">เลือกวิชาเพื่อดูครูผู้รับผิดชอบ</p>
+                <h2 class="text-xl font-semibold text-gray-800"
+                    data-i18n-th="วิชาเอกของครู" data-i18n-en="Teacher majors">
+                    วิชาเอกของครู
+                </h2>
+                <p class="text-sm text-gray-500"
+                   data-i18n-th="เลือกวิชาเพื่อดูครูผู้รับผิดชอบ"
+                   data-i18n-en="Pick a subject to see responsible teachers">
+                    เลือกวิชาเพื่อดูครูผู้รับผิดชอบ
+                </p>
             </div>
             <div class="flex items-center gap-2">
-                <label for="directorMajorFilter" class="text-sm text-gray-600 hidden md:block">เลือกวิชา:</label>
+                <label for="directorMajorFilter" class="text-sm text-gray-600 hidden md:block"
+                       data-i18n-th="เลือกวิชา:" data-i18n-en="Select subject:">
+                    เลือกวิชา:
+                </label>
                 <select id="directorMajorFilter" class="border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
-                    <option value="">วิชาเอกทั้งหมด</option>
+                    <option value=""
+                            data-i18n-th="วิชาเอกทั้งหมด" data-i18n-en="All majors">
+                        วิชาเอกทั้งหมด
+                    </option>
                     @foreach($majorsList as $major)
                         <option value="{{ $major }}">{{ $major }}</option>
                     @endforeach
@@ -83,8 +96,14 @@
             <table class="min-w-full border border-gray-200 rounded-xl overflow-hidden text-sm">
                 <thead class="bg-blue-600 text-white">
                     <tr>
-                        <th class="py-3 px-4 text-left">วิชาเอก</th>
-                        <th class="py-3 px-4 text-center w-32">ดูรายละเอียด</th>
+                        <th class="py-3 px-4 text-left"
+                            data-i18n-th="วิชาเอก" data-i18n-en="Major">
+                            วิชาเอก
+                        </th>
+                        <th class="py-3 px-4 text-center w-32"
+                            data-i18n-th="ดูรายละเอียด" data-i18n-en="Details">
+                            ดูรายละเอียด
+                        </th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
@@ -96,17 +115,23 @@
                                 <button type="button"
                                         class="text-blue-600 hover:underline"
                                         data-major-toggle="{{ trim($major) }}">
-                                    ดูรายชื่อครู
+                                    <span data-i18n-th="ดูรายชื่อครู" data-i18n-en="View teachers">ดูรายชื่อครู</span>
                                 </button>
                             </td>
                         </tr>
                         <tr class="hidden bg-blue-50/40" data-major-detail="{{ trim($major) }}">
                             <td colspan="2" class="py-3 px-4">
                                 @if($teachersForMajor->isEmpty())
-                                    <div class="text-gray-500 text-sm">ยังไม่ระบุครูผู้รับผิดชอบสำหรับวิชา {{ $major }}</div>
+                                    <div class="text-gray-500 text-sm">
+                                        <span data-i18n-th="ยังไม่ระบุครูผู้รับผิดชอบสำหรับวิชา" data-i18n-en="No teacher assigned for">ยังไม่ระบุครูผู้รับผิดชอบสำหรับวิชา</span>
+                                        {{ $major }}
+                                    </div>
                                 @else
                                     <div class="text-sm text-gray-800 space-y-2">
-                                        <div class="font-semibold text-gray-900">ครูผู้รับผิดชอบ ({{ $teachersForMajor->count() }} คน)</div>
+                                        <div class="font-semibold text-gray-900">
+                                            <span data-i18n-th="ครูผู้รับผิดชอบ" data-i18n-en="Responsible teachers">ครูผู้รับผิดชอบ</span>
+                                            ({{ $teachersForMajor->count() }} <span data-i18n-th="คน" data-i18n-en="people">คน</span>)
+                                        </div>
                                         <ul class="list-disc list-inside space-y-1">
                                             @foreach($teachersForMajor as $teacher)
                                                 <li class="flex items-center justify-between gap-3">
@@ -116,7 +141,8 @@
                                                     </span>
                                                     <a href="{{ route('director.teacher-plans', ['q' => $teacher->name]) }}"
                                                        class="text-blue-600 hover:text-white hover:bg-blue-600 border border-blue-200 rounded-full px-3 py-1 text-xs font-semibold transition"
-                                                       title="ดูรายละเอียดแผนสอนของครูคนนี้">
+                                                       title="ดูรายละเอียดแผนสอนของครูคนนี้"
+                                                       data-i18n-th="ดูรายละเอียด" data-i18n-en="Details">
                                                         ดูรายละเอียด
                                                     </a>
                                                 </li>
@@ -128,13 +154,17 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="2" class="py-4 px-4 text-center text-gray-500">ยังไม่มีข้อมูลวิชาเอก</td>
+                            <td colspan="2" class="py-4 px-4 text-center text-gray-500"
+                                data-i18n-th="ยังไม่มีข้อมูลวิชาเอก" data-i18n-en="No major data yet">
+                                ยังไม่มีข้อมูลวิชาเอก
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-        <p class="text-xs text-gray-500 mt-3" id="directorMajorSummary">
+        <p class="text-xs text-gray-500 mt-3" id="directorMajorSummary"
+           data-i18n-th="แสดงวิชาเอกทั้งหมด" data-i18n-en="Showing all majors">
             แสดงวิชาเอกทั้งหมด {{ $majorsList->count() }} วิชา
         </p>
     </div>
@@ -143,20 +173,31 @@
     <div class="bg-white rounded-3xl shadow p-8 border border-gray-100 mb-10">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
             <div>
-                <h2 class="text-xl font-semibold text-gray-800">หลักสูตรที่รับผิดชอบ</h2>
-                <p class="text-sm text-gray-500">ดูหลักสูตรทั้งหมดและครูผู้สอน</p>
+                <h2 class="text-xl font-semibold text-gray-800"
+                    data-i18n-th="หลักสูตรที่รับผิดชอบ" data-i18n-en="Courses in charge">
+                    หลักสูตรที่รับผิดชอบ
+                </h2>
+                <p class="text-sm text-gray-500"
+                   data-i18n-th="ดูหลักสูตรทั้งหมดและครูผู้สอน"
+                   data-i18n-en="See all courses and teachers">
+                    ดูหลักสูตรทั้งหมดและครูผู้สอน
+                </p>
             </div>
-            <span class="text-sm text-gray-500">จำนวน {{ ($courses ?? collect())->count() }} หลักสูตร</span>
+            <span class="text-sm text-gray-500">
+                <span data-i18n-th="จำนวน" data-i18n-en="Total">จำนวน</span>
+                {{ ($courses ?? collect())->count() }}
+                <span data-i18n-th="หลักสูตร" data-i18n-en="courses">หลักสูตร</span>
+            </span>
         </div>
 
         <div class="overflow-x-auto">
             <table class="min-w-full border border-gray-200 rounded-xl overflow-hidden text-sm">
                 <thead class="bg-blue-600 text-white">
                     <tr>
-                        <th class="py-3 px-4 text-left">ชื่อหลักสูตร</th>
-                        <th class="py-3 px-4 text-left">ครูผู้สอน</th>
-                        <th class="py-3 px-4 text-center">ห้อง</th>
-                        <th class="py-3 px-4 text-center">จัดการ</th>
+                        <th class="py-3 px-4 text-left" data-i18n-th="ชื่อหลักสูตร" data-i18n-en="Course name">ชื่อหลักสูตร</th>
+                        <th class="py-3 px-4 text-left" data-i18n-th="ครูผู้สอน" data-i18n-en="Teacher">ครูผู้สอน</th>
+                        <th class="py-3 px-4 text-center" data-i18n-th="ห้อง" data-i18n-en="Room">ห้อง</th>
+                        <th class="py-3 px-4 text-center" data-i18n-th="จัดการ" data-i18n-en="Actions">จัดการ</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
@@ -167,12 +208,19 @@
                             <td class="py-2 px-4 text-gray-900">{{ $course->teacher->name ?? '-' }}</td>
                             <td class="py-2 px-4 text-center text-gray-700">{{ $roomsText !== '' ? $roomsText : '-' }}</td>
                             <td class="py-2 px-4 text-center">
-                                <a href="{{ route('director.course-detail', $course) }}" class="text-blue-600 hover:underline">ดูรายละเอียด</a>
+                                <a href="{{ route('director.course-detail', $course) }}"
+                                   class="text-blue-600 hover:underline"
+                                   data-i18n-th="ดูรายละเอียด" data-i18n-en="Details">
+                                   ดูรายละเอียด
+                                </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="py-4 px-4 text-center text-gray-500">ยังไม่มีหลักสูตรในระบบ</td>
+                            <td colspan="4" class="py-4 px-4 text-center text-gray-500"
+                                data-i18n-th="ยังไม่มีหลักสูตรในระบบ" data-i18n-en="No courses yet">
+                                ยังไม่มีหลักสูตรในระบบ
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
