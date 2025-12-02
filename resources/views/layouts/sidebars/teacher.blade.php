@@ -5,9 +5,6 @@
                 <h1 id="sidebarTeacherName" class="text-lg font-bold">
                     {{ auth()->user()->name ?? '?????????' }}
                 </h1>
-                <div id="sidebarTeacherCode" class="text-sm text-gray-300">
-                    {{ auth()->user()->teacher_code ?? 'T0001' }}
-                </div>
             </div>
             <button id="sidebarToggle" type="button" class="sidebar-toggle-btn" aria-pressed="false"
                     title="ซ่อน/แสดงเมนู" data-i18n-title-th="ซ่อน/แสดงเมนู" data-i18n-title-en="Hide/Show menu">

@@ -31,7 +31,7 @@ class AdminCourseController extends Controller
             'rooms'       => 'nullable|array',
             'rooms.*'     => 'string|max:20',
             'term'        => 'nullable|in:1,2',
-            'year'        => 'nullable|string|max:10',
+            'year'        => ['nullable', 'integer', $this->yearBeNotPastRule()],
             'description' => 'nullable|string|max:5000',
         ]);
 
@@ -62,7 +62,7 @@ class AdminCourseController extends Controller
             'rooms'       => 'nullable|array',
             'rooms.*'     => 'string|max:20',
             'term'        => 'nullable|in:1,2',
-            'year'        => 'nullable|string|max:10',
+            'year'        => ['nullable', 'integer', $this->yearBeNotPastRule()],
             'description' => 'nullable|string|max:5000',
         ]);
 
@@ -164,5 +164,25 @@ class AdminCourseController extends Controller
         $course->update(['teaching_hours' => $hours]);
 
         return back()->with('status', 'ลบชั่วโมงสอนแล้ว');
+    }
+
+    private function yearBeNotPastRule(): \Closure
+    {
+        $currentBe = now()->year + 543;
+
+        return function ($attribute, $value, $fail) use ($currentBe) {
+            if ($value === null || $value === '') {
+                return;
+            }
+
+            if ($value < 2400) {
+                $fail('ปีการศึกษาต้องระบุเป็น พ.ศ. เท่านั้น');
+                return;
+            }
+
+            if ($value < $currentBe) {
+                $fail("ปีการศึกษาต้องไม่ย้อนหลัง (ตั้งแต่ พ.ศ. {$currentBe} ขึ้นไป)");
+            }
+        };
     }
 }

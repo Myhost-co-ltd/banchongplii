@@ -41,7 +41,7 @@ class TeacherCourseController extends Controller
             'rooms'       => 'required|array|min:1',
             'rooms.*'     => 'string|max:20',
             'term'        => 'nullable|in:1,2',
-            'year'        => 'nullable|string|max:10',
+            'year'        => ['nullable', 'integer', 'min:1', $this->yearNotInPastRule()],
             'description' => 'nullable|string|max:5000',
         ]);
 
@@ -179,7 +179,7 @@ class TeacherCourseController extends Controller
             'rooms'       => 'required|array|min:1',
             'rooms.*'     => 'string|max:20',
             'term'        => 'nullable|in:1,2',
-            'year'        => 'nullable|string|max:10',
+            'year'        => ['nullable', 'integer', 'min:1', $this->yearNotInPastRule()],
             'description' => 'nullable|string|max:5000',
         ]);
 
@@ -268,6 +268,28 @@ class TeacherCourseController extends Controller
             'lessonUsedTotal' => $lessonUsedTotal,
             'lessonRemainingTotal' => $lessonRemainingTotal,
         ];
+    }
+
+    private function yearNotInPastRule(): \Closure
+    {
+        $currentYearAd = now(config('app.timezone', 'Asia/Bangkok'))->year;
+        $currentYearBe = $currentYearAd + 543;
+
+        return function ($attribute, $value, $fail) use ($currentYearBe) {
+            if ($value === null || $value === '') {
+                return;
+            }
+
+            $year = (int) $value;
+            if ($year < 2400) {
+                $fail('กรุณากรอกปีการศึกษาเป็น พ.ศ. (เช่น '.$currentYearBe.')');
+                return;
+            }
+
+            if ($year < $currentYearBe) {
+                $fail("ปีการศึกษาต้องไม่ย้อนหลัง (ตั้งแต่ พ.ศ. {$currentYearBe} เป็นต้นไป)");
+            }
+        };
     }
 
     public function storeTeachingHour(Request $request, Course $course)

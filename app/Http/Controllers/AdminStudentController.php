@@ -42,16 +42,13 @@ class AdminStudentController extends Controller
             'room'         => 'nullable|string|max:20',
         ]);
 
-        [$grade, $classroom] = $this->splitGradeAndClassroom($data['room'] ?? null);
-
         Student::create([
             'student_code' => $data['student_code'],
             'title'        => $data['title'] ?? '',
             'first_name'   => $data['first_name'],
             'last_name'    => $data['last_name'],
             'gender'       => $data['gender'] ?? 'ไม่ระบุ',
-            'room'         => $grade,
-            'classroom'    => $classroom,
+            'room'         => $data['room'] ?? null,
         ]);
 
         return back()->with('status', 'บันทึกนักเรียนเรียบร้อยแล้ว');
@@ -70,18 +67,20 @@ class AdminStudentController extends Controller
             return back()->withErrors(['file' => 'ไม่สามารถเปิดไฟล์ได้']);
         }
 
+        $delimiter = $this->detectDelimiter($handle);
+
         $header = [];
         $created = 0;
         $updated = 0;
         $skipped = 0;
         $rowNumber = 0;
 
-        while (($row = fgetcsv($handle, 1000, ',')) !== false) {
+        while (($row = fgetcsv($handle, 1000, $delimiter)) !== false) {
             $rowNumber++;
 
             if ($rowNumber === 1) {
                 $header = array_map(
-                    fn ($value) => strtolower(trim($value)),
+                    fn ($value) => $this->normalizeHeaderValue($value),
                     $row
                 );
                 continue;
@@ -129,15 +128,13 @@ class AdminStudentController extends Controller
             'room'         => 'nullable|string|max:20',
         ]);
 
-        [$grade, $classroom] = $this->splitGradeAndClassroom($data['room'] ?? null);
-
         $student->update([
             'student_code' => $data['student_code'],
             'title'        => $data['title'] ?? '',
             'first_name'   => $data['first_name'],
             'last_name'    => $data['last_name'],
             'gender'       => $data['gender'] ?? 'ไม่ระบุ',
-            'room'         => $grade,
+            'room'         => $data['room'] ?? null,
         ]);
 
         return back()->with('status', 'บันทึกการแก้ไขเรียบร้อยแล้ว');
@@ -161,7 +158,18 @@ class AdminStudentController extends Controller
             return trim($row[$index]);
         };
 
-        $gender = trim((string) $get('gender'));
+        $resolve = function (array $keys) use ($get) {
+            foreach ($keys as $key) {
+                $value = $get($key);
+                if ($value !== null && $value !== '') {
+                    return $value;
+                }
+            }
+
+            return null;
+        };
+
+        $gender = trim((string) $resolve(['gender', 'เพศ']));
 
         $normalizedGender = match (mb_strtolower($gender)) {
             'ชาย', 'm', 'male', 'boy'   => 'ชาย',
@@ -170,17 +178,57 @@ class AdminStudentController extends Controller
             default => 'ไม่ระบุ',
         };
 
-        [$grade, $classroom] = $this->splitGradeAndClassroom($get('room') ?? $get('class'));
+        [$grade, $classroom] = $this->splitGradeAndClassroom(
+            $resolve(['room', 'class', 'ห้อง', 'ชั้น', 'ระดับชั้น', 'ชั้นเรียน'])
+        );
 
         return [
-            'student_code' => $get('student_code') ?? $get('code'),
-            'title'        => $get('title') ?? '',
-            'first_name'   => $get('first_name') ?? $get('name') ?? $get('firstname'),
-            'last_name'    => $get('last_name') ?? $get('lastname') ?? $get('surname'),
+            'student_code' => $resolve(['student_code', 'code', 'รหัส', 'รหัสนักเรียน']),
+            'title'        => $resolve(['title', 'คำนำหน้า', 'คำนำหน้านาม', 'prefix']) ?? '',
+            'first_name'   => $resolve(['first_name', 'name', 'firstname', 'ชื่อ', 'ชื่อนักเรียน']),
+            'last_name'    => $resolve(['last_name', 'lastname', 'surname', 'นามสกุล']),
             'gender'       => $normalizedGender,
-            'room'         => $grade,
-            'classroom'    => $classroom,
+            'room'         => $classroom ?: $grade,
         ];
+    }
+
+    private function detectDelimiter($handle): string
+    {
+        $delimiters = [',', ';', "\t"];
+
+        $startPosition = ftell($handle);
+        $sampleLine = '';
+
+        while (($line = fgets($handle)) !== false) {
+            if (trim($line) !== '') {
+                $sampleLine = $line;
+                break;
+            }
+        }
+
+        fseek($handle, $startPosition);
+
+        if ($sampleLine === '') {
+            return ',';
+        }
+
+        $counts = [];
+        foreach ($delimiters as $delimiter) {
+            $counts[$delimiter] = substr_count($sampleLine, $delimiter);
+        }
+
+        arsort($counts);
+        $best = array_key_first($counts);
+
+        return $counts[$best] > 0 ? $best : ',';
+    }
+
+    private function normalizeHeaderValue(string $value): string
+    {
+        $value = preg_replace('/^\xEF\xBB\xBF/', '', $value); // remove UTF-8 BOM if present
+        $value = trim(str_replace(["\r", "\n"], '', $value));
+
+        return mb_strtolower($value);
     }
 
     private function splitGradeAndClassroom(?string $roomValue): array
