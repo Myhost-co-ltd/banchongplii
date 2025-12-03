@@ -90,8 +90,8 @@ class StudentController extends Controller
             [
                 'student_code' => 'required|string|max:20|unique:students,student_code',
                 'title' => 'required|string|max:20',
-                'first_name' => 'required|string|max:100|regex:/^(?!.*\\d)[\\p{L}\\s]+$/u',
-                'last_name' => 'required|string|max:100|regex:/^(?!.*\\d)[\\p{L}\\s]+$/u',
+                'first_name' => 'required|string|max:100|regex:/^(?!.*\\d)[\\p{L}\\p{M}\\s]+$/u',
+                'last_name' => 'required|string|max:100|regex:/^(?!.*\\d)[\\p{L}\\p{M}\\s]+$/u',
             ],
             [
                 'first_name.regex' => 'ชื่อต้องเป็นตัวอักษรเท่านั้น',

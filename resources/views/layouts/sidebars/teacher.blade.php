@@ -19,7 +19,7 @@
                แดชบอร์ดครู
             </a>
 
-            <a href="/attendance" class="nav-item {{ request()->is('attendance') ? 'active' : '' }}"
+            {{-- <a href="/attendance" class="nav-item {{ request()->is('attendance') ? 'active' : '' }}"
                data-i18n-th="บันทึกเวลาเรียน" data-i18n-en="Attendance">
                บันทึกเวลาเรียน
             </a>
@@ -32,7 +32,7 @@
             <a href="/evaluation" class="nav-item {{ request()->is('evaluation') ? 'active' : '' }}"
                data-i18n-th="แบบบันทึกผลการเรียน" data-i18n-en="Gradebook">
                แบบบันทึกผลการเรียน 
-            </a>
+            </a> --}}
 
             <a href="{{ route('teacher.course-create') }}"
                class="nav-item {{ request()->routeIs('teacher.course-create') ? 'active' : '' }}"

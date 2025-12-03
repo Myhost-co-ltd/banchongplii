@@ -118,6 +118,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('teacher.courses.assignments.update');
     Route::delete('/teacher/courses/{course}/assignments/{assignment}', [TeacherCourseController::class, 'destroyAssignment'])
         ->name('teacher.courses.assignments.destroy');
+    Route::put('/teacher/courses/{course}/assignment-cap', [TeacherCourseController::class, 'updateAssignmentCap'])
+        ->name('teacher.courses.assignments.cap');
     Route::get('/teacher/courses/{course}/export', [TeacherCourseController::class, 'export'])
         ->name('teacher.courses.export');
 
@@ -186,6 +188,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('teacher.courses.assignments.update');
     Route::delete('/teacher/course/{course}/assignments/{assignment}', [TeacherCourseController::class, 'destroyAssignment'])
         ->name('teacher.courses.assignments.destroy');
+    Route::put('/teacher/course/{course}/assignment-cap', [TeacherCourseController::class, 'updateAssignmentCap'])
+        ->name('teacher.courses.assignments.cap');
     Route::get('/teacher/students/export', [StudentController::class, 'export'])
         ->name('teacher.students.export');
 
@@ -214,6 +218,8 @@ Route::middleware(['auth'])->group(function () {
                 ->name('courses.update');
             Route::delete('/courses/{course}', [AdminCourseController::class, 'destroy'])
                 ->name('courses.destroy');
+            Route::put('/courses/{course}/assignment-cap', [AdminCourseController::class, 'updateAssignmentCap'])
+                ->name('courses.assignments.cap');
             Route::post('/courses/{course}/hours', [AdminCourseController::class, 'storeTeachingHour'])
                 ->name('courses.hours.store');
             Route::put('/courses/{course}/hours/{hour}', [AdminCourseController::class, 'updateTeachingHour'])

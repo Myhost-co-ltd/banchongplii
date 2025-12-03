@@ -13,6 +13,9 @@
     $lessonsByTerm = collect($lessons ?? []);
     $assignmentsByTerm = collect($assignments ?? []);
     $lessonTitles = $lessonsByTerm->pluck('title')->filter()->values();
+    
+    // กำหนดคะแนนเก็บสูงสุดเริ่มต้น (เผื่อไม่มีการกำหนดใน $course)
+    $assignmentCap = $course->assignment_cap ?? 70;
 @endphp
 
 <div class="space-y-8 overflow-y-auto pr-2 pb-10">
@@ -263,7 +266,7 @@
 
                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h3 class="text-xl font-semibold text-gray-900"
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3"
                             data-i18n-th="รายการบทเรียน"
                             data-i18n-en="Lessons">
                             รายการบทเรียน
@@ -428,27 +431,27 @@
             </section>
 
             {{-- ?? งาน / คะแนนเก็บ --}}
-            <section class="bg-white rounded-3xl shadow-md p-6 border border-gray-100 mb-20">
+            <section class="bg-white rounded-3xl shadow-md p-6 border border-gray-100">
 
                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h3 class="text-xl font-semibold text-gray-900"
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3"
                             data-i18n-th="งาน / คะแนนเก็บ"
                             data-i18n-en="Assignments / Scores">
                             งาน / คะแนนเก็บ
                         </h3>
                         <p class="text-sm text-gray-500"
-                           data-i18n-th="กำหนดงาน คะแนนเต็ม และสัดส่วนคะแนนเก็บรวมของภาคเรียนนี้ (ไม่เกิน 70 คะแนน)"
-                           data-i18n-en="Set assignments, full marks, and score proportions for this term (max 70 points)">
-                            กำหนดงาน คะแนนเต็ม และสัดส่วนคะแนนเก็บรวมของภาคเรียนนี้ (ไม่เกิน 70 คะแนน)
+                           data-i18n-th="กำหนดงาน คะแนนเต็ม และสัดส่วนคะแนนเก็บรวมของภาคเรียนนี้ (ไม่เกิน {{ number_format($assignmentCap, 2) }} คะแนน)"
+                           data-i18n-en="Set assignments, full marks, and score proportions for this term (cap {{ number_format($assignmentCap, 2) }} points)">
+                            กำหนดงาน คะแนนเต็ม และสัดส่วนคะแนนเก็บรวมของภาคเรียนนี้ (ไม่เกิน {{ number_format($assignmentCap, 2) }} คะแนน)
                         </p>
 
                         <div class="mt-2 text-sm">
                             <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-xl">
-                                รวม: {{ $assignmentTotal ?? 0 }} / 70
+                                รวม: {{ $assignmentTotal ?? 0 }} / {{ number_format($assignmentCap, 2) }}
                             </span>
                             <span class="bg-green-50 text-green-700 px-2 py-1 rounded-xl ml-2">
-                                เหลือให้กำหนด: {{ $assignmentRemaining ?? 70 }}
+                                เหลือให้กำหนด: {{ $assignmentRemaining ?? $assignmentCap }}
                             </span>
                         </div>
 

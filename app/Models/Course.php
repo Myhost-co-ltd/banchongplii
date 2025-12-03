@@ -24,6 +24,7 @@ class Course extends Model
         'teaching_hours',
         'lessons',
         'assignments',
+        'assignment_cap',
     ];
 
     protected $casts = [

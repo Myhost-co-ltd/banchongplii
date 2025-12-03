@@ -236,8 +236,11 @@ class TeacherCourseController extends Controller
             ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $selectedTerm)
             ->values();
 
+        $assignmentCap = $course->assignment_cap !== null
+            ? (float) $course->assignment_cap
+            : 70.0;
         $assignmentTotal = $assignments->sum(fn ($item) => $item['score'] ?? 0);
-        $assignmentRemaining = max(0, 70 - $assignmentTotal);
+        $assignmentRemaining = max(0, $assignmentCap - $assignmentTotal);
 
         $lessonCapacity = [];
         $hourTargets = $hours->groupBy('category')->map(fn ($group) => (int) round($group->sum('hours')));
@@ -261,6 +264,7 @@ class TeacherCourseController extends Controller
             'hours' => $hours,
             'lessons' => $lessons,
             'assignments' => $assignments,
+            'assignmentCap' => $assignmentCap,
             'assignmentTotal' => $assignmentTotal,
             'assignmentRemaining' => $assignmentRemaining,
             'lessonCapacity' => $lessonCapacity,
@@ -522,9 +526,16 @@ class TeacherCourseController extends Controller
             ->sum(fn ($item) => $item['score'] ?? 0);
 
         $newScore = $data['score'] ?? 0;
-        if (($currentTotal + $newScore) > 70) {
+        $assignmentCap = (float) ($course->assignment_cap ?? 70);
+        if ($currentTotal >= $assignmentCap) {
             return back()->withErrors([
-                'score' => 'คะแนนรวมของชิ้นงานในภาคเรียนนี้ต้องไม่เกิน 70 (ปัจจุบันรวม ' . $currentTotal . ')',
+                'score' => 'คะแนนเต็มรวมครบแล้ว (เพดาน ' . number_format($assignmentCap, 2) . ' | รวมปัจจุบัน ' . number_format($currentTotal, 2) . ')',
+            ])->withInput();
+        }
+        if (($currentTotal + $newScore) > $assignmentCap) {
+            $remaining = max(0, $assignmentCap - $currentTotal);
+            return back()->withErrors([
+                'score' => 'คะแนนเกินกำหนด: เหลือได้อีก ' . number_format($remaining, 2) . ' จากเพดาน ' . number_format($assignmentCap, 2),
             ])->withInput();
         }
 
@@ -580,9 +591,16 @@ class TeacherCourseController extends Controller
         }
 
         $newScore = $data['score'] ?? 0;
-        if (($currentTotal + $newScore) > 70) {
+        $assignmentCap = (float) ($course->assignment_cap ?? 70);
+        if ($currentTotal >= $assignmentCap) {
             return back()->withErrors([
-                'score' => 'คะแนนรวมของชิ้นงานในภาคเรียนนี้ต้องไม่เกิน 70 (ปัจจุบันรวม ' . $currentTotal . ')',
+                'score' => 'คะแนนเต็มรวมครบแล้ว (เพดาน ' . number_format($assignmentCap, 2) . ' | รวมปัจจุบัน ' . number_format($currentTotal, 2) . ')',
+            ])->withInput();
+        }
+        if (($currentTotal + $newScore) > $assignmentCap) {
+            $remaining = max(0, $assignmentCap - $currentTotal);
+            return back()->withErrors([
+                'score' => 'คะแนนเกินกำหนด: เหลือได้อีก ' . number_format($remaining, 2) . ' จากเพดาน ' . number_format($assignmentCap, 2),
             ])->withInput();
         }
 
@@ -622,5 +640,29 @@ class TeacherCourseController extends Controller
         $course->update(['assignments' => $assignments]);
 
         return back()->with('status', 'ลบการบ้านแล้ว');
+    }
+
+    public function updateAssignmentCap(Request $request, Course $course)
+    {
+        $this->authorizeCourse($course);
+
+        $data = $request->validate([
+            'assignment_cap' => 'required|numeric|min:1|max:100',
+        ]);
+
+        $term = $this->resolveTerm($course, $request->input('term'));
+        $currentTotal = collect($course->assignments ?? [])
+            ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $term)
+            ->sum(fn ($item) => $item['score'] ?? 0);
+
+        if ($data['assignment_cap'] < $currentTotal) {
+            return back()->withErrors([
+                'assignment_cap' => 'คะแนนเก็บที่ตั้งไว้ต่ำกว่าคะแนนรวมปัจจุบัน (รวม ' . $currentTotal . ')',
+            ]);
+        }
+
+        $course->update(['assignment_cap' => $data['assignment_cap']]);
+
+        return back()->with('status', 'อัปเดตเพดานคะแนนเก็บเรียบร้อยแล้ว');
     }
 }

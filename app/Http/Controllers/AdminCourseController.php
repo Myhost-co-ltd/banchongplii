@@ -93,6 +93,29 @@ class AdminCourseController extends Controller
             ->with('status', 'ลบหลักสูตรแล้ว');
     }
 
+    public function updateAssignmentCap(Request $request, Course $course)
+    {
+        $data = $request->validate([
+            'assignment_cap' => 'required|numeric|min:1|max:100',
+        ]);
+
+        $assignments = collect($course->assignments ?? []);
+        $termTotals = $assignments
+            ->groupBy(fn ($item) => $item['term'] ?? ($course->term ?? '1'))
+            ->map(fn ($group) => $group->sum(fn ($item) => $item['score'] ?? 0));
+
+        $currentMax = $termTotals->max() ?? 0;
+        if ($data['assignment_cap'] < $currentMax) {
+            return back()->withErrors([
+                'assignment_cap' => 'เพดานที่ตั้งไว้ต่ำกว่าคะแนนรวมงานที่มีอยู่ (สูงสุดปัจจุบัน ' . $currentMax . ' คะแนน)',
+            ]);
+        }
+
+        $course->update(['assignment_cap' => $data['assignment_cap']]);
+
+        return back()->with('status', 'บันทึกเพดานคะแนนเก็บเรียบร้อยแล้ว');
+    }
+
     public function storeTeachingHour(Request $request, Course $course)
     {
         $data = $request->validate([

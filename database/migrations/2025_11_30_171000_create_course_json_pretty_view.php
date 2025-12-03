@@ -16,19 +16,19 @@ SELECT
     c.term,
     c.year,
     CASE
-        WHEN c.rooms IS NOT NULL AND JSON_VALID(c.rooms) THEN JSON_PRETTY(c.rooms)
+        WHEN c.rooms IS NOT NULL AND JSON_VALID(c.rooms) THEN CAST(c.rooms AS CHAR CHARACTER SET utf8mb4)
         ELSE c.rooms
     END AS rooms_pretty,
     CASE
-        WHEN c.teaching_hours IS NOT NULL AND JSON_VALID(c.teaching_hours) THEN JSON_PRETTY(c.teaching_hours)
+        WHEN c.teaching_hours IS NOT NULL AND JSON_VALID(c.teaching_hours) THEN CAST(c.teaching_hours AS CHAR CHARACTER SET utf8mb4)
         ELSE c.teaching_hours
     END AS teaching_hours_pretty,
     CASE
-        WHEN c.lessons IS NOT NULL AND JSON_VALID(c.lessons) THEN JSON_PRETTY(c.lessons)
+        WHEN c.lessons IS NOT NULL AND JSON_VALID(c.lessons) THEN CAST(c.lessons AS CHAR CHARACTER SET utf8mb4)
         ELSE c.lessons
     END AS lessons_pretty,
     CASE
-        WHEN c.assignments IS NOT NULL AND JSON_VALID(c.assignments) THEN JSON_PRETTY(c.assignments)
+        WHEN c.assignments IS NOT NULL AND JSON_VALID(c.assignments) THEN CAST(c.assignments AS CHAR CHARACTER SET utf8mb4)
         ELSE c.assignments
     END AS assignments_pretty,
     c.created_at,

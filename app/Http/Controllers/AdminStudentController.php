@@ -38,12 +38,12 @@ class AdminStudentController extends Controller
         $data = $request->validate([
             'student_code' => 'nullable|string|max:20|unique:students,student_code',
             'title'        => 'nullable|string|max:20',
-            'first_name'   => 'required|string|max:100|regex:/^(?!.*\d)[\p{L}\s]+$/u',
+            'first_name'   => 'required|string|max:100|regex:/^(?!.*\d)[\p{L}\p{M}\s]+$/u',
             'last_name'    => [
                 'required',
                 'string',
                 'max:100',
-                'regex:/^(?!.*\d)[\p{L}\s]+$/u',
+                'regex:/^(?!.*\d)[\p{L}\p{M}\s]+$/u',
                 Rule::unique('students', 'last_name')->where(function ($q) use ($request) {
                     return $q->where('first_name', $request->input('first_name'))
                         ->where('title', $request->input('title'));
@@ -94,6 +94,10 @@ class AdminStudentController extends Controller
     {
         $request->validate([
             'file' => 'required|file|mimes:csv,txt,xlsx',
+        ], [
+            'file.required' => 'กรุณาเลือกไฟล์นำเข้า',
+            'file.file'     => 'ไฟล์ที่อัปโหลดไม่ถูกต้อง',
+            'file.mimes'    => 'ไฟล์ต้องเป็น CSV หรือ Excel (.csv, .xlsx)',
         ]);
 
         $path = $request->file('file')->getRealPath();
@@ -107,6 +111,7 @@ class AdminStudentController extends Controller
         $errors = [];
 
         $headerDetected = false;
+        $headerHasNameColumns = false;
 
         // cache next code per room during this import session to avoid duplicates
         $nextCodeCache = [];
@@ -131,23 +136,47 @@ class AdminStudentController extends Controller
                     if ($this->hasNameColumns($normalizedHeader)) {
                         $header = $normalizedHeader;
                         $headerDetected = true;
+                        $headerHasNameColumns = true;
                         continue;
                     }
 
                     $header = $this->buildSyntheticHeader(count($row));
                     $headerDetected = true;
+                    $headerHasNameColumns = $this->hasNameColumns($header);
                     // do not continue; use this row as data
                 }
 
-                if (count($row) === 1 && trim($row[0]) === '') {
+                // Skip completely empty rows without counting as error
+                if (count(array_filter($row, fn ($v) => trim((string) $v) !== '')) === 0) {
                     continue;
                 }
 
                 $mapped = $this->mapRow($header, $row);
 
+                // บางไฟล์อาจลบแถวหัวคอลัมน์ออกหรือใส่ช่องว่างพิเศษจนตรวจจับ header ไม่ได้
+                // หากแถวนี้ดูคล้าย header ให้ข้ามไป ไม่ต้องรายงานเป็น error
+                if ($this->looksLikeHeaderRow($row, $header)) {
+                    continue;
+                }
+
+                // เผื่อกรณี mapping ไม่ตรง index (เช่น header ไม่ถูก normalize)
+                // เติมข้อมูลจากตำแหน่งมาตรฐานถ้ายังว่าง
+                $mapped = $this->fillMissingNamesFromDefaultColumns($mapped, $row);
+                $mapped = $this->fillByPositionFallback($mapped, $row);
+
                 if (! $mapped['first_name'] || ! $mapped['last_name']) {
                     $skipped++;
-                    $errors[] = "แถว {$rowNumber}: ชื่อหรือนามสกุลว่าง";
+                    if (! $headerHasNameColumns) {
+                        $errors[] = "แถว {$rowNumber}: ไม่พบคอลัมน์ชื่อ/นามสกุลหรือแถวหัวตารางไม่ถูกต้อง (แถว 1 ต้องเป็นหัวคอลัมน์)";
+                    } else {
+                        $first = $mapped['first_name'] ?? '';
+                        $last  = $mapped['last_name'] ?? '';
+                        $rowPreview = implode(' | ', array_filter(array_map(
+                            fn ($v) => trim((string) $v),
+                            $row
+                        ), fn ($v) => $v !== ''));
+                        $errors[] = "แถว {$rowNumber}: ชื่อหรือนามสกุลว่าง (อ่านได้: ชื่อ=\"{$first}\", นามสกุล=\"{$last}\"; แถวนี้: {$rowPreview})";
+                    }
                     continue;
                 }
 
@@ -182,7 +211,12 @@ class AdminStudentController extends Controller
             }
 
             if (! empty($errors)) {
-                throw ValidationException::withMessages(['file' => $errors]);
+                // commit ที่เพิ่ม/อัปเดตได้ แล้วแจ้งเตือนแถวที่ข้าม
+                DB::commit();
+                $message = "สรุปผล: เพิ่ม {$created} อัปเดต {$updated} ข้าม {$skipped}";
+                return back()
+                    ->withErrors(['file' => $errors])
+                    ->with('status', $message);
             }
 
             DB::commit();
@@ -205,7 +239,7 @@ class AdminStudentController extends Controller
                 Rule::unique('students', 'student_code')->ignore($student->id),
             ],
             'title'        => 'nullable|string|max:20',
-            'first_name'   => 'required|string|max:100|regex:/^(?!.*\d)[\p{L}\s]+$/u',
+            'first_name'   => 'required|string|max:100|regex:/^(?!.*\d)[\p{L}\p{M}\s]+$/u',
             'last_name'    => [
                 'required',
                 'string',
@@ -337,6 +371,116 @@ class AdminStudentController extends Controller
         }
 
         return array_slice(['first_name', 'last_name'], 0, max(1, $columnCount));
+    }
+
+    /**
+     * ถ้าแถวข้อมูลดูเหมือนแถว header (เช่น มีคำว่า first_name, last_name, ชื่อ, นามสกุล ฯลฯ)
+     * ให้ข้ามแถวนี้ไปเพื่อไม่ให้เกิด error "ชื่อหรือนามสกุลว่าง"
+     */
+    private function looksLikeHeaderRow(array $row, array $header): bool
+    {
+        $knownLabels = [
+            'student_code', 'code', 'รหัส', 'รหัสนักเรียน',
+            'title', 'คำนำหน้า', 'คำนำหน้านาม', 'prefix',
+            'first_name', 'name', 'firstname', 'ชื่อ', 'ชื่อนักเรียน',
+            'last_name', 'lastname', 'surname', 'นามสกุล',
+            'gender', 'เพศ',
+            'room', 'class', 'ห้อง', 'ชั้น', 'ระดับชั้น', 'ชั้นเรียน',
+        ];
+
+        $normalize = fn ($v) => $this->normalizeHeaderValue((string) $v);
+
+        $rowValues     = array_map($normalize, $row);
+        $headerValues  = array_map($normalize, $header);
+        $labelMatches  = array_intersect($rowValues, $knownLabels);
+        $headerMatches = array_intersect($rowValues, $headerValues);
+
+        return count($labelMatches) >= 2 || count($headerMatches) >= 2;
+    }
+
+    /**
+     * เติมข้อมูลจากตำแหน่งมาตรฐาน (code,title,first,last,gender,room) หากยังว่าง
+     */
+    private function fillMissingNamesFromDefaultColumns(array $mapped, array $row): array
+    {
+        $indices = [
+            'student_code' => 0,
+            'title'        => 1,
+            'first_name'   => 2, // คอลัมน์ C
+            'last_name'    => 3, // คอลัมน์ D
+            'gender'       => 4,
+            'room'         => 5,
+        ];
+
+        foreach ($indices as $key => $idx) {
+            if (empty($mapped[$key]) && isset($row[$idx])) {
+                $mapped[$key] = trim((string) $row[$idx]);
+            }
+        }
+
+        return $mapped;
+    }
+
+    /**
+     * fallback เพิ่มเติม: map ตามลำดับคอลัมน์ (code, title, first, last, gender, room)
+     * เผื่อกรณี header เพี้ยนหรือมีอักขระพิเศษ
+     */
+    private function fillByPositionFallback(array $mapped, array $row): array
+    {
+        $values = array_values($row);
+        $get = function (int $i) use ($values): string {
+            return isset($values[$i]) ? trim((string) $values[$i]) : '';
+        };
+
+        if (empty($mapped['first_name'])) {
+            foreach ([2, 1] as $i) { // ปกติอยู่คอลัมน์ C; ถัดไปลองคอลัมน์ B
+                $val = $get($i);
+                if ($val !== '') {
+                    $mapped['first_name'] = $val;
+                    break;
+                }
+            }
+        }
+
+        if (empty($mapped['last_name'])) {
+            foreach ([3, 2] as $i) { // ปกติอยู่คอลัมน์ D; ถัดไปลองคอลัมน์ C
+                $val = $get($i);
+                if ($val !== '') {
+                    $mapped['last_name'] = $val;
+                    break;
+                }
+            }
+        }
+
+        if (empty($mapped['student_code'])) {
+            $val = $get(0);
+            if ($val !== '') {
+                $mapped['student_code'] = $val;
+            }
+        }
+
+        if (empty($mapped['title'])) {
+            $val = $get(1);
+            if ($val !== '') {
+                $mapped['title'] = $val;
+            }
+        }
+
+        if (empty($mapped['gender'])) {
+            $val = $get(4);
+            if ($val !== '') {
+                $mapped['gender'] = $val;
+            }
+        }
+
+        if (empty($mapped['room'])) {
+            $val = $get(5);
+            if ($val !== '') {
+                $mapped['room'] = $val;
+            }
+        }
+
+        return $mapped;
     }
 
     /**
@@ -475,29 +619,23 @@ class AdminStudentController extends Controller
             throw ValidationException::withMessages(['file' => ['ไม่สามารถเปิดไฟล์ Excel ได้']]);
         }
 
-        $sheetPath = null;
+        // รวบรวมทุก worksheet (sheet1, sheet2, ...)
+        $sheetPaths = [];
         for ($i = 0; $i < $zip->numFiles; $i++) {
             $name = $zip->getNameIndex($i);
             if (preg_match('#^xl/worksheets/sheet\\d+\\.xml$#', $name)) {
-                $sheetPath = $name;
-                break;
+                $sheetPaths[] = $name;
             }
         }
 
-        if (! $sheetPath) {
+        if (empty($sheetPaths)) {
             $zip->close();
             throw ValidationException::withMessages(['file' => ['ไม่พบข้อมูลแผ่นงานในไฟล์ Excel']]);
         }
 
-        $sheetXml = $zip->getFromName($sheetPath);
-        $sharedStringsXml = $zip->getFromName('xl/sharedStrings.xml');
-        $zip->close();
-
-        if ($sheetXml === false) {
-            throw ValidationException::withMessages(['file' => ['ไม่สามารถอ่านแผ่นงานได้']]);
-        }
-
+        // shared strings สำหรับทุก sheet
         $sharedStrings = [];
+        $sharedStringsXml = $zip->getFromName('xl/sharedStrings.xml');
         if ($sharedStringsXml !== false) {
             $shared = simplexml_load_string($sharedStringsXml);
             if ($shared && isset($shared->si)) {
@@ -511,51 +649,102 @@ class AdminStudentController extends Controller
             }
         }
 
-        $sheet = simplexml_load_string($sheetXml);
-        if (! $sheet || ! isset($sheet->sheetData->row)) {
-            throw ValidationException::withMessages(['file' => ['ไฟล์ Excel ไม่อยู่ในรูปแบบที่รองรับ']]);
-        }
+        $bestRows = [];
+        $bestScore = -1;
+        $bestHeaderMatch = false;
 
-        $rows = [];
-        foreach ($sheet->sheetData->row as $rowEl) {
-            $cells = [];
-            $nextIndex = 0;
-
-            foreach ($rowEl->c as $c) {
-                $ref = (string) $c['r'];
-                $letters = preg_replace('/\d+/', '', $ref);
-                $colIndex = $this->columnIndexFromLetters($letters, $nextIndex);
-                $nextIndex = $colIndex + 1;
-
-                $type = (string) $c['t'];
-                if ($type === 'inlineStr') {
-                    $value = (string) ($c->is->t ?? '');
-                } elseif ($type === 's') {
-                    $idx = (int) ($c->v ?? 0);
-                    $value = $sharedStrings[$idx] ?? '';
-                } else {
-                    $value = (string) ($c->v ?? '');
-                }
-
-                $cells[$colIndex] = trim($value);
+        foreach ($sheetPaths as $sheetPath) {
+            $sheetXml = $zip->getFromName($sheetPath);
+            if ($sheetXml === false) {
+                continue;
             }
 
-            if (! empty($cells)) {
-                ksort($cells);
-                $maxIndex = max(array_keys($cells));
-                $rowValues = [];
-                for ($i = 0; $i <= $maxIndex; $i++) {
-                    $rowValues[] = $cells[$i] ?? '';
+            // Parse with DOM to avoid namespace issues
+            $dom = new \DOMDocument();
+            if (! @$dom->loadXML($sheetXml)) {
+                continue;
+            }
+            $xpath = new \DOMXPath($dom);
+
+            $rows = [];
+            foreach ($xpath->query('//*[local-name()="row"]') as $rowEl) {
+                $cells = [];
+                $nextIndex = 0;
+
+                foreach ($xpath->query('.//*[local-name()="c"]', $rowEl) as $c) {
+                    /** @var \DOMElement $c */
+                    $ref = (string) $c->getAttribute('r');
+                    $letters = preg_replace('/\d+/', '', $ref);
+                    $colIndex = $this->columnIndexFromLetters($letters, $nextIndex);
+                    $nextIndex = $colIndex + 1;
+
+                    $type = (string) $c->getAttribute('t');
+                    $value = '';
+                    if ($type === 'inlineStr') {
+                        // <is><t> or rich text <is><r><t>
+                        $tNodes = $xpath->query('.//*[local-name()="is"]//*[local-name()="t"]', $c);
+                        $parts = [];
+                        foreach ($tNodes as $tNode) {
+                            $parts[] = $tNode->textContent;
+                        }
+                        $value = implode('', $parts);
+                    } elseif ($type === 's') {
+                        $vNode = $xpath->query('.//*[local-name()="v"]', $c)->item(0);
+                        $idx = $vNode ? (int) $vNode->textContent : 0;
+                        $value = $sharedStrings[$idx] ?? '';
+                    } elseif ($type === 'str') {
+                        $vNode = $xpath->query('.//*[local-name()="v"]', $c)->item(0);
+                        $value = $vNode ? $vNode->textContent : '';
+                    } else {
+                        $vNode = $xpath->query('.//*[local-name()="v"]', $c)->item(0);
+                        $value = $vNode ? $vNode->textContent : '';
+                    }
+
+                    $cells[$colIndex] = trim($value);
                 }
-                $rows[] = $rowValues;
+
+                if (! empty($cells)) {
+                    ksort($cells);
+                    $maxIndex = max(array_keys($cells));
+                    $rowValues = [];
+                    for ($i = 0; $i <= $maxIndex; $i++) {
+                        $rowValues[] = $cells[$i] ?? '';
+                    }
+                    $rows[] = $rowValues;
+                }
+            }
+
+            if (! empty($rows)) {
+                // หาหัวแถวแรกที่ไม่ว่าง เพื่อตรวจว่ามีคอลัมน์ชื่อ/นามสกุลครบไหม
+                $firstNonEmpty = collect($rows)->first(fn ($r) => count(array_filter($r, fn ($v) => trim((string) $v) !== '')) > 0) ?? [];
+                $normalizedHeader = array_map(
+                    fn ($v) => $this->normalizeHeaderValue((string) $v),
+                    $firstNonEmpty
+                );
+
+                if ($this->hasNameColumns($normalizedHeader)) {
+                    // ถ้าเจอชีตที่มี header ชื่อ/นามสกุลครบ เลือกชีตนี้ทันที
+                    $bestRows = $rows;
+                    $bestHeaderMatch = true;
+                    break;
+                }
+
+                // ถ้ายังไม่เจอ header ที่ต้องการ เลือกชีตที่มีจำนวนเซลล์ไม่ว่างมากที่สุด
+                $score = max(array_map(fn ($r) => count(array_filter($r, fn ($v) => trim((string) $v) !== '')), $rows));
+                if (! $bestHeaderMatch && $score > $bestScore) {
+                    $bestScore = $score;
+                    $bestRows = $rows;
+                }
             }
         }
 
-        if (empty($rows)) {
+        $zip->close();
+
+        if (empty($bestRows)) {
             throw ValidationException::withMessages(['file' => ['ไฟล์ Excel ไม่มีข้อมูลที่นำเข้าได้']]);
         }
 
-        return $rows;
+        return $bestRows;
     }
 
     private function columnIndexFromLetters(?string $letters, int $fallback): int
@@ -576,6 +765,8 @@ class AdminStudentController extends Controller
     private function normalizeHeaderValue(string $value): string
     {
         $value = preg_replace('/^\xEF\xBB\xBF/', '', $value); // remove UTF-8 BOM if present
+        $value = str_replace("\xC2\xA0", ' ', $value); // normalize non-breaking space
+        $value = preg_replace('/[\x{200B}\x{200C}\x{200D}\x{FEFF}]/u', '', $value); // remove zero width chars
         $value = trim(str_replace(["\r", "\n"], '', $value));
 
         return mb_strtolower($value);
@@ -616,7 +807,8 @@ class AdminStudentController extends Controller
 
     private function isValidName(string $name): bool
     {
-        return preg_match('/^(?!.*\d)[\p{L}\s]+$/u', $name) === 1;
+        // Allow letters plus combining marks (Thai tone/vowel marks) and whitespace
+        return preg_match('/^(?!.*\d)[\p{L}\p{M}\s]+$/u', $name) === 1;
     }
 
     private function isValidRoomFormat(?string $room): bool
@@ -632,7 +824,7 @@ class AdminStudentController extends Controller
 
     private function assertAlphabeticNames(string $firstName, string $lastName): void
     {
-        $pattern = '/^(?!.*\d)[\p{L}\s]+$/u';
+        $pattern = '/^(?!.*\d)[\p{L}\p{M}\s]+$/u';
         $errors = [];
         if (! preg_match($pattern, $firstName)) {
             $errors['first_name'] = 'ชื่อต้องเป็นตัวอักษรเท่านั้น';
