@@ -194,6 +194,23 @@
                           data-i18n-placeholder-en="Add course description / objectives / content">{{ old('description') }}</textarea>
             </div>
 
+            {{-- เพดานคะแนนเก็บ --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1"
+                       data-i18n-th="เพดานคะแนนเก็บ (ไม่เกิน 100)"
+                       data-i18n-en="Assignment score cap (max 100)">
+                    เพดานคะแนนเก็บ (ไม่เกิน 100)
+                </label>
+                <input type="number"
+                       name="assignment_cap"
+                       min="1" max="100" step="0.5"
+                       value="{{ old('assignment_cap', 70) }}"
+                       class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400">
+                <p class="text-xs text-gray-500 mt-1">
+                    <span data-i18n-th="ใช้เป็นคะแนนเก็บรวมสูงสุดของงานในแต่ละภาคเรียน" data-i18n-en="Maximum total assignment score per term">ใช้เป็นคะแนนเก็บรวมสูงสุดของงานในแต่ละภาคเรียน</span>
+                </p>
+            </div>
+
             <div class="text-right">
                 <button type="submit"
                         class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700">

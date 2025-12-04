@@ -428,34 +428,6 @@
                             </div>
 
                             {{-- เพดานคะแนนเก็บ --}}
-                            <div class="bg-white border border-gray-100 rounded-xl p-4 lg:col-span-2">
-                                <div class="flex flex-wrap items-center gap-3 mb-3 text-sm">
-                                    <span class="font-semibold text-gray-900" data-i18n-th="งาน / คะแนนเก็บ" data-i18n-en="Assignments / Scores">งาน / คะแนนเก็บ</span>
-                                    <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-700">
-                                        <span data-i18n-th="เพดานปัจจุบัน" data-i18n-en="Current cap">เพดานปัจจุบัน</span>: {{ $course->assignment_cap ?? 70 }}
-                                    </span>
-                                </div>
-                                <form method="POST"
-                                      action="{{ route('admin.courses.assignments.cap', $course) }}"
-                                      class="flex flex-wrap items-center gap-3 text-sm">
-                                    @csrf
-                                    @method('PUT')
-                                    <label class="flex items-center gap-2 text-gray-700">
-                                        <span data-i18n-th="เพดานใหม่ (ไม่เกิน 100)" data-i18n-en="New cap (max 100)">เพดานใหม่ (ไม่เกิน 100)</span>
-                                        <input type="number"
-                                               name="assignment_cap"
-                                               min="1" max="100" step="0.5"
-                                               value="{{ $course->assignment_cap ?? 70 }}"
-                                               class="border rounded-lg px-3 py-2 w-28 focus:ring-2 focus:ring-blue-500">
-                                    </label>
-                                    <button type="submit" class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800">
-                                        <span data-i18n-th="บันทึกเพดาน" data-i18n-en="Save cap">บันทึกเพดาน</span>
-                                    </button>
-                                    <p class="text-xs text-gray-500">
-                                        <span data-i18n-th="* ต้องไม่ต่ำกว่าคะแนนรวมงานที่มีอยู่ในแต่ละภาคเรียน" data-i18n-en="* Must not be lower than current totals per term">*</span>
-                                    </p>
-                                </form>
-                            </div>
                         </div>
                     </div>
                 @endforeach

@@ -43,9 +43,11 @@ class TeacherCourseController extends Controller
             'term'        => 'nullable|in:1,2',
             'year'        => 'nullable|string|max:10',
             'description' => 'nullable|string|max:5000',
+            'assignment_cap' => 'nullable|numeric|min:1|max:100',
         ]);
 
         $courseName = $validated['name'];
+        $assignmentCap = $validated['assignment_cap'] ?? 70;
 
         Course::create([
             'user_id'     => Auth::id(),
@@ -55,6 +57,7 @@ class TeacherCourseController extends Controller
             'term'        => $validated['term'] ?? null,
             'year'        => $validated['year'] ?? null,
             'description' => $validated['description'] ?? null,
+            'assignment_cap' => $assignmentCap,
         ]);
 
         return redirect()
@@ -181,6 +184,7 @@ class TeacherCourseController extends Controller
             'term'        => 'nullable|in:1,2',
             'year'        => ['nullable', 'integer', 'min:1', $this->yearNotInPastRule()],
             'description' => 'nullable|string|max:5000',
+            'assignment_cap' => 'nullable|numeric|min:1|max:100',
         ]);
 
         $course->update([
@@ -190,6 +194,7 @@ class TeacherCourseController extends Controller
             'term'        => $validated['term'] ?? null,
             'year'        => $validated['year'] ?? null,
             'description' => $validated['description'] ?? null,
+            'assignment_cap' => $validated['assignment_cap'] ?? ($course->assignment_cap ?? 70),
         ]);
 
         return redirect()

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class AdminStudentController extends Controller
 {
@@ -102,19 +103,20 @@ class AdminStudentController extends Controller
 
         $path = $request->file('file')->getRealPath();
         $extension = strtolower($request->file('file')->getClientOriginalExtension());
-
         $header = [];
         $created = 0;
         $updated = 0;
         $skipped = 0;
         $rowNumber = 0;
         $errors = [];
-
         $headerDetected = false;
         $headerHasNameColumns = false;
 
         // cache next code per room during this import session to avoid duplicates
         $nextCodeCache = [];
+        // กันชื่อ-นามสกุลซ้ำในระบบ/ไฟล์
+        $existingNameKeys = $this->loadExistingNameKeys();
+        $seenNameKeysInFile = [];
 
         DB::beginTransaction();
         try {
@@ -123,13 +125,14 @@ class AdminStudentController extends Controller
                 : $this->readCsvRows($path);
 
             foreach ($rows as $row) {
+                
                 $rowNumber++;
 
                 // First non-empty row: detect header. If it doesn't look like a header,
                 // fall back to positional mapping and treat this row as data.
                 if (! $headerDetected) {
                     $normalizedHeader = array_map(
-                        fn ($value) => $this->normalizeHeaderValue($value),
+                        fn ($value) => $this->normalizeHeaderValue((string) $value),
                         $row
                     );
 
@@ -153,16 +156,14 @@ class AdminStudentController extends Controller
 
                 $mapped = $this->mapRow($header, $row);
 
-                // บางไฟล์อาจลบแถวหัวคอลัมน์ออกหรือใส่ช่องว่างพิเศษจนตรวจจับ header ไม่ได้
-                // หากแถวนี้ดูคล้าย header ให้ข้ามไป ไม่ต้องรายงานเป็น error
+                // Skip rows that look like a header but were missed by initial detection
                 if ($this->looksLikeHeaderRow($row, $header)) {
                     continue;
                 }
 
-                // เผื่อกรณี mapping ไม่ตรง index (เช่น header ไม่ถูก normalize)
-                // เติมข้อมูลจากตำแหน่งมาตรฐานถ้ายังว่าง
-                $mapped = $this->fillMissingNamesFromDefaultColumns($mapped, $row);
+                // เติมข้อมูลจากตำแหน่งมาตรฐาน (code,title,first,last,gender,room) หากยังว่าง
                 $mapped = $this->fillByPositionFallback($mapped, $row);
+                $mapped = $this->fillNamesHeuristically($mapped, $row);
 
                 if (! $mapped['first_name'] || ! $mapped['last_name']) {
                     $skipped++;
@@ -186,6 +187,28 @@ class AdminStudentController extends Controller
                     continue;
                 }
 
+                $nameKey = $this->nameKey($mapped['title'] ?? '', $mapped['first_name'], $mapped['last_name']);
+                if (isset($seenNameKeysInFile[$nameKey])) {
+                    $skipped++;
+                    $errors[] = "แถว {$rowNumber}: ชื่อ-นามสกุลซ้ำกับแถว {$seenNameKeysInFile[$nameKey]} ในไฟล์นำเข้า";
+                    continue;
+                }
+
+                $existingStudentCode = $existingNameKeys[$nameKey] ?? null;
+                $inputCode = $mapped['student_code'] ?? '';
+                if ($existingStudentCode && $inputCode !== '' && $inputCode !== $existingStudentCode) {
+                    $skipped++;
+                    $errors[] = "แถว {$rowNumber}: ชื่อ-นามสกุลนี้มีอยู่ในระบบแล้ว (รหัส {$existingStudentCode})";
+                    continue;
+                }
+                if ($existingStudentCode && $inputCode === '') {
+                    $skipped++;
+                    $errors[] = "แถว {$rowNumber}: ชื่อ-นามสกุลนี้มีอยู่ในระบบแล้ว (รหัส {$existingStudentCode})";
+                    continue;
+                }
+
+                $seenNameKeysInFile[$nameKey] = $rowNumber;
+
                 if (empty($mapped['room'])) {
                     $skipped++;
                     $errors[] = "แถว {$rowNumber}: ต้องระบุห้อง (ป.1-ป.6 / ห้อง 1-10 เช่น ป.1/1)";
@@ -202,12 +225,16 @@ class AdminStudentController extends Controller
                     $mapped['student_code'] = $this->nextStudentCodeForRoom($mapped['room'] ?? null, $nextCodeCache);
                 }
 
-                $student = Student::updateOrCreate(
-                    ['student_code' => $mapped['student_code']],
-                    $mapped
-                );
+                // ไม่อัปเดตข้อมูลเดิม: ถ้ารหัสซ้ำ ให้แจ้งเตือนและข้าม
+                $existingByCode = Student::where('student_code', $mapped['student_code'])->first();
+                if ($existingByCode) {
+                    $skipped++;
+                    $errors[] = "แถว {$rowNumber}: รหัสนักเรียนนี้มีอยู่ในระบบแล้ว";
+                    continue;
+                }
 
-                $student->wasRecentlyCreated ? $created++ : $updated++;
+                Student::create($mapped);
+                $created++;
             }
 
             if (! empty($errors)) {
@@ -297,19 +324,25 @@ class AdminStudentController extends Controller
 
     private function mapRow(array $header, array $row): array
     {
+        // ✅ แก้ไข: ใช้ normalizeHeaderValue ในการทำความสะอาดค่าที่อ่านได้จาก Row
         $get = function (string $key) use ($header, $row) {
             $index = array_search($key, $header, true);
             if ($index === false || ! isset($row[$index])) {
                 return null;
             }
 
-            return trim($row[$index]);
+            // 1. นำค่าที่อ่านได้จากไฟล์มา Normalize (ล้างอักขระพิเศษและช่องว่าง)
+            $value = (string) $row[$index];
+            $normalizedValue = $this->normalizeHeaderValue($value);
+
+            // 2. ส่งค่าที่ Normalized แล้วกลับไป (ถ้าไม่เป็นค่าว่าง)
+            return $normalizedValue !== '' ? $normalizedValue : null;
         };
 
         $resolve = function (array $keys) use ($get) {
             foreach ($keys as $key) {
                 $value = $get($key);
-                if ($value !== null && $value !== '') {
+                if ($value !== null) { 
                     return $value;
                 }
             }
@@ -406,16 +439,56 @@ class AdminStudentController extends Controller
         $indices = [
             'student_code' => 0,
             'title'        => 1,
-            'first_name'   => 2, // คอลัมน์ C
-            'last_name'    => 3, // คอลัมน์ D
+            'first_name'   => 2, // คอลัมน์ C (ตำแหน่งที่ 2)
+            'last_name'    => 3, // คอลัมน์ D (ตำแหน่งที่ 3)
             'gender'       => 4,
             'room'         => 5,
         ];
 
         foreach ($indices as $key => $idx) {
+            // Check if key is empty AND the row index exists AND the value is valid (non-empty/non-null string)
+            // ใช้ normalizeHeaderValue เพื่อจัดการกับค่าที่อาจมีปัญหา
             if (empty($mapped[$key]) && isset($row[$idx])) {
-                $mapped[$key] = trim((string) $row[$idx]);
+                $normalizedValue = $this->normalizeHeaderValue((string) $row[$idx]);
+                if ($normalizedValue !== '') {
+                    $mapped[$key] = $normalizedValue;
+                }
             }
+        }
+        
+        return $mapped;
+    }
+
+
+    /**
+     * ถ้ายังหา "ชื่อ" / "นามสกุล" ไม่ได้เลย ลองเดาจากค่าที่เป็นตัวอักษรล้วน (ไม่ใช่รหัส/ตัวเลข)
+     * ใช้เป็น fallback ระดับสุดท้ายสำหรับไฟล์ที่ header หายไปหรือ column สลับ
+     */
+    private function fillNamesHeuristically(array $mapped, array $row): array
+    {
+        $values = array_values($row);
+
+        // หา candidate ที่เป็นตัวอักษรและไม่ใช่ตัวเลขล้วน
+        $candidates = [];
+        foreach ($values as $val) {
+            $val = trim((string) $val);
+            if ($val === '') {
+                continue;
+            }
+            // ข้ามรหัสนักเรียนที่เป็นตัวเลขล้วน
+            if (preg_match('/^\\d+$/', $val)) {
+                continue;
+            }
+            if ($this->isValidName($val)) {
+                $candidates[] = $val;
+            }
+        }
+
+        if (empty($mapped['first_name']) && isset($candidates[0])) {
+            $mapped['first_name'] = $candidates[0];
+        }
+        if (empty($mapped['last_name']) && isset($candidates[1])) {
+            $mapped['last_name'] = $candidates[1];
         }
 
         return $mapped;
@@ -428,56 +501,28 @@ class AdminStudentController extends Controller
     private function fillByPositionFallback(array $mapped, array $row): array
     {
         $values = array_values($row);
-        $get = function (int $i) use ($values): string {
-            return isset($values[$i]) ? trim((string) $values[$i]) : '';
-        };
+        $get = fn (int $i): string => isset($values[$i]) ? trim((string) $values[$i]) : '';
 
-        if (empty($mapped['first_name'])) {
-            foreach ([2, 1] as $i) { // ปกติอยู่คอลัมน์ C; ถัดไปลองคอลัมน์ B
-                $val = $get($i);
-                if ($val !== '') {
-                    $mapped['first_name'] = $val;
-                    break;
-                }
-            }
+        // Try standard positions only if currently empty
+        if (empty($mapped['first_name']) && $this->isValidName($get(2))) { // Index 2 (C)
+            $mapped['first_name'] = $get(2);
+        }
+        if (empty($mapped['last_name']) && $this->isValidName($get(3))) { // Index 3 (D)
+            $mapped['last_name'] = $get(3);
         }
 
-        if (empty($mapped['last_name'])) {
-            foreach ([3, 2] as $i) { // ปกติอยู่คอลัมน์ D; ถัดไปลองคอลัมน์ C
-                $val = $get($i);
-                if ($val !== '') {
-                    $mapped['last_name'] = $val;
-                    break;
-                }
-            }
+        // Try fallback code/title/gender/room if empty
+        if (empty($mapped['student_code']) && $get(0) !== '') {
+            $mapped['student_code'] = $get(0);
         }
-
-        if (empty($mapped['student_code'])) {
-            $val = $get(0);
-            if ($val !== '') {
-                $mapped['student_code'] = $val;
-            }
+        if (empty($mapped['title']) && $get(1) !== '') {
+            $mapped['title'] = $get(1);
         }
-
-        if (empty($mapped['title'])) {
-            $val = $get(1);
-            if ($val !== '') {
-                $mapped['title'] = $val;
-            }
+        if (empty($mapped['gender']) && $get(4) !== '') {
+            $mapped['gender'] = $get(4);
         }
-
-        if (empty($mapped['gender'])) {
-            $val = $get(4);
-            if ($val !== '') {
-                $mapped['gender'] = $val;
-            }
-        }
-
-        if (empty($mapped['room'])) {
-            $val = $get(5);
-            if ($val !== '') {
-                $mapped['room'] = $val;
-            }
+        if (empty($mapped['room']) && $get(5) !== '') {
+            $mapped['room'] = $get(5);
         }
 
         return $mapped;
@@ -640,10 +685,8 @@ class AdminStudentController extends Controller
             $shared = simplexml_load_string($sharedStringsXml);
             if ($shared && isset($shared->si)) {
                 foreach ($shared->si as $si) {
-                    $text = '';
-                    foreach ($si->xpath('.//t') as $t) {
-                        $text .= (string) $t;
-                    }
+                    $textNodes = $si->xpath('.//*[local-name()="t"]') ?: [];
+                    $text = implode('', array_map(fn ($t) => (string) $t, $textNodes));
                     $sharedStrings[] = $text;
                 }
             }
@@ -678,29 +721,8 @@ class AdminStudentController extends Controller
                     $colIndex = $this->columnIndexFromLetters($letters, $nextIndex);
                     $nextIndex = $colIndex + 1;
 
-                    $type = (string) $c->getAttribute('t');
-                    $value = '';
-                    if ($type === 'inlineStr') {
-                        // <is><t> or rich text <is><r><t>
-                        $tNodes = $xpath->query('.//*[local-name()="is"]//*[local-name()="t"]', $c);
-                        $parts = [];
-                        foreach ($tNodes as $tNode) {
-                            $parts[] = $tNode->textContent;
-                        }
-                        $value = implode('', $parts);
-                    } elseif ($type === 's') {
-                        $vNode = $xpath->query('.//*[local-name()="v"]', $c)->item(0);
-                        $idx = $vNode ? (int) $vNode->textContent : 0;
-                        $value = $sharedStrings[$idx] ?? '';
-                    } elseif ($type === 'str') {
-                        $vNode = $xpath->query('.//*[local-name()="v"]', $c)->item(0);
-                        $value = $vNode ? $vNode->textContent : '';
-                    } else {
-                        $vNode = $xpath->query('.//*[local-name()="v"]', $c)->item(0);
-                        $value = $vNode ? $vNode->textContent : '';
-                    }
-
-                    $cells[$colIndex] = trim($value);
+                    $value = $this->extractCellValue($c, $xpath, $sharedStrings);
+                    $cells[$colIndex] = $value;
                 }
 
                 if (! empty($cells)) {
@@ -721,6 +743,8 @@ class AdminStudentController extends Controller
                     fn ($v) => $this->normalizeHeaderValue((string) $v),
                     $firstNonEmpty
                 );
+                $firstNonEmptyCount = count(array_filter($firstNonEmpty, fn ($v) => trim((string) $v) !== ''));
+                $firstWidth = count($firstNonEmpty);
 
                 if ($this->hasNameColumns($normalizedHeader)) {
                     // ถ้าเจอชีตที่มี header ชื่อ/นามสกุลครบ เลือกชีตนี้ทันที
@@ -731,6 +755,13 @@ class AdminStudentController extends Controller
 
                 // ถ้ายังไม่เจอ header ที่ต้องการ เลือกชีตที่มีจำนวนเซลล์ไม่ว่างมากที่สุด
                 $score = max(array_map(fn ($r) => count(array_filter($r, fn ($v) => trim((string) $v) !== '')), $rows));
+                // เพิ่มน้ำหนักให้ชีตที่มีจำนวนคอลัมน์กว้างพอ (อย่างน้อย 5 คอลัมน์)
+                if ($firstWidth >= 5) {
+                    $score += 2;
+                }
+                if ($firstNonEmptyCount >= 5) {
+                    $score += 2;
+                }
                 if (! $bestHeaderMatch && $score > $bestScore) {
                     $bestScore = $score;
                     $bestRows = $rows;
@@ -745,6 +776,87 @@ class AdminStudentController extends Controller
         }
 
         return $bestRows;
+    }
+
+    private function loadExistingNameKeys(): array
+    {
+        $keys = [];
+        Student::query()
+            ->select('title', 'first_name', 'last_name', 'student_code')
+            ->chunk(500, function ($chunk) use (&$keys) {
+                foreach ($chunk as $student) {
+                    $key = $this->nameKey($student->title ?? '', $student->first_name, $student->last_name);
+                    $keys[$key] = $student->student_code;
+                }
+            });
+
+        return $keys;
+    }
+
+    private function nameKey(string $title, string $first, string $last): string
+    {
+        $normalize = fn ($v) => mb_strtolower(trim(preg_replace('/\s+/', '', $v)));
+        return implode('|', [
+            $normalize($title),
+            $normalize($first),
+            $normalize($last),
+        ]);
+    }
+
+    private function extractCellValue(\DOMElement $cell, \DOMXPath $xpath, array $sharedStrings): string
+    {
+        $type = (string) $cell->getAttribute('t');
+        $value = '';
+
+        $readInline = function () use ($cell, $xpath): string {
+            $tNodes = $xpath->query('.//*[local-name()="is"]//*[local-name()="t"]', $cell);
+            if ($tNodes->length === 0) {
+                return '';
+            }
+            $parts = [];
+            foreach ($tNodes as $tNode) {
+                $parts[] = $tNode->textContent;
+            }
+            return implode('', $parts);
+        };
+
+        if ($type === 'inlineStr') {
+            $value = $readInline();
+        } elseif ($type === 's') {
+            $vNode = $xpath->query('.//*[local-name()="v"]', $cell)->item(0);
+            $idx = $vNode ? (int) $vNode->textContent : null;
+            if ($idx !== null && isset($sharedStrings[$idx])) {
+                $value = $sharedStrings[$idx];
+            }
+        } elseif ($type === 'str') {
+            $vNode = $xpath->query('.//*[local-name()="v"]', $cell)->item(0);
+            $value = $vNode ? $vNode->textContent : '';
+        } else {
+            $vNode = $xpath->query('.//*[local-name()="v"]', $cell)->item(0);
+            $value = $vNode ? $vNode->textContent : '';
+        }
+
+        // บางไฟล์อาจไม่ใส่ attribute t="inlineStr" แต่ยังมี <is><t> ค่าอยู่
+        if ($value === '') {
+            $inline = $readInline();
+            if ($inline !== '') {
+                $value = $inline;
+            }
+        }
+
+        // fallback ท้ายสุด: ดึง <t> ใดๆ ในเซลล์ (รองรับ rich text ที่ไม่ผ่านเงื่อนไขด้านบน)
+        if ($value === '') {
+            $tNodes = $xpath->query('.//*[local-name()="t"]', $cell);
+            if ($tNodes->length > 0) {
+                $parts = [];
+                foreach ($tNodes as $tNode) {
+                    $parts[] = $tNode->textContent;
+                }
+                $value = implode('', $parts);
+            }
+        }
+
+        return trim($value);
     }
 
     private function columnIndexFromLetters(?string $letters, int $fallback): int
@@ -764,10 +876,11 @@ class AdminStudentController extends Controller
 
     private function normalizeHeaderValue(string $value): string
     {
-        $value = preg_replace('/^\xEF\xBB\xBF/', '', $value); // remove UTF-8 BOM if present
-        $value = str_replace("\xC2\xA0", ' ', $value); // normalize non-breaking space
+        $value = preg_replace('/^\xEF\xBB\xBF/', '', $value); // remove UTF-8 BOM
+        $value = str_replace("\xC2\xA0", ' ', $value); // replace non-breaking space
         $value = preg_replace('/[\x{200B}\x{200C}\x{200D}\x{FEFF}]/u', '', $value); // remove zero width chars
         $value = trim(str_replace(["\r", "\n"], '', $value));
+        $value = preg_replace('/[[:cntrl:]]/u', '', $value); // ✅ เพิ่มการลบอักขระควบคุม
 
         return mb_strtolower($value);
     }
@@ -814,7 +927,8 @@ class AdminStudentController extends Controller
     private function isValidRoomFormat(?string $room): bool
     {
         if (! $room) return false;
-        if (! preg_match('/^ป\.(\d)\/(\d{1,2})$/u', trim($room), $m)) {
+        // Adjusted pattern to allow / or space as delimiter for grade/room split
+        if (! preg_match('/^ป\.(\d)[\/\s]?(\d{1,2})$/u', trim($room), $m)) {
             return false;
         }
         $gradeNum = (int) $m[1];

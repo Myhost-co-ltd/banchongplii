@@ -89,6 +89,20 @@
                           placeholder="ใส่คำอธิบายรายวิชา / จุดประสงค์ / เนื้อหาการเรียนรู้">{{ old('description', $course->description) }}</textarea>
             </div>
 
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    เพดานคะแนนเก็บ (ไม่เกิน 100)
+                </label>
+                <input type="number"
+                       name="assignment_cap"
+                       min="1" max="100" step="0.5"
+                       value="{{ old('assignment_cap', $course->assignment_cap ?? 70) }}"
+                       class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+                <p class="text-xs text-gray-500 mt-1">
+                    ใช้กำหนดคะแนนรวมสูงสุดของงาน/คะแนนเก็บในแต่ละภาคเรียน
+                </p>
+            </div>
+
             <div class="flex flex-col gap-3 md:flex-row md:justify-end">
                 <a href="{{ route('course.detail', $course) }}"
                    class="inline-flex items-center justify-center px-5 py-2 rounded-2xl border border-gray-300 text-gray-600 hover:bg-gray-50">

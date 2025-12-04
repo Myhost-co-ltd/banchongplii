@@ -94,12 +94,13 @@
                 <input type="file" name="file" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hidden"
                        onchange="document.getElementById('importForm').submit()">
             </label>
-            <a href="{{ asset('import_templates/students_sample.xlsx') }}"
+            
+        </form>
+        <a href="{{ asset('import_templates/students_sample.xlsx') }}"
                class="text-sm text-blue-600 hover:underline ml-2"
                data-i18n-th="ดาวน์โหลดไฟล์ตัวอย่าง" data-i18n-en="Download sample CSV">
                 ดาวน์โหลดไฟล์ตัวอย่าง
             </a>
-        </form>
     </div>
 
     <div class="flex flex-col gap-2">
