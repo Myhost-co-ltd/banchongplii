@@ -22,15 +22,23 @@
             <p class="text-4xl font-bold text-blue-800 mt-1">{{ number_format($studentCount ?? 0) }}</p>
         </div>
 
-        <div class="p-6 bg-gradient-to-br from-green-50 to-green-200 border border-green-300 rounded-2xl shadow">
-            <h3 class="text-gray-600" data-i18n-th="จำนวนครูทั้งหมด" data-i18n-en="Total teachers">จำนวนครูทั้งหมด</h3>
-            <p class="text-4xl font-bold text-green-800 mt-1">{{ number_format($teacherCount ?? 0) }}</p>
-        </div>
 
         <div class="p-6 bg-gradient-to-br from-purple-50 to-purple-200 border border-purple-300 rounded-2xl shadow">
             <h3 class="text-gray-600" data-i18n-th="ห้องเรียนทั้งหมด" data-i18n-en="Total classrooms">ห้องเรียนทั้งหมด</h3>
             <p class="text-4xl font-bold text-purple-800 mt-1">{{ number_format($classCount ?? 0) }}</p>
         </div>
+
+         <button type="button"
+                data-teacher-status-target="all"
+                class="p-6 bg-gradient-to-br from-green-50 to-green-200 border border-green-300 rounded-2xl shadow w-full text-left transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <h3 class="text-gray-600" data-i18n-th="จำนวนครูทั้งหมด" data-i18n-en="Total teachers">จำนวนครูทั้งหมด</h3>
+                    <p class="text-sm text-green-800 mt-2 underline" data-i18n-th="ดูรายชื่อครู" data-i18n-en="View teachers">ดูรายชื่อครู</p>
+                </div>
+                <p class="text-4xl font-bold text-green-800 mt-1">{{ number_format($teacherCount ?? 0) }}</p>
+            </div>
+        </button>
 
         <button type="button"
                 data-teacher-status-target="complete"
@@ -56,6 +64,62 @@
             </div>
         </button>
 
+    </div>
+
+    <!-- กราฟสัดส่วนครูตามสถานะชั่วโมงสอน -->
+    <div class="bg-white rounded-3xl shadow p-8 border border-gray-100">
+        <div class="flex flex-col lg:flex-row items-center gap-8">
+            <div class="flex-1 space-y-3">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800"
+                        data-i18n-th="ภาพรวมชั่วโมงสอนของครู"
+                        data-i18n-en="Teacher teaching hours overview">
+                        ภาพรวมชั่วโมงสอนของครู
+                    </h2>
+                    <p class="text-sm text-gray-500"
+                       data-i18n-th="สัดส่วนครูที่กรอกชั่วโมงสอนครบและไม่ครบ"
+                       data-i18n-en="Share of teachers with completed and incomplete teaching hours">
+                        สัดส่วนครูที่กรอกชั่วโมงสอนครบและไม่ครบ
+                    </p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="flex items-center gap-3 p-3 rounded-2xl bg-sky-50 border border-sky-100">
+                        <span class="w-3 h-3 rounded-full bg-sky-500"></span>
+                        <div>
+                            <p class="text-xs text-gray-600" data-i18n-th="ชั่วโมงสอนครบ" data-i18n-en="Complete hours">ชั่วโมงสอนครบ</p>
+                            <p class="text-2xl font-bold text-sky-700">{{ number_format($completeTeacherCount ?? 0) }}</p>
+                            <p class="text-xs text-sky-700/80 mt-1" data-i18n-th="คน" data-i18n-en="people">คน</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 rounded-2xl bg-amber-50 border border-amber-100">
+                        <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                        <div>
+                            <p class="text-xs text-gray-600" data-i18n-th="ชั่วโมงสอนไม่ครบ" data-i18n-en="Incomplete hours">ชั่วโมงสอนไม่ครบ</p>
+                            <p class="text-2xl font-bold text-amber-700">{{ number_format($incompleteTeacherCount ?? 0) }}</p>
+                            <p class="text-xs text-amber-700/80 mt-1" data-i18n-th="คน" data-i18n-en="people">คน</p>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500" data-i18n-th="รวมครูที่มีการสอนทั้งหมด" data-i18n-en="Total teachers with courses">
+                    รวมครูที่มีการสอนทั้งหมด {{ number_format(($completeTeacherCount ?? 0) + ($incompleteTeacherCount ?? 0)) }} คน
+                </p>
+            </div>
+            <div class="flex-1 flex justify-center">
+                <div class="relative w-full max-w-xs">
+                    <canvas id="teacherStatusChart" class="w-full h-full"></canvas>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <p class="text-xs text-gray-500" data-i18n-th="ครูทั้งหมด" data-i18n-en="Total teachers">ครูทั้งหมด</p>
+                        <p id="teacherStatusTotal" class="text-3xl font-bold text-gray-800">
+                            {{ number_format(($completeTeacherCount ?? 0) + ($incompleteTeacherCount ?? 0)) }}
+                        </p>
+                    </div>
+                    <div id="teacherStatusChartEmpty" class="absolute inset-0 hidden items-center justify-center text-sm text-gray-500 bg-white/80 rounded-full"
+                         data-i18n-th="ยังไม่มีข้อมูลกราฟ" data-i18n-en="No chart data yet">
+                        ยังไม่มีข้อมูลกราฟ
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- วิชาเอกของครู -->
@@ -244,6 +308,7 @@
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const majorFilter = document.getElementById('directorMajorFilter');
@@ -253,12 +318,16 @@
         const teacherStatusData = {
             complete: @json($completeTeachers ?? []),
             incomplete: @json($incompleteTeachers ?? []),
+            all: @json($homeroomTeachers ?? []),
         };
         const statusButtons = Array.from(document.querySelectorAll('[data-teacher-status-target]'));
         const statusModal = document.getElementById('teacherStatusModal');
         const statusModalTitle = document.getElementById('teacherStatusModalTitle');
         const statusModalSubtitle = document.getElementById('teacherStatusModalSubtitle');
         const statusModalBody = document.getElementById('teacherStatusModalBody');
+        const statusChart = document.getElementById('teacherStatusChart');
+        const statusChartEmpty = document.getElementById('teacherStatusChartEmpty');
+        const statusChartTotal = document.getElementById('teacherStatusTotal');
 
         const hideAllDetails = () => {
             detailRows.forEach(row => row.classList.add('hidden'));
@@ -303,43 +372,61 @@
             }
 
             list.forEach((item) => {
+                const teacherInfo = item.teacher || item || {};
                 const card = document.createElement('div');
                 card.className = 'border border-gray-200 rounded-2xl p-4 bg-gray-50 shadow-sm';
-                const courses = Array.isArray(item.courses) ? item.courses : [];
-                const coursesHtml = courses.map((course) => {
-                    const statusClass = course.complete ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700';
-                    const detailText = course.complete
-                        ? 'ครบ'
-                        : [
-                            course.has_hours ? null : 'ขาดชั่วโมงสอน',
-                            course.has_assignments ? null : 'ขาดงานที่มอบหมาย',
-                        ].filter(Boolean).join(', ') || 'ไม่ครบ';
-                    const gradeText = course.grade ? `ชั้นเรียน ${course.grade}` : '';
+                const showCourses = statusKey !== 'all';
+                const courses = showCourses && Array.isArray(item.courses) ? item.courses : [];
+                const coursesHtml = !showCourses
+                    ? ''
+                    : (courses.map((course) => {
+                        const statusClass = course.complete ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700';
+                        const detailText = course.complete
+                            ? 'ครบ'
+                            : [
+                                course.has_hours ? null : 'ขาดชั่วโมงสอน',
+                                course.has_assignments ? null : 'ขาดงานที่มอบหมาย',
+                            ].filter(Boolean).join(', ') || 'ไม่ครบ';
+                        const gradeText = course.grade ? `ชั้นเรียน ${course.grade}` : '';
 
-                    return `
-                        <div class="flex items-start justify-between gap-3">
-                            <div>
-                                <div class="font-semibold text-gray-900">${course.name || '-'}</div>
-                                <div class="text-xs text-gray-500">${gradeText}</div>
+                        return `
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <div class="font-semibold text-gray-900">${course.name || '-'}</div>
+                                    <div class="text-xs text-gray-500">${gradeText}</div>
+                                </div>
+                                <span class="text-xs font-semibold px-3 py-1 rounded-full ${statusClass}">${detailText}</span>
                             </div>
-                            <span class="text-xs font-semibold px-3 py-1 rounded-full ${statusClass}">${detailText}</span>
-                        </div>
-                    `;
-                }).join('') || '<div class="text-xs text-gray-500">ยังไม่มีรายวิชา</div>';
+                        `;
+                    }).join('') || '<div class="text-xs text-gray-500">ยังไม่มีรายวิชา</div>');
+
+                const coursesSection = coursesHtml
+                    ? `<div class="mt-3 space-y-2">${coursesHtml}</div>`
+                    : '';
 
                 card.innerHTML = `
                     <div class="flex items-start justify-between gap-3">
                         <div>
-                            <div class="text-base font-semibold text-gray-900">${item.teacher?.name || '-'}</div>
-                            <div class="text-xs text-gray-500">${item.teacher?.email || ''}</div>
+                            <div class="text-base font-semibold text-gray-900">${teacherInfo.name || '-'}</div>
+                            <div class="text-xs text-gray-500">${teacherInfo.email || ''}</div>
                         </div>
-                        <span class="text-xs font-semibold px-3 py-1 rounded-full ${statusKey === 'complete' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">
-                            ${statusKey === 'complete' ? 'ครบ' : 'ไม่ครบ'}
+                        <span class="text-xs font-semibold px-3 py-1 rounded-full ${
+                            statusKey === 'complete'
+                                ? 'bg-green-100 text-green-700'
+                                : statusKey === 'incomplete'
+                                    ? 'bg-amber-100 text-amber-700'
+                                    : 'bg-slate-100 text-slate-700'
+                        }">
+                            ${
+                                statusKey === 'complete'
+                                    ? 'ครบ'
+                                    : statusKey === 'incomplete'
+                                    ? 'ไม่ครบ'
+                                    : 'ทั้งหมด'
+                            }
                         </span>
                     </div>
-                    <div class="mt-3 space-y-2">
-                        ${coursesHtml}
-                    </div>
+                    ${coursesSection}
                 `;
 
                 statusModalBody.appendChild(card);
@@ -350,10 +437,16 @@
             if (!statusModal) return;
 
             const isComplete = statusKey === 'complete';
+            const isIncomplete = statusKey === 'incomplete';
+            const isAll = statusKey === 'all';
             const count = teacherStatusData[statusKey]?.length ?? 0;
 
             if (statusModalTitle) {
-                statusModalTitle.textContent = isComplete ? 'ครูที่มีชั่วโมงสอนครบ' : 'ครูที่มีชั่วโมงสอนไม่ครบ';
+                statusModalTitle.textContent = isComplete
+                    ? 'ครูที่มีชั่วโมงสอนครบ'
+                    : isIncomplete
+                        ? 'ครูที่มีชั่วโมงสอนไม่ครบ'
+                        : 'ครูทั้งหมด';
             }
 
             if (statusModalSubtitle) {
@@ -432,6 +525,61 @@
                 }
             });
         });
+
+        // Pie chart: ครูชั่วโมงสอนครบ / ไม่ครบ
+        if (statusChart && window.Chart) {
+            const completeCount = Number(@json($completeTeacherCount ?? 0));
+            const incompleteCount = Number(@json($incompleteTeacherCount ?? 0));
+            const total = completeCount + incompleteCount;
+
+            if (statusChartTotal) {
+                statusChartTotal.textContent = total.toLocaleString();
+            }
+
+            if (total === 0) {
+                statusChart.classList.add('opacity-30');
+                statusChartEmpty?.classList.remove('hidden');
+            } else {
+                statusChartEmpty?.classList.add('hidden');
+
+                const ctx = statusChart.getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['ชั่วโมงสอนครบ', 'ชั่วโมงสอนไม่ครบ'],
+                        datasets: [{
+                            data: [completeCount, incompleteCount],
+                            backgroundColor: ['#0ea5e9', '#f59e0b'],
+                            borderWidth: 0,
+                            hoverOffset: 6,
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '65%',
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true,
+                                },
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => {
+                                        const value = context.parsed;
+                                        const percent = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                        return `${context.label}: ${value.toLocaleString()} คน (${percent}%)`;
+                                    },
+                                },
+                            },
+                        },
+                    },
+                });
+            }
+        }
     });
 </script>
 @endsection
