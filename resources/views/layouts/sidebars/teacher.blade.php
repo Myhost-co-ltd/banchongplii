@@ -47,11 +47,11 @@
                รายละเอียดหลักสูตร
             </a>
 
-            <a href="{{ route('teacher.assignments') }}"
+            {{-- <a href="{{ route('teacher.assignments') }}"
                class="nav-item {{ request()->routeIs('teacher.assignments') ? 'active' : '' }}"
                data-i18n-th="งาน" data-i18n-en="Assignments">
                งาน
-            </a>
+            </a> --}}
     </nav>
 
     </div>
