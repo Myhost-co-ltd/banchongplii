@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\Student;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -110,6 +112,61 @@ class TeacherCourseController extends Controller
             'lessonAllowedTotal' => $payload['lessonAllowedTotal'],
             'lessonUsedTotal' => $payload['lessonUsedTotal'],
             'lessonRemainingTotal' => $payload['lessonRemainingTotal'],
+        ]);
+    }
+
+    public function assignments(?int $courseId = null)
+    {
+        $courses = Course::where('user_id', Auth::id())
+            ->latest()
+            ->get();
+
+        $course = $courses->firstWhere('id', $courseId) ?? $courses->first();
+
+        if (! $course) {
+            return redirect()
+                ->route('teacher.course-create')
+                ->with('status', 'ยังไม่มีหลักสูตร กรุณาสร้างหลักสูตรก่อนเข้าหน้าติดตามงาน');
+        }
+
+        $this->authorizeCourse($course);
+
+        $selectedTerm = $this->resolveTerm($course, request('term'));
+        $payload = $this->buildCoursePayload($course, $selectedTerm);
+
+        $assignedRooms = collect($course->rooms ?? [])->filter()->values();
+        $hasClassroomCol = Schema::hasColumn('students', 'classroom');
+
+        $studentsQuery = Student::query();
+        if ($assignedRooms->isNotEmpty()) {
+            $studentsQuery->where(function ($q) use ($assignedRooms, $hasClassroomCol) {
+                if ($hasClassroomCol) {
+                    $q->whereIn('classroom', $assignedRooms)
+                      ->orWhereIn('room', $assignedRooms);
+                } else {
+                    $q->whereIn('room', $assignedRooms);
+                }
+            });
+        } else {
+            $studentsQuery->whereRaw('1 = 0');
+        }
+
+        $studentsByRoom = $studentsQuery
+            ->when($hasClassroomCol, fn ($q) => $q->orderBy('classroom'))
+            ->orderBy('student_code')
+            ->get()
+            ->groupBy(fn ($s) => $hasClassroomCol ? ($s->classroom ?? $s->room ?? '-') : ($s->room ?? '-'));
+
+        return view('teacher.course-assignments', [
+            'course'               => $course,
+            'courses'              => $courses,
+            'selectedTerm'         => $selectedTerm,
+            'assignments'          => $payload['assignments'],
+            'assignmentCap'        => $payload['assignmentCap'],
+            'assignmentTotal'      => $payload['assignmentTotal'],
+            'assignmentRemaining'  => $payload['assignmentRemaining'],
+            'studentsByRoom'       => $studentsByRoom,
+            'assignedRooms'        => $assignedRooms,
         ]);
     }
 

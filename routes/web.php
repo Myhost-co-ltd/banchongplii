@@ -90,6 +90,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('teacher.courses.store');
     Route::post('/teacher/courses/{course}/claim', [TeacherCourseController::class, 'claim'])
         ->name('teacher.courses.claim');
+    Route::get('/teacher/assignments/{course?}', [TeacherCourseController::class, 'assignments'])
+        ->name('teacher.assignments');
     Route::get('/teacher/courses/{course}/edit', [TeacherCourseController::class, 'edit'])
         ->name('teacher.courses.edit');
     Route::put('/teacher/courses/{course}', [TeacherCourseController::class, 'update'])

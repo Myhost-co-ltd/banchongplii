@@ -70,7 +70,7 @@
                     <p class="text-xs text-gray-500 mt-1"
                        data-i18n-th="วิชาเอกของคุณ: <span class=&quot;font-semibold text-blue-700&quot;>{{ $teacherMajor }}</span>"
                        data-i18n-en="Your major: <span class=&quot;font-semibold text-blue-700&quot;>{{ $teacherMajor }}</span>">
-                        วิชาเอกของคุณ: <span class="font-semibold text-blue-700">{{ $teacherMajor }}</span>
+                        วิชาเอกของคุณ:
                     </p>
                 @else
                     <div class="space-y-2">

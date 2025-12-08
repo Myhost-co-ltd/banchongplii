@@ -431,7 +431,7 @@
             </section>
 
             {{-- ?? งาน / คะแนนเก็บ --}}
-            <section class="bg-white rounded-3xl shadow-md p-6 border border-gray-100">
+            <section id="assignments" class="bg-white rounded-3xl shadow-md p-6 border border-gray-100">
 
                 <div class="flex justify-between items-center mb-6">
                     <div>

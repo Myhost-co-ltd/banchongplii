@@ -46,6 +46,12 @@
                data-i18n-th="รายละเอียดหลักสูตร" data-i18n-en="Course Detail">
                รายละเอียดหลักสูตร
             </a>
+
+            <a href="{{ route('teacher.assignments') }}"
+               class="nav-item {{ request()->routeIs('teacher.assignments') ? 'active' : '' }}"
+               data-i18n-th="งาน" data-i18n-en="Assignments">
+               งาน
+            </a>
     </nav>
 
     </div>
