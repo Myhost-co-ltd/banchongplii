@@ -156,8 +156,8 @@
             </div>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="min-w-full border border-gray-200 rounded-xl overflow-hidden text-sm">
+        <div class="overflow-x-auto -mx-2 md:mx-0">
+            <table class="w-full min-w-[640px] border border-gray-200 rounded-xl overflow-hidden text-sm">
                 <thead class="bg-blue-600 text-white">
                     <tr>
                         <th class="py-3 px-4 text-left"
