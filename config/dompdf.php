@@ -14,18 +14,24 @@ return [
         // -------------------------
         // ฟอนต์ที่ DomPDF รู้จัก
         // -------------------------
-       'font_family' => [
-    'sarabun' => [
-        'normal'      => storage_path('fonts/Sarabun-Regular.ttf'),
-        'bold'        => storage_path('fonts/Sarabun-Bold.ttf'),
-        'italic'      => storage_path('fonts/Sarabun-Italic.ttf'),
-        'bold_italic' => storage_path('fonts/Sarabun-BoldItalic.ttf'),
-    ],
-    'leelawadee' => [
-        'normal'      => storage_path('fonts/LeelawUI.ttf'),
-        'bold'        => storage_path('fonts/LeelaUIb.ttf'),
-    ],
-],
+        'font_family' => [
+            'sarabun' => [
+                'normal'      => storage_path('fonts/Sarabun-Regular.ttf'),
+                'bold'        => storage_path('fonts/Sarabun-Bold.ttf'),
+                'italic'      => storage_path('fonts/Sarabun-Regular.ttf'),
+                'bold_italic' => storage_path('fonts/Sarabun-Bold.ttf'),
+            ],
+            'noto sans thai' => [
+                'normal'      => storage_path('fonts/NotoSansThai-Regular.ttf'),
+                'bold'        => storage_path('fonts/NotoSansThai-Bold.ttf'),
+                'italic'      => storage_path('fonts/NotoSansThai-Regular.ttf'),
+                'bold_italic' => storage_path('fonts/NotoSansThai-Bold.ttf'),
+            ],
+            'leelawadee' => [
+                'normal'      => storage_path('fonts/LeelawUI.ttf'),
+                'bold'        => storage_path('fonts/LeelaUIb.ttf'),
+            ],
+        ],
 
 
         // -------------------------

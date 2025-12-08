@@ -1,12 +1,5 @@
 @php
-    $fontRegular     = 'file:///' . str_replace('\\', '/', storage_path('fonts/Sarabun-Regular.ttf'));
-    $fontBold        = 'file:///' . str_replace('\\', '/', storage_path('fonts/Sarabun-Bold.ttf'));
-    $fontNotoRegular = 'file:///' . str_replace('\\', '/', storage_path('fonts/NotoSansThai-Regular.ttf'));
-    $fontNotoBold    = 'file:///' . str_replace('\\', '/', storage_path('fonts/NotoSansThai-Bold.ttf'));
-    $printedAt       = now()->timezone('Asia/Bangkok')->addYears(543)->format('d/m/Y H:i');
-
-    $logoPathFile = public_path('images/school-logo.png');
-    $logoPath     = file_exists($logoPathFile) ? ('file:///' . str_replace('\\', '/', $logoPathFile)) : null;
+    $printedAt   = now()->timezone('Asia/Bangkok')->addYears(543)->format('d/m/Y H:i');
 @endphp
 <!DOCTYPE html>
 <html lang="th">
@@ -14,43 +7,28 @@
     <meta charset="UTF-8">
     <style>
         @font-face {
-            font-family: 'Sarabun';
-            font-style: normal;
+            font-family: 'LeelawUI';
             font-weight: 400;
-            src: url('{{ $fontRegular }}') format('truetype');
+            src: url('{{ 'file:///' . str_replace('\\', '/', storage_path('fonts/LeelawUI.ttf')) }}') format('truetype');
         }
         @font-face {
-            font-family: 'Sarabun';
-            font-style: normal;
+            font-family: 'LeelawUI';
             font-weight: 700;
-            src: url('{{ $fontBold }}') format('truetype');
+            src: url('{{ 'file:///' . str_replace('\\', '/', storage_path('fonts/LeelaUIb.ttf')) }}') format('truetype');
         }
-        @font-face {
-            font-family: 'Noto Sans Thai';
-            font-style: normal;
-            font-weight: 400;
-            src: url('{{ $fontNotoRegular }}') format('truetype');
-        }
-        @font-face {
-            font-family: 'Noto Sans Thai';
-            font-style: normal;
-            font-weight: 700;
-            src: url('{{ $fontNotoBold }}') format('truetype');
-        }
-        body {
-            font-family: 'Sarabun', 'Noto Sans Thai', 'NotoSansThai', 'LeelawUI', DejaVu Sans, sans-serif;
-            font-size: 13px;
-            color: #1f2937;
-            line-height: 1.6;
-            text-rendering: optimizeLegibility;
-            -webkit-font-smoothing: antialiased;
-        }
-        h1 {  margin: 0 0 12px; font-size: 22px; text-align: center; line-height: 1.7; letter-spacing: 0; }
-        h2 { margin: 16px 0 8px; font-size: 15px; font-weight: 700; line-height: 1.7; letter-spacing: 0; }
+        body { font-family: 'LeelawUI', 'DejaVu Sans', sans-serif; font-size: 13px; color: #1f2937; line-height: 1.6; }
+        h1 { margin: 0 0 12px; font-size: 22px; text-align: center; }
+        h2 { margin: 16px 0 8px; font-size: 15px; font-weight: 700; }
         table { width: 100%; border-collapse: collapse; margin-top: 6px; }
-        th, td { border: 1px solid #e5e7eb; padding: 8px 8px; text-align: left; line-height: 1.7; letter-spacing: 0; vertical-align: middle; }
-        th { background: #2563eb; color: #ffffff; font-weight: 700; line-height: 1.8; letter-spacing: 0; text-align: center; border: 1px solid #1e40af; }
+        th, td { border: 1px solid #e5e7eb; padding: 6px 8px; text-align: left; vertical-align: middle; line-height: 1.4; }
         .center-text { text-align: center; }
+        th {
+            background: #2563eb;
+            color: #ffffff;
+            border: 1px solid #1e40af;
+            font-weight: 700;
+            text-align: center;
+        }
         .muted { color: #6b7280; font-size: 12px; }
         .header { text-align: left; margin-bottom: 12px; }
         .page { width: 700px; margin: 0 auto; }
@@ -62,12 +40,12 @@
 <body>
     <div class="page">
         <div class="header">
-            <h1>รายชื่อนักเรียนตามห้อง</h1>
+            <h1>รายชื่อนักเรียนแยกตามห้อง</h1>
             <div class="meta meta-row">
                 @if(!empty($courseName))
                     <span><strong>หลักสูตร:</strong> {{ $courseName }}</span>
                 @endif
-                <span><strong>ครู:</strong> {{ $teacher->name ?? '-' }}</span>
+                <span><strong>ครูผู้สอน:</strong> {{ $teacher->name ?? '-' }}</span>
                 @php
                     $roomsList = collect($assignedRooms ?? [])->filter()->values();
                 @endphp
@@ -78,14 +56,19 @@
             <p class="muted" style="margin-top: 4px;">พิมพ์เมื่อ: {{ $printedAt }}</p>
         </div>
 
-        @if($logoPath)
+        @php
+            $logoPath = public_path('images/school-logo.png');
+            $logoExists = file_exists($logoPath);
+        @endphp
+
+        @if($logoExists)
             <div style="text-align:center; margin: 6px 0 12px 0;">
                 <img src="{{ $logoPath }}" alt="โลโก้โรงเรียน" style="height:80px; object-fit:contain;">
             </div>
         @endif
 
         @foreach(($studentsByRoom ?? collect()) as $room => $list)
-            <h2>ห้องเรียน: {{ $room }}</h2>
+            <h2>ห้อง: {{ $room }}</h2>
             <table>
                 <thead>
                     <tr>
@@ -93,7 +76,7 @@
                         <th style="width: 15%;">คำนำหน้า</th>
                         <th style="width: 25%;">ชื่อ</th>
                         <th style="width: 25%;">นามสกุล</th>
-                        <th style="width: 10%;">ห้องเรียน</th>
+                        <th style="width: 10%;">ห้อง</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -103,7 +86,7 @@
                             <td class="center-text">{{ $student->title ?? '-' }}</td>
                             <td>{{ $student->first_name }}</td>
                             <td>{{ $student->last_name }}</td>
-                            <td class="center-text">{{ $student->room_normalized ?? '-' }}</td>
+                            <td class="center-text">{{ $student->classroom ?? $student->room ?? '-' }}</td>
                         </tr>
                     @empty
                         <tr><td colspan="5" class="muted" style="text-align:center;">ยังไม่มีนักเรียนในห้องนี้</td></tr>
@@ -113,7 +96,7 @@
         @endforeach
 
         @if(($studentsByRoom ?? collect())->isEmpty())
-            <p class="muted">ไม่มีข้อมูลนักเรียนตามห้อง</p>
+            <p class="muted">ยังไม่มีข้อมูลนักเรียนสำหรับการส่งออก</p>
         @endif
     </div>
 </body>

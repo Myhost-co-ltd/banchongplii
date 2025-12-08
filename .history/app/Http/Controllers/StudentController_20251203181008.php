@@ -31,29 +31,33 @@ class StudentController extends Controller
     {
         $data = $this->buildHomeroomData();
 
+        $hasClassroomCol = $data['hasClassroomCol'] ?? Schema::hasColumn('students', 'classroom');
+
         $rooms = $data['assignedRooms']->isNotEmpty()
             ? $data['assignedRooms']
-            : $data['students']->pluck('room_normalized')->filter()->unique();
+            : collect($data['students'])
+                ->map(fn ($s) => $hasClassroomCol ? ($s->classroom ?? $s->room ?? null) : ($s->room ?? null))
+                ->filter()
+                ->unique()
+                ->values();
 
-        $studentsByRoom = collect($data['students'])->groupBy(fn ($s) => $s->room_normalized ?? '-');
-
-        $fontPath = strtr(storage_path('fonts'), '\\', '/');
-        $fontCache = strtr(storage_path('fonts/cache'), '\\', '/');
-
-        if (! is_dir($fontCache)) {
-            @mkdir($fontCache, 0775, true);
-        }
+        // Group by classroom when available, otherwise fall back to room so students without classroom still show
+        $studentsByRoom = collect($data['students'])->groupBy(
+            fn ($s) => $hasClassroomCol
+                ? ($s->classroom ?? $s->room ?? '-')
+                : ($s->room ?? '-')
+        );
 
         $pdf = Pdf::setOptions([
-                'isRemoteEnabled' => true,
-                'isHtml5ParserEnabled' => true,
+                'enable_remote' => true,
+                'enable_html5_parser' => true,
                 'chroot' => base_path(),
-                'tempDir' => $fontCache,
-                'defaultFont' => 'Sarabun',
-                'fontDir' => $fontPath,
-                'fontCache' => $fontCache,
-                // Embed full fonts so Thai vowel/tone marks stack correctly
+                'default_font' => 'NotoSansThai',
+                'font_dir' => storage_path('fonts'),
+                'font_cache' => storage_path('fonts/cache'),
+                'temp_dir' => storage_path('fonts/cache'),
                 'enable_font_subsetting' => false,
+                'font_height_ratio' => 1.35,
             ])
             ->loadView('teacher.homeroom-pdf', [
                 'teacher' => Auth::user(),
@@ -63,29 +67,6 @@ class StudentController extends Controller
                 'generatedAt' => now(),
             ]);
 
-        // Register Thai fonts so Dompdf embeds them
-        $metrics = $pdf->getDomPDF()->getFontMetrics();
-        $metrics->registerFont([
-            'family' => 'Sarabun',
-            'style' => 'normal',
-            'weight' => 'normal',
-        ], storage_path('fonts/Sarabun-Regular.ttf'));
-        $metrics->registerFont([
-            'family' => 'Sarabun',
-            'style' => 'normal',
-            'weight' => 'bold',
-        ], storage_path('fonts/Sarabun-Bold.ttf'));
-        $metrics->registerFont([
-            'family' => 'Noto Sans Thai',
-            'style' => 'normal',
-            'weight' => 'normal',
-        ], storage_path('fonts/NotoSansThai-Regular.ttf'));
-        $metrics->registerFont([
-            'family' => 'Noto Sans Thai',
-            'style' => 'normal',
-            'weight' => 'bold',
-        ], storage_path('fonts/NotoSansThai-Bold.ttf'));
-
         return $pdf->download('homeroom-students.pdf');
     }
 
@@ -94,24 +75,18 @@ class StudentController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate(
-            [
-                'student_code' => 'required|string|max:20|unique:students,student_code',
-                'title' => 'required|string|max:20',
-                'first_name' => 'required|string|max:100|regex:/^(?!.*\\d)[\\p{L}\\p{M}\\s]+$/u',
-                'last_name' => 'required|string|max:100|regex:/^(?!.*\\d)[\\p{L}\\p{M}\\s]+$/u',
-            ],
-            [
-                'first_name.regex' => 'ชื่อต้องเป็นตัวอักษรและไม่มีตัวเลข',
-                'last_name.regex'  => 'นามสกุลต้องเป็นตัวอักษรและไม่มีตัวเลข',
-            ]
-        );
+        $validated = $request->validate([
+            'student_code' => 'required|string|max:20|unique:students,student_code',
+            'title' => 'required|string|max:20',
+            'first_name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
+        ]);
 
         Student::create($validated);
 
         return redirect()
             ->route('dashboard')
-            ->with('status', 'บันทึกข้อมูลนักเรียนเรียบร้อยแล้ว');
+            ->with('status', 'เพิ่มข้อมูลนักเรียนเรียบร้อยแล้ว');
     }
 
     /**
@@ -134,16 +109,13 @@ class StudentController extends Controller
             ->latest()
             ->get();
 
-        $normalizeRoom = fn ($item) => $this->normalizeRoomValue($item);
-
         $courseRooms = $courses
-            ->flatMap(fn ($course) => collect($course->rooms ?? [])->map($normalizeRoom))
+            ->flatMap(fn ($course) => collect($course->rooms ?? []))
             ->filter()
             ->unique()
             ->values();
 
         $assignedRooms = $homeroomRooms->isNotEmpty() ? $homeroomRooms : $courseRooms;
-        $assignedRooms = $assignedRooms->map($normalizeRoom)->filter()->values();
 
         $studentQuery = Student::query();
         if ($assignedRooms->isNotEmpty()) {
@@ -163,10 +135,6 @@ class StudentController extends Controller
             ->when($hasClassroomCol, fn ($q) => $q->orderBy('classroom'))
             ->orderBy('student_code')
             ->get();
-        $students = $students->map(function ($student) use ($normalizeRoom) {
-            $student->room_normalized = $normalizeRoom($student->classroom ?? $student->room ?? null);
-            return $student;
-        });
 
         $teacherRoleId = Role::where('name', 'teacher')->value('id');
         $teacherCount = $teacherRoleId
@@ -186,6 +154,7 @@ class StudentController extends Controller
             'assignedRooms' => $assignedRooms,
             // newToday kept for backward compatibility
             'newToday' => $attendanceToday,
+            'hasClassroomCol' => $hasClassroomCol,
         ];
     }
 
@@ -205,9 +174,8 @@ class StudentController extends Controller
         }
 
         $courses = Course::where('user_id', Auth::id())->latest()->get();
-        $normalizeRoom = fn ($item) => $this->normalizeRoomValue($item);
         $courseRooms = collect($courses)
-            ->flatMap(fn ($course) => collect($course->rooms ?? [])->map($normalizeRoom))
+            ->flatMap(fn ($course) => collect($course->rooms ?? []))
             ->filter()
             ->unique()
             ->values();
@@ -218,13 +186,13 @@ class StudentController extends Controller
                 ->where('user_id', Auth::id())
                 ->firstOrFail();
 
-            $courseRooms = collect($course->rooms ?? [])->map($normalizeRoom)->filter()->values();
+            $courseRooms = collect($course->rooms ?? [])->filter()->values();
             $courseName = $course->name;
         }
 
         // Force to support collection of plain strings to avoid Eloquent contains() calling getKey()
         $assignedRooms = $homeroomRooms->isNotEmpty() ? $homeroomRooms->values() : $courseRooms;
-        $assignedRooms = collect($assignedRooms->all())->map($normalizeRoom)->filter()->values();
+        $assignedRooms = collect($assignedRooms->all());
 
         $studentsByRoom = Student::query()
             ->when($assignedRooms->isNotEmpty(), fn ($q) => $q->where(function ($qq) use ($assignedRooms, $hasClassroomCol) {
@@ -238,15 +206,11 @@ class StudentController extends Controller
             ->when($hasClassroomCol, fn ($q) => $q->orderBy('classroom'))
             ->orderBy('student_code')
             ->get()
-            ->map(function ($student) use ($normalizeRoom) {
-                $student->room_normalized = $normalizeRoom($student->classroom ?? $student->room ?? null);
-                return $student;
-            })
-            ->groupBy(fn ($s) => $s->room_normalized ?? '-');
+            ->groupBy(fn ($s) => $hasClassroomCol ? ($s->classroom ?? $s->room ?? '-') : ($s->room ?? '-'));
 
         $filterRoom = trim((string) $request->query('room', ''));
         if ($filterRoom !== '' && $assignedRooms->isNotEmpty() && ! $assignedRooms->contains($filterRoom)) {
-            abort(403, 'ไม่สามารถดูห้องที่คุณไม่ได้รับอนุญาต');
+            abort(403, 'ห้องนี้ไม่ได้อยู่ในความรับผิดชอบของคุณ');
         }
 
         if ($filterRoom !== '') {
@@ -255,22 +219,16 @@ class StudentController extends Controller
             $assignedRooms = collect([$filterRoom]);
         }
 
-        $fontPath  = strtr(storage_path('fonts'), '\\', '/');
-        $fontCache = strtr(storage_path('fonts/cache'), '\\', '/');
-        if (! is_dir($fontCache)) {
-            @mkdir($fontCache, 0775, true);
-        }
-
         $pdf = Pdf::setOptions([
-                'isRemoteEnabled'      => true,
-                'isHtml5ParserEnabled' => true,
+                'enable_remote'        => true,
+                'enable_html5_parser'  => true,
                 'chroot'               => base_path(),
-                'tempDir'              => $fontCache,
-                'defaultFont'          => 'Sarabun',
-                'fontDir'              => $fontPath,
-                'fontCache'            => $fontCache,
-                // Embed full fonts so Thai vowel/tone marks stack correctly
+                'default_font'         => 'NotoSansThai',
+                'font_dir'             => storage_path('fonts'),
+                'font_cache'           => storage_path('fonts/cache'),
+                'temp_dir'             => storage_path('fonts/cache'),
                 'enable_font_subsetting' => false,
+                'font_height_ratio'    => 1.35,
             ])
             ->loadView('teacher.students-export', [
                 'teacher' => $user,
@@ -278,29 +236,6 @@ class StudentController extends Controller
                 'assignedRooms' => $assignedRooms,
                 'courseName' => $courseName,
             ]);
-
-        // Register Thai fonts so Dompdf embeds them
-        $metrics = $pdf->getDomPDF()->getFontMetrics();
-        $metrics->registerFont([
-            'family' => 'Sarabun',
-            'style' => 'normal',
-            'weight' => 'normal',
-        ], storage_path('fonts/Sarabun-Regular.ttf'));
-        $metrics->registerFont([
-            'family' => 'Sarabun',
-            'style' => 'normal',
-            'weight' => 'bold',
-        ], storage_path('fonts/Sarabun-Bold.ttf'));
-        $metrics->registerFont([
-            'family' => 'Noto Sans Thai',
-            'style' => 'normal',
-            'weight' => 'normal',
-        ], storage_path('fonts/NotoSansThai-Regular.ttf'));
-        $metrics->registerFont([
-            'family' => 'Noto Sans Thai',
-            'style' => 'normal',
-            'weight' => 'bold',
-        ], storage_path('fonts/NotoSansThai-Bold.ttf'));
 
         $baseName = 'students';
         if ($courseName) {
@@ -314,44 +249,12 @@ class StudentController extends Controller
     }
 
     /**
-     * Normalize room values that may arrive as strings, objects, or arrays.
-     * Supports array shapes like ['room' => 'X'], ['name' => 'X'], or [0, 1, 2] (uses index 2 first).
+     * Make sure the font cache directory exists before Dompdf writes subsets.
      */
-    private function normalizeRoomValue($item): ?string
+    private function ensureThaiFontCache(string $fontCache): void
     {
-        // Decode JSON strings like "[\"a\",\"b\",\"c\"]" or objects
-        if (is_string($item) && str_starts_with(trim($item), '[')) {
-            $decoded = json_decode($item, true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                $item = $decoded;
-            }
-        } elseif (is_object($item)) {
-            $item = (array) $item;
+        if (! is_dir($fontCache)) {
+            @mkdir($fontCache, 0775, true);
         }
-
-        if (is_array($item)) {
-            if (array_key_exists('room', $item)) {
-                $item = $item['room'];
-            } elseif (array_key_exists('name', $item)) {
-                $item = $item['name'];
-            } else {
-                $item = $item[2] ?? $item[1] ?? $item[0] ?? null;
-            }
-        }
-
-        if (is_null($item)) {
-            return null;
-        }
-
-        if (is_string($item) || is_numeric($item)) {
-            $trimmed = trim((string) $item);
-
-            return $trimmed === '' ? null : $trimmed;
-        }
-
-        return null;
     }
 }
-
-
-
