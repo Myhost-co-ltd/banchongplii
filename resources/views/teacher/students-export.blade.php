@@ -1,9 +1,13 @@
 @php
-    $fontRegular     = 'file:///' . str_replace('\\', '/', storage_path('fonts/Sarabun-Regular.ttf'));
-    $fontBold        = 'file:///' . str_replace('\\', '/', storage_path('fonts/Sarabun-Bold.ttf'));
-    $fontNotoRegular = 'file:///' . str_replace('\\', '/', storage_path('fonts/NotoSansThai-Regular.ttf'));
-    $fontNotoBold    = 'file:///' . str_replace('\\', '/', storage_path('fonts/NotoSansThai-Bold.ttf'));
-    $printedAt       = now()->timezone('Asia/Bangkok')->addYears(543)->format('d/m/Y H:i');
+    $fontTHSarabunRegular    = 'file:///' . str_replace('\\', '/', storage_path('fonts/THSarabunNew-Regular.ttf'));
+    $fontTHSarabunBold       = 'file:///' . str_replace('\\', '/', storage_path('fonts/THSarabunNew-Bold.ttf'));
+    $fontTHSarabunItalic     = 'file:///' . str_replace('\\', '/', storage_path('fonts/THSarabunNew-Italic.ttf'));
+    $fontTHSarabunBoldItalic = 'file:///' . str_replace('\\', '/', storage_path('fonts/THSarabunNew-BoldItalic.ttf'));
+    $fontRegular             = 'file:///' . str_replace('\\', '/', storage_path('fonts/Sarabun-Regular.ttf'));
+    $fontBold                = 'file:///' . str_replace('\\', '/', storage_path('fonts/Sarabun-Bold.ttf'));
+    $fontNotoRegular         = 'file:///' . str_replace('\\', '/', storage_path('fonts/NotoSansThai-Regular.ttf'));
+    $fontNotoBold            = 'file:///' . str_replace('\\', '/', storage_path('fonts/NotoSansThai-Bold.ttf'));
+    $printedAt               = now()->timezone('Asia/Bangkok')->addYears(543)->format('d/m/Y H:i');
 
     $logoPathFile = public_path('images/school-logo.png');
     $logoPath     = file_exists($logoPathFile) ? ('file:///' . str_replace('\\', '/', $logoPathFile)) : null;
@@ -14,16 +18,28 @@
     <meta charset="UTF-8">
     <style>
         @font-face {
-            font-family: 'Sarabun';
+            font-family: 'THSarabunNew';
             font-style: normal;
             font-weight: 400;
-            src: url('{{ $fontRegular }}') format('truetype');
+            src: url('{{ $fontTHSarabunRegular }}') format('truetype');
         }
         @font-face {
-            font-family: 'Sarabun';
+            font-family: 'THSarabunNew';
             font-style: normal;
             font-weight: 700;
-            src: url('{{ $fontBold }}') format('truetype');
+            src: url('{{ $fontTHSarabunBold }}') format('truetype');
+        }
+        @font-face {
+            font-family: 'THSarabunNew';
+            font-style: italic;
+            font-weight: 400;
+            src: url('{{ $fontTHSarabunItalic }}') format('truetype');
+        }
+        @font-face {
+            font-family: 'THSarabunNew';
+            font-style: italic;
+            font-weight: 700;
+            src: url('{{ $fontTHSarabunBoldItalic }}') format('truetype');
         }
         @font-face {
             font-family: 'Noto Sans Thai';
@@ -38,9 +54,9 @@
             src: url('{{ $fontNotoBold }}') format('truetype');
         }
         body {
-            font-family: 'Sarabun', 'Noto Sans Thai', 'NotoSansThai', 'LeelawUI', DejaVu Sans, sans-serif;
+            font-family: 'THSarabunNew', 'TH Sarabun New', 'Sarabun', 'Noto Sans Thai', 'NotoSansThai', 'LeelawUI', DejaVu Sans, sans-serif;
             font-size: 13px;
-            color: #1f2937;
+            color: #000;
             line-height: 1.6;
             text-rendering: optimizeLegibility;
             -webkit-font-smoothing: antialiased;
@@ -49,13 +65,13 @@
         h2 { margin: 16px 0 8px; font-size: 15px; font-weight: 700; line-height: 1.7; letter-spacing: 0; }
         table { width: 100%; border-collapse: collapse; margin-top: 6px; }
         th, td { border: 1px solid #e5e7eb; padding: 8px 8px; text-align: left; line-height: 1.7; letter-spacing: 0; vertical-align: middle; }
-        th { background: #2563eb; color: #ffffff; font-weight: 700; line-height: 1.8; letter-spacing: 0; text-align: center; border: 1px solid #1e40af; }
+        th { background: #e5e7eb; color: #000; font-weight: 700; line-height: 1.8; letter-spacing: 0; text-align: center; border: 1px solid #d1d5db; }
         .center-text { text-align: center; }
-        .muted { color: #6b7280; font-size: 12px; }
+        .muted { color: #000; font-size: 12px; }
         .header { text-align: left; margin-bottom: 12px; }
         .page { width: 700px; margin: 0 auto; }
-        .meta { color: #374151; font-size: 14px; margin: 2px 0; }
-        .meta strong { color: #111827; }
+        .meta { color: #000; font-size: 14px; margin: 2px 0; }
+        .meta strong { color: #000; }
         .meta-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
     </style>
 </head>

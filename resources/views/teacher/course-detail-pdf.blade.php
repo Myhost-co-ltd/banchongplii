@@ -1,7 +1,11 @@
 ﻿@php
     $termLabel = $selectedTerm === '2' ? 'ภาคเรียนที่ 2' : 'ภาคเรียนที่ 1';
-    $fontRegular = 'file:///' . str_replace('\\', '/', storage_path('fonts/LeelawUI.ttf'));
-    $fontBold = 'file:///' . str_replace('\\', '/', storage_path('fonts/LeelaUIb.ttf'));
+    $fontTHSarabunRegular    = 'file:///' . str_replace('\\', '/', storage_path('fonts/THSarabunNew-Regular.ttf'));
+    $fontTHSarabunBold       = 'file:///' . str_replace('\\', '/', storage_path('fonts/THSarabunNew-Bold.ttf'));
+    $fontTHSarabunItalic     = 'file:///' . str_replace('\\', '/', storage_path('fonts/THSarabunNew-Italic.ttf'));
+    $fontTHSarabunBoldItalic = 'file:///' . str_replace('\\', '/', storage_path('fonts/THSarabunNew-BoldItalic.ttf'));
+    $fontRegular             = 'file:///' . str_replace('\\', '/', storage_path('fonts/LeelawUI.ttf'));
+    $fontBold                = 'file:///' . str_replace('\\', '/', storage_path('fonts/LeelaUIb.ttf'));
 @endphp
 <!DOCTYPE html>
 <html lang="th">
@@ -10,18 +14,32 @@
     <title>รายงานรายละเอียดรายวิชา - {{ $course->name }}</title>
     <style>
         @font-face {
-            font-family: 'LeelawUI';
+            font-family: 'THSarabunNew';
+            font-style: normal;
             font-weight: 400;
-            src: url('{{ $fontRegular }}') format('truetype');
+            src: url('{{ $fontTHSarabunRegular }}') format('truetype');
         }
         @font-face {
-            font-family: 'LeelawUI';
+            font-family: 'THSarabunNew';
+            font-style: normal;
             font-weight: 700;
-            src: url('{{ $fontBold }}') format('truetype');
+            src: url('{{ $fontTHSarabunBold }}') format('truetype');
+        }
+        @font-face {
+            font-family: 'THSarabunNew';
+            font-style: italic;
+            font-weight: 400;
+            src: url('{{ $fontTHSarabunItalic }}') format('truetype');
+        }
+        @font-face {
+            font-family: 'THSarabunNew';
+            font-style: italic;
+            font-weight: 700;
+            src: url('{{ $fontTHSarabunBoldItalic }}') format('truetype');
         }
 
         body {
-            font-family: 'LeelawUI', 'Tahoma', 'DejaVu Sans', sans-serif;
+            font-family: 'THSarabunNew', 'TH Sarabun New', 'LeelawUI', 'Sarabun', 'Tahoma', 'DejaVu Sans', sans-serif;
             font-size: 13px;
             color: #111827;
             line-height: 1.45;
@@ -125,7 +143,7 @@
 </div>
 
 <div class="section">
-    <h3>แผนการสอน (รายการ)</h3>
+    <h3>แผนการสอน</h3>
     <table>
         <thead>
             <tr>
@@ -149,7 +167,7 @@
 </div>
 
 <div class="section">
-    <h3>งาน / แบบฝึกหัด (รายการ)</h3>
+    <h3>งาน / แบบฝึกหัด </h3>
 
     <table>
         <thead>

@@ -1,8 +1,12 @@
 @php
-    $fontRegular     = 'file:///' . str_replace('\\', '/', storage_path('fonts/Sarabun-Regular.ttf'));
-    $fontBold        = 'file:///' . str_replace('\\', '/', storage_path('fonts/Sarabun-Bold.ttf'));
-    $fontNotoRegular = 'file:///' . str_replace('\\', '/', storage_path('fonts/NotoSansThai-Regular.ttf'));
-    $fontNotoBold    = 'file:///' . str_replace('\\', '/', storage_path('fonts/NotoSansThai-Bold.ttf'));
+    $fontTHSarabunRegular     = 'file:///' . str_replace('\\', '/', storage_path('fonts/THSarabunNew-Regular.ttf'));
+    $fontTHSarabunBold        = 'file:///' . str_replace('\\', '/', storage_path('fonts/THSarabunNew-Bold.ttf'));
+    $fontTHSarabunItalic      = 'file:///' . str_replace('\\', '/', storage_path('fonts/THSarabunNew-Italic.ttf'));
+    $fontTHSarabunBoldItalic  = 'file:///' . str_replace('\\', '/', storage_path('fonts/THSarabunNew-BoldItalic.ttf'));
+    $fontRegular              = 'file:///' . str_replace('\\', '/', storage_path('fonts/Sarabun-Regular.ttf'));
+    $fontBold                 = 'file:///' . str_replace('\\', '/', storage_path('fonts/Sarabun-Bold.ttf'));
+    $fontNotoRegular          = 'file:///' . str_replace('\\', '/', storage_path('fonts/NotoSansThai-Regular.ttf'));
+    $fontNotoBold             = 'file:///' . str_replace('\\', '/', storage_path('fonts/NotoSansThai-Bold.ttf'));
 
     $roomsList   = ($rooms ?? collect())->filter();
     $printedAt   = ($generatedAt ?? now())->timezone('Asia/Bangkok');
@@ -35,7 +39,9 @@
             return null;
         }
 
+        // Clean leading/trailing whitespace and stray punctuation so values don't render as "." in the PDF
         $val = trim((string) $item);
+        $val = trim($val, " .,\t\n\r\0\x0B");
         return $val === '' ? null : $val;
     };
 
@@ -46,6 +52,30 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <style>
+        @font-face {
+            font-family: 'THSarabunNew';
+            font-weight: 400;
+            font-style: normal;
+            src: url('{{ $fontTHSarabunRegular }}') format('truetype');
+        }
+        @font-face {
+            font-family: 'THSarabunNew';
+            font-weight: 700;
+            font-style: normal;
+            src: url('{{ $fontTHSarabunBold }}') format('truetype');
+        }
+        @font-face {
+            font-family: 'THSarabunNew';
+            font-weight: 400;
+            font-style: italic;
+            src: url('{{ $fontTHSarabunItalic }}') format('truetype');
+        }
+        @font-face {
+            font-family: 'THSarabunNew';
+            font-weight: 700;
+            font-style: italic;
+            src: url('{{ $fontTHSarabunBoldItalic }}') format('truetype');
+        }
         @font-face {
             font-family: 'Sarabun';
             font-weight: 400;
@@ -68,7 +98,7 @@
         }
 
         body {
-            font-family: 'Sarabun', 'Noto Sans Thai', 'NotoSansThai', 'LeelawUI', 'Tahoma', 'DejaVu Sans', sans-serif;
+            font-family: 'THSarabunNew', 'TH Sarabun New', 'Sarabun', 'Noto Sans Thai', 'NotoSansThai', 'LeelawUI', 'Tahoma', 'DejaVu Sans', sans-serif;
             font-size: 13px;
             color: #111827;
             line-height: 1.6;
@@ -83,41 +113,59 @@
             position: fixed;
             top: -60px; left: 0; right: 0;
             text-align: center;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 700;
         }
 
         h1, h2, h3 { margin: 0 0 6px 0; line-height: 1.65; letter-spacing: 0; }
         .section { margin-bottom: 18px; }
-        .muted { color: #6b7280; }
+        .muted { color: #000; }
         .pill {
             display: inline-block;
-            background: #2563eb;
-            color: #fff;
+            /* background: #e5e7eb; */
+            color: #000;
             padding: 2px 10px;
             border-radius: 999px;
-            font-size: 11px;
+            font-size: 18px;
             margin-right: 4px;
             margin-bottom: 4px;
             line-height: 1.8;
         }
-        table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+        .wrap { max-width: 720px; margin: 0 auto; }
+        table {
+            width: 92%;
+            border-collapse: collapse;
+            margin: 4px auto 0 auto;
+            table-layout: fixed;
+        }
         th {
-            background: #2563eb;
-            color: #fff;
-            padding: 8px 6px;
+            background: #e5e7eb;
+            color: #000;
+            padding: 6px 6px;
             border: 1px solid #cbd5e1;
             font-weight: 700;
             text-align: center;
-            font-size: 14px;
-            line-height: 2.25;
+            font-size: 16px;
+            line-height: 1.8;
             letter-spacing: 0;
             vertical-align: middle;
         }
-        td { padding: 8px 6px; border: 1px solid #e5e7eb; line-height: 1.7; letter-spacing: 0; vertical-align: middle; font-size: 14px; }
+        td {
+            padding: 6px 6px;
+            border: 1px solid #e5e7eb;
+            line-height: 1.5;
+            letter-spacing: 0;
+            vertical-align: middle;
+            font-size: 16px;
+            text-align: center;
+        }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        .muted-inline { color: #6b7280; }
     </style>
 </head>
 <body>
+<div class="wrap">
 <header>สรุปหลักสูตรและนักเรียนที่รับผิดชอบ</header>
 @if($logoPath)
     <div style="text-align:center; margin: 0 0 8px 0;">
@@ -174,7 +222,7 @@
                 }
             @endphp
             <tr>
-                <td>{{ $course->name }}</td>
+                <td>{{ trim((string) ($course->name ?? '')) !== '' ? $course->name : '-' }}</td>
                 <td>{{ $courseRooms !== '' ? $courseRooms : '-' }}</td>
                 <td>{{ trim((string) $courseGrade) !== '' ? $courseGrade : '-' }}</td>
             </tr>
@@ -186,7 +234,7 @@
 </div>
 
 <div class="section">
-    <h2 style="font-size:15px;">ห้องที่รับผิดชอบ</h2>
+    <h2 style="font-size:18px;">ห้องที่รับผิดชอบ</h2>
     <p>
         @forelse($roomsList as $room)
             <span class="pill">{{ $room }}</span>
@@ -197,7 +245,7 @@
 </div>
 
 <div class="section">
-    <h2 style="font-size:15px; margin-bottom:6px;">ชื่อนักเรียนตามห้อง</h2>
+    <h2 style="font-size:18px; margin-bottom:6px;">ชื่อนักเรียนตามห้อง</h2>
     @forelse($roomsList as $room)
         @php $students = ($studentsByRoom ?? collect())->get($room, collect()); @endphp
         <h3 style="margin-top:10px;">ห้อง {{ $room }}</h3>
@@ -215,11 +263,14 @@
                 </thead>
                 <tbody>
                 @foreach($students as $student)
+                    @php
+                        $roomDisplay = $normalizeRoom($student->room_normalized ?? $student->room ?? $room ?? null);
+                    @endphp
                     <tr>
-                        <td>{{ $student->student_code }}</td>
-                        <td>{{ $student->first_name }}</td>
-                        <td>{{ $student->last_name }}</td>
-                        <td>{{ $student->room_normalized ?? $normalizeRoom($student->room ?? $room ?? null) ?? '-' }}</td>
+                        <td>{{ trim((string) ($student->student_code ?? '')) !== '' ? $student->student_code : '-' }}</td>
+                        <td class="text-left">{{ trim((string) ($student->first_name ?? '')) !== '' ? $student->first_name : '-' }}</td>
+                        <td class="text-left">{{ trim((string) ($student->last_name ?? '')) !== '' ? $student->last_name : '-' }}</td>
+                        <td>{{ $roomDisplay ?? '-' }}</td>
                     </tr>
                 @endforeach
                 </tbody>
@@ -230,5 +281,6 @@
     @endforelse
 </div>
 
+</div>
 </body>
 </html>

@@ -39,6 +39,10 @@ class StudentController extends Controller
 
         $fontPath = strtr(storage_path('fonts'), '\\', '/');
         $fontCache = strtr(storage_path('fonts/cache'), '\\', '/');
+        $thSarabunRegularPath = storage_path('fonts/THSarabunNew-Regular.ttf');
+        $thSarabunBoldPath = storage_path('fonts/THSarabunNew-Bold.ttf');
+        $thSarabunItalicPath = storage_path('fonts/THSarabunNew-Italic.ttf');
+        $thSarabunBoldItalicPath = storage_path('fonts/THSarabunNew-BoldItalic.ttf');
 
         if (! is_dir($fontCache)) {
             @mkdir($fontCache, 0775, true);
@@ -49,7 +53,7 @@ class StudentController extends Controller
                 'isHtml5ParserEnabled' => true,
                 'chroot' => base_path(),
                 'tempDir' => $fontCache,
-                'defaultFont' => 'Sarabun',
+                'defaultFont' => 'THSarabunNew',
                 'fontDir' => $fontPath,
                 'fontCache' => $fontCache,
                 // Embed full fonts so Thai vowel/tone marks stack correctly
@@ -65,6 +69,26 @@ class StudentController extends Controller
 
         // Register Thai fonts so Dompdf embeds them
         $metrics = $pdf->getDomPDF()->getFontMetrics();
+        $metrics->registerFont([
+            'family' => 'THSarabunNew',
+            'style' => 'normal',
+            'weight' => 'normal',
+        ], $thSarabunRegularPath);
+        $metrics->registerFont([
+            'family' => 'THSarabunNew',
+            'style' => 'normal',
+            'weight' => 'bold',
+        ], $thSarabunBoldPath);
+        $metrics->registerFont([
+            'family' => 'THSarabunNew',
+            'style' => 'italic',
+            'weight' => 'normal',
+        ], $thSarabunItalicPath);
+        $metrics->registerFont([
+            'family' => 'THSarabunNew',
+            'style' => 'italic',
+            'weight' => 'bold',
+        ], $thSarabunBoldItalicPath);
         $metrics->registerFont([
             'family' => 'Sarabun',
             'style' => 'normal',
@@ -257,6 +281,10 @@ class StudentController extends Controller
 
         $fontPath  = strtr(storage_path('fonts'), '\\', '/');
         $fontCache = strtr(storage_path('fonts/cache'), '\\', '/');
+        $thSarabunRegularPath = storage_path('fonts/THSarabunNew-Regular.ttf');
+        $thSarabunBoldPath = storage_path('fonts/THSarabunNew-Bold.ttf');
+        $thSarabunItalicPath = storage_path('fonts/THSarabunNew-Italic.ttf');
+        $thSarabunBoldItalicPath = storage_path('fonts/THSarabunNew-BoldItalic.ttf');
         if (! is_dir($fontCache)) {
             @mkdir($fontCache, 0775, true);
         }
@@ -266,7 +294,7 @@ class StudentController extends Controller
                 'isHtml5ParserEnabled' => true,
                 'chroot'               => base_path(),
                 'tempDir'              => $fontCache,
-                'defaultFont'          => 'Sarabun',
+                'defaultFont'          => 'THSarabunNew',
                 'fontDir'              => $fontPath,
                 'fontCache'            => $fontCache,
                 // Embed full fonts so Thai vowel/tone marks stack correctly
@@ -282,15 +310,25 @@ class StudentController extends Controller
         // Register Thai fonts so Dompdf embeds them
         $metrics = $pdf->getDomPDF()->getFontMetrics();
         $metrics->registerFont([
-            'family' => 'Sarabun',
+            'family' => 'THSarabunNew',
             'style' => 'normal',
             'weight' => 'normal',
-        ], storage_path('fonts/Sarabun-Regular.ttf'));
+        ], $thSarabunRegularPath);
         $metrics->registerFont([
-            'family' => 'Sarabun',
+            'family' => 'THSarabunNew',
             'style' => 'normal',
             'weight' => 'bold',
-        ], storage_path('fonts/Sarabun-Bold.ttf'));
+        ], $thSarabunBoldPath);
+        $metrics->registerFont([
+            'family' => 'THSarabunNew',
+            'style' => 'italic',
+            'weight' => 'normal',
+        ], $thSarabunItalicPath);
+        $metrics->registerFont([
+            'family' => 'THSarabunNew',
+            'style' => 'italic',
+            'weight' => 'bold',
+        ], $thSarabunBoldItalicPath);
         $metrics->registerFont([
             'family' => 'Noto Sans Thai',
             'style' => 'normal',
@@ -352,6 +390,4 @@ class StudentController extends Controller
         return null;
     }
 }
-
-
 

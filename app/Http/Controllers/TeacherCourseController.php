@@ -184,6 +184,10 @@ class TeacherCourseController extends Controller
             @mkdir($fontCache, 0775, true);
         }
 
+        $thSarabunRegularPath = storage_path('fonts/THSarabunNew-Regular.ttf');
+        $thSarabunBoldPath = storage_path('fonts/THSarabunNew-Bold.ttf');
+        $thSarabunItalicPath = storage_path('fonts/THSarabunNew-Italic.ttf');
+        $thSarabunBoldItalicPath = storage_path('fonts/THSarabunNew-BoldItalic.ttf');
         $leelaRegularPath = "{$fontPath}/LeelawUI.ttf";
         $leelaBoldPath = "{$fontPath}/LeelaUIb.ttf";
 
@@ -194,8 +198,8 @@ class TeacherCourseController extends Controller
                 'fontDir' => $fontPath,
                 'fontCache' => $fontCache,
                 'tempDir' => $fontCache,
-                'defaultFont' => 'LeelawUI',
-                'enable_font_subsetting' => true,
+                'defaultFont' => 'THSarabunNew',
+                'enable_font_subsetting' => false,
             ])
             ->loadView('teacher.course-detail-pdf', array_merge($payload, [
                 'course' => $course,
@@ -203,8 +207,28 @@ class TeacherCourseController extends Controller
                 'teacher' => $request->user(),
             ]));
 
-        // Register LeelawUI font explicitly so Dompdf does not fall back to an empty font key
+        // Register fonts explicitly so Dompdf embeds Thai glyphs correctly
         $metrics = $pdf->getDomPDF()->getFontMetrics();
+        $metrics->registerFont([
+            'family' => 'THSarabunNew',
+            'style' => 'normal',
+            'weight' => 'normal',
+        ], $thSarabunRegularPath);
+        $metrics->registerFont([
+            'family' => 'THSarabunNew',
+            'style' => 'normal',
+            'weight' => 'bold',
+        ], $thSarabunBoldPath);
+        $metrics->registerFont([
+            'family' => 'THSarabunNew',
+            'style' => 'italic',
+            'weight' => 'normal',
+        ], $thSarabunItalicPath);
+        $metrics->registerFont([
+            'family' => 'THSarabunNew',
+            'style' => 'italic',
+            'weight' => 'bold',
+        ], $thSarabunBoldItalicPath);
         $metrics->registerFont([
             'family' => 'LeelawUI',
             'style' => 'normal',
