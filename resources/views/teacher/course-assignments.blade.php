@@ -15,6 +15,13 @@
     $assignedRooms = collect($assignedRooms ?? []);
     $studentsFlat = $studentsByRoom->flatten(1)->values();
     $studentTotal = $studentsFlat->count();
+    $studentsSummary = $studentsFlat->map(function ($s) {
+        return [
+            'code' => $s->student_code ?? '',
+            'name' => trim(($s->title ?? '').' '.($s->first_name ?? '').' '.($s->last_name ?? '')),
+            'room' => $s->classroom ?? $s->room ?? '',
+        ];
+    })->values()->all();
 @endphp
 
 @section('content')
@@ -253,13 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Assignment status modal
-    const students = @json($studentsFlat->map(function($s){
-        return [
-            'code' => $s->student_code ?? '',
-            'name' => trim(($s->title ?? '').' '.($s->first_name ?? '').' '.($s->last_name ?? '')),
-            'room' => $s->classroom ?? $s->room ?? '',
-        ];
-    }));
+    const students = @json($studentsSummary);
 
     const modal = document.getElementById('assignmentStatusModal');
     const modalTitle = document.getElementById('assignmentStatusTitle');
