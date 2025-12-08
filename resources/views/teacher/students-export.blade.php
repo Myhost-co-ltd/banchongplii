@@ -56,20 +56,20 @@
         body {
             font-family: 'THSarabunNew', 'TH Sarabun New', 'Sarabun', 'Noto Sans Thai', 'NotoSansThai', 'LeelawUI', DejaVu Sans, sans-serif;
             font-size: 13px;
-            color: #000;
+            color: #111827;
             line-height: 1.6;
             text-rendering: optimizeLegibility;
             -webkit-font-smoothing: antialiased;
         }
         h1 {  margin: 0 0 12px; font-size: 22px; text-align: center; line-height: 1.7; letter-spacing: 0; }
         h2 { margin: 16px 0 8px; font-size: 15px; font-weight: 700; line-height: 1.7; letter-spacing: 0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 6px; }
-        th, td { border: 1px solid #e5e7eb; padding: 8px 8px; text-align: left; line-height: 1.7; letter-spacing: 0; vertical-align: middle; }
-        th { background: #e5e7eb; color: #000; font-weight: 700; line-height: 1.8; letter-spacing: 0; text-align: center; border: 1px solid #d1d5db; }
+        table { width: 92%; border-collapse: collapse; margin: 6px auto 0 auto; }
+        th, td { border: 1px solid #e5e7eb; padding: 5px 6px; text-align: center; line-height: 1.35; letter-spacing: 0; vertical-align: middle; font-size: 15px; }
+        th { background: #e5e7eb; color: #000; font-weight: 700; line-height: 1.6; letter-spacing: 0; text-align: center; border: 1px solid #d1d5db; }
         .center-text { text-align: center; }
         .muted { color: #000; font-size: 12px; }
         .header { text-align: left; margin-bottom: 12px; }
-        .page { width: 700px; margin: 0 auto; }
+        .page { width: 720px; margin: 0 auto; }
         .meta { color: #000; font-size: 14px; margin: 2px 0; }
         .meta strong { color: #000; }
         .meta-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }

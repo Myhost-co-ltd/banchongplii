@@ -52,7 +52,7 @@
                         </a>
                         <a href="{{ route('teacher.courses.export', ['course' => $course->id, 'term' => $currentTerm]) }}"
                            class="px-4 py-2 bg-green-600 text-white rounded-xl text-sm"
-                           data-i18n-th="ส่งออก PDF"
+                           data-i18n-th="Export PDF"
                            data-i18n-en="Export PDF">
                             Export PDF
                         </a>

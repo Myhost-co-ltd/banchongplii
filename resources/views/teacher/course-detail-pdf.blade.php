@@ -42,44 +42,49 @@
             font-family: 'THSarabunNew', 'TH Sarabun New', 'LeelawUI', 'Sarabun', 'Tahoma', 'DejaVu Sans', sans-serif;
             font-size: 13px;
             color: #111827;
-            line-height: 1.45;
+            line-height: 1.6;
         }
 
-        @page {
-            margin: 60px 40px 60px;
-        }
+@page {
+    margin: 60px 40px 60px;
+}
 
         .section { margin-bottom: 22px; }
-        .muted { font-size: 12px; color: #6b7280; }
+.muted { font-size: 12px; color: #000; }
 
-        .pill {
+.pill {
             display: inline-block;
             color: black;
             padding: 3px 10px;
             border-radius: 999px;
             font-size: 11px;
             margin-right: 4px;
-        }
+}
 
-        table {
-            width: 100%;
+.wrap { max-width: 720px; margin: 0 auto; }
+table {
+    width: 92%;
             border-collapse: collapse;
-            margin-top: 6px;
+            margin: 6px auto 0 auto;
         }
 
         th {
-            background: #2563eb;
-            color: #fff;
-            padding: 6px;
+            background: #e5e7eb;
+            color: #000;
+            padding: 5px 6px;
             border: 1px solid #cbd5e1;
             font-weight: 700;
             text-align: center;
+            font-size: 15px;
+            line-height: 1.6;
         }
 
         td {
-            padding: 6px;
+            padding: 5px 6px;
             border: 1px solid #e5e7eb;
             text-align: center;
+            font-size: 15px;
+            line-height: 1.35;
         }
 
         h1,h2,h3 { margin: 0 0 6px 0; }
@@ -90,6 +95,7 @@
 </head>
 
 <body>
+<div class="wrap">
 <h1 style="font-size:18px; font-weight:700; text-align:center; margin:0 0 10px 0;">รายงานรายละเอียดรายวิชา</h1>
 
 <p style="font-size:15px; font-weight:700; margin:0 0 6px 0;">
@@ -110,7 +116,7 @@
     <p style="margin:0;">
         <span style="font-weight:700; vertical-align:top; margin-right: 10px;">ห้องเรียน:</span>
         @forelse($course->rooms ?? [] as $room)
-            <span class="pill" style="vertical-align:middle; background:#e5e7eb; border: 1px solid #d1d5db;">{{ $room }}</span>
+            <span class="pill" style="vertical-align:middle; ">{{ $room }}</span>
         @empty
             <span class="muted">-</span>
         @endforelse
@@ -200,6 +206,7 @@
         คะแนนรวม: {{ $assignmentTotal }} |
         คะแนนที่เหลือ: {{ $assignmentRemaining }}
     </p>
+</div>
 </div>
 
 </body>

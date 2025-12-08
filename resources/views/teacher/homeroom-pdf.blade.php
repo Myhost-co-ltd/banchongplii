@@ -141,22 +141,22 @@
         th {
             background: #e5e7eb;
             color: #000;
-            padding: 6px 6px;
+            padding: 5px 6px;
             border: 1px solid #cbd5e1;
             font-weight: 700;
             text-align: center;
-            font-size: 16px;
-            line-height: 1.8;
+            font-size: 15px;
+            line-height: 1.6;
             letter-spacing: 0;
             vertical-align: middle;
         }
         td {
-            padding: 6px 6px;
+            padding: 5px 6px;
             border: 1px solid #e5e7eb;
-            line-height: 1.5;
+            line-height: 1.35;
             letter-spacing: 0;
             vertical-align: middle;
-            font-size: 16px;
+            font-size: 15px;
             text-align: center;
         }
         .text-left { text-align: left; }
