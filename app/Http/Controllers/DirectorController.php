@@ -141,6 +141,29 @@ class DirectorController extends Controller
         $completeTeachers = $teacherStatus->where('complete', true)->values();
         $incompleteTeachers = $teacherStatus->where('complete', false)->values();
 
+        $teachersWithoutCourses = $teacherRoleId
+            ? User::query()
+                ->where('role_id', $teacherRoleId)
+                ->whereNotIn('id', $teacherStatus->keys())
+                ->orderBy('name')
+                ->get(['id', 'name', 'email', 'major'])
+            : collect();
+
+        $incompleteTeachers = $incompleteTeachers
+            ->merge(
+                $teachersWithoutCourses->map(fn ($teacher) => [
+                    'teacher' => [
+                        'id' => $teacher->id,
+                        'name' => $teacher->name,
+                        'email' => $teacher->email,
+                        'major' => $teacher->major,
+                    ],
+                    'courses' => [],
+                    'complete' => false,
+                ])
+            )
+            ->values();
+
         $completeTeacherCount = $completeTeachers->count();
         $incompleteTeacherCount = $incompleteTeachers->count();
 

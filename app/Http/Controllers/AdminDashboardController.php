@@ -52,10 +52,20 @@ class AdminDashboardController extends Controller
             ->pluck('teacher')
             ->filter();
 
+        $teachersWithoutCourses = $teacherRoleId
+            ? User::where('role_id', $teacherRoleId)
+                ->whereNotIn('id', $teacherStatus->keys())
+                ->get(['id', 'name', 'email'])
+            : collect();
+
         $incompleteTeachers = $teacherStatus
             ->filter(fn ($status) => ! $status['complete'])
             ->pluck('teacher')
-            ->filter();
+            ->filter()
+            ->merge($teachersWithoutCourses)
+            ->values();
+
+        $incompleteTeacherCount = $incompleteTeachers->count();
 
         return view('dashboards.admin', compact(
             'teacherCount',

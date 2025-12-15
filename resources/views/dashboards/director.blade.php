@@ -45,7 +45,7 @@
                 class="p-6 bg-gradient-to-br from-sky-50 to-sky-200 border border-sky-300 rounded-2xl shadow w-full text-left transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2">
             <div class="flex items-start justify-between gap-3">
                 <div>
-                    <h3 class="text-gray-600" data-i18n-th="ครูที่มีชั่วโมงสอนครบ" data-i18n-en="Teachers complete (hours & assignments)">ครูที่มีชั่วโมงสอนครบ</h3>
+                    <h3 class="text-gray-600" data-i18n-th="คุณครูที่ทำหลักสูตรเสร็จ" data-i18n-en="Teachers with finished courses">คุณครูที่ทำหลักสูตรเสร็จ</h3>
                     <p class="text-sm text-sky-800 mt-2 underline">ดูรายชื่อครู</p>
                 </div>
                 <p class="text-4xl font-bold text-sky-800 mt-1">{{ number_format($completeTeacherCount ?? 0) }}</p>
@@ -57,7 +57,7 @@
                 class="p-6 bg-gradient-to-br from-amber-50 to-amber-200 border border-amber-300 rounded-2xl shadow w-full text-left transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2">
             <div class="flex items-start justify-between gap-3">
                 <div>
-                    <h3 class="text-gray-600" data-i18n-th="ครูที่มีชั่วโมงสอนไม่ครบ" data-i18n-en="Teachers incomplete">ครูที่มีชั่วโมงสอนไม่ครบ</h3>
+                    <h3 class="text-gray-600" data-i18n-th="คุณครูที่ทำหลักสูตรยังไม่เสร็จ" data-i18n-en="Teachers with unfinished courses">คุณครูที่ทำหลักสูตรยังไม่เสร็จ</h3>
                     <p class="text-sm text-amber-800 mt-2 underline">ดูรายชื่อครู</p>
                 </div>
                 <p class="text-4xl font-bold text-amber-800 mt-1">{{ number_format($incompleteTeacherCount ?? 0) }}</p>
@@ -69,42 +69,32 @@
     <!-- กราฟสัดส่วนครูตามสถานะชั่วโมงสอน -->
     <div class="bg-white rounded-3xl shadow p-8 border border-gray-100">
         <div class="flex flex-col lg:flex-row items-center gap-8">
-            <div class="flex-1 space-y-3">
+        <div class="flex-1 space-y-3">
                 <div>
-                    <h2 class="text-xl font-semibold text-gray-800"
-                        data-i18n-th="ภาพรวมชั่วโมงสอนของครู"
-                        data-i18n-en="Teacher teaching hours overview">
-                        ภาพรวมชั่วโมงสอนของครู
-                    </h2>
-                    <p class="text-sm text-gray-500"
-                       data-i18n-th="สัดส่วนครูที่กรอกชั่วโมงสอนครบและไม่ครบ"
-                       data-i18n-en="Share of teachers with completed and incomplete teaching hours">
-                        สัดส่วนครูที่กรอกชั่วโมงสอนครบและไม่ครบ
-                    </p>
+                    <h2 class="text-xl font-semibold text-gray-800">สถานะหลักสูตรของครู</h2>
+                    <p class="text-sm text-gray-500">แสดงจำนวนครูที่ทำหลักสูตรเสร็จ ยังไม่เสร็จ และยังไม่ได้สร้างหลักสูตร</p>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div class="flex items-center gap-3 p-3 rounded-2xl bg-sky-50 border border-sky-100">
                         <span class="w-3 h-3 rounded-full bg-sky-500"></span>
                         <div>
-                            <p class="text-xs text-gray-600" data-i18n-th="ชั่วโมงสอนครบ" data-i18n-en="Complete hours">ชั่วโมงสอนครบ</p>
+                            <p class="text-xs text-gray-600">ครูที่ทำหลักสูตรเสร็จ</p>
                             <p class="text-2xl font-bold text-sky-700">{{ number_format($completeTeacherCount ?? 0) }}</p>
-                            <p class="text-xs text-sky-700/80 mt-1" data-i18n-th="คน" data-i18n-en="people">คน</p>
+                            <p class="text-xs text-sky-700/80 mt-1">คน</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-3 p-3 rounded-2xl bg-amber-50 border border-amber-100">
                         <span class="w-3 h-3 rounded-full bg-amber-500"></span>
                         <div>
-                            <p class="text-xs text-gray-600" data-i18n-th="ชั่วโมงสอนไม่ครบ" data-i18n-en="Incomplete hours">ชั่วโมงสอนไม่ครบ</p>
+                            <p class="text-xs text-gray-600">ครูที่ทำหลักสูตรยังไม่เสร็จ</p>
                             <p class="text-2xl font-bold text-amber-700">{{ number_format($incompleteTeacherCount ?? 0) }}</p>
-                            <p class="text-xs text-amber-700/80 mt-1" data-i18n-th="คน" data-i18n-en="people">คน</p>
+                            <p class="text-xs text-amber-700/80 mt-1">คน</p>
                         </div>
                     </div>
                 </div>
-                <p class="text-xs text-gray-500" data-i18n-th="รวมครูที่มีการสอนทั้งหมด" data-i18n-en="Total teachers with courses">
-                    รวมครูที่มีการสอนทั้งหมด {{ number_format(($completeTeacherCount ?? 0) + ($incompleteTeacherCount ?? 0)) }} คน
-                </p>
-            </div>
-            <div class="flex-1 flex justify-center">
+                <p class="text-xs text-gray-500">รวมครูทั้งหมด {{ number_format(($completeTeacherCount ?? 0) + ($incompleteTeacherCount ?? 0)) }} คน</p>
+        </div>
+        <div class="flex-1 flex justify-center">
                 <div class="relative w-full max-w-xs">
                     <canvas id="teacherStatusChart" class="w-full h-full"></canvas>
                     <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -297,7 +287,7 @@
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden">
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
             <div>
-                <h3 id="teacherStatusModalTitle" class="text-lg font-semibold text-gray-900">ครูที่มีชั่วโมงสอนครบ</h3>
+                <h3 id="teacherStatusModalTitle" class="text-lg font-semibold text-gray-900">คุณครูที่ทำหลักสูตรเสร็จ</h3>
                 <p id="teacherStatusModalSubtitle" class="text-sm text-gray-500">ทั้งหมด 0 คน</p>
             </div>
             <button type="button" class="text-gray-500 hover:text-gray-700" data-close-teacher-modal>&times;</button>
@@ -374,8 +364,10 @@
             list.forEach((item) => {
                 const teacherInfo = item.teacher || item || {};
                 const card = document.createElement('div');
-                card.className = 'border border-gray-200 rounded-2xl p-4 bg-gray-50 shadow-sm';
-                const showCourses = statusKey !== 'all';
+                const isCompleteStatus = statusKey === 'complete';
+                const cardColor = isCompleteStatus ? 'bg-sky-50 border-sky-100' : 'bg-amber-50 border-amber-100';
+                card.className = `border rounded-2xl p-4 shadow-sm ${cardColor}`;
+                const showCourses = statusKey === 'complete' || statusKey === 'incomplete';
                 const courses = showCourses && Array.isArray(item.courses) ? item.courses : [];
                 const coursesHtml = !showCourses
                     ? ''
@@ -395,7 +387,21 @@
                                     <div class="font-semibold text-gray-900">${course.name || '-'}</div>
                                     <div class="text-xs text-gray-500">${gradeText}</div>
                                 </div>
-                                <span class="text-xs font-semibold px-3 py-1 rounded-full ${statusClass}">${detailText}</span>
+                                <span class="text-xs font-semibold px-3 py-1 rounded-full ${
+                                statusKey === 'complete'
+                                    ? 'คุณครูที่ทำหลักสูตรเสร็จ'
+                                    : statusKey === 'incomplete'
+                                        ? 'คุณครูที่ทำหลักสูตรยังไม่เสร็จ'
+                                : 'ไม่มีข้อมูล'
+                            }">
+                            ${
+                                statusKey === 'complete'
+                                    ? 'คุณครูที่ทำหลักสูตรเสร็จ'
+                                    : statusKey === 'incomplete'
+                                    ? 'คุณครูที่ทำหลักสูตรยังไม่เสร็จ'
+                                : 'ไม่มีข้อมูล'
+                            }
+                        </span>
                             </div>
                         `;
                     }).join('') || '<div class="text-xs text-gray-500">ยังไม่มีรายวิชา</div>');
@@ -411,18 +417,18 @@
                             <div class="text-xs text-gray-500">${teacherInfo.email || ''}</div>
                         </div>
                         <span class="text-xs font-semibold px-3 py-1 rounded-full ${
-                            statusKey === 'complete'
-                                ? 'bg-green-100 text-green-700'
-                                : statusKey === 'incomplete'
-                                    ? 'bg-amber-100 text-amber-700'
-                                    : 'bg-slate-100 text-slate-700'
-                        }">
+                                statusKey === 'complete'
+                                    ? 'คุณครูที่ทำหลักสูตรเสร็จ'
+                                    : statusKey === 'incomplete'
+                                        ? 'คุณครูที่ทำหลักสูตรยังไม่เสร็จ'
+                                : 'ไม่มีข้อมูล'
+                            }">
                             ${
                                 statusKey === 'complete'
-                                    ? 'ครบ'
-                                    : statusKey === 'incomplete'
-                                    ? 'ไม่ครบ'
-                                    : 'ทั้งหมด'
+                                    ? 'คุณครูที่ทำหลักสูตรเสร็จ'
+                                : statusKey === 'incomplete'
+                                    ? 'คุณครูที่ทำหลักสูตรยังไม่เสร็จ'
+                                    : 'ไม่มีข้อมูล'
                             }
                         </span>
                     </div>
@@ -442,15 +448,13 @@
             const count = teacherStatusData[statusKey]?.length ?? 0;
 
             if (statusModalTitle) {
-                statusModalTitle.textContent = isComplete
-                    ? 'ครูที่มีชั่วโมงสอนครบ'
-                    : isIncomplete
-                        ? 'ครูที่มีชั่วโมงสอนไม่ครบ'
+                statusModalTitle.textContent = statusKey === 'complete'
+                    ? 'คุณครูที่ทำหลักสูตรเสร็จ'
+                    : statusKey === 'incomplete'
+                        ? 'คุณครูที่ทำหลักสูตรยังไม่เสร็จ'
                         : 'ครูทั้งหมด';
-            }
 
-            if (statusModalSubtitle) {
-                statusModalSubtitle.textContent = `ทั้งหมด ${count} คน`;
+            statusModalSubtitle.textContent = `ทั้งหมด ${count} คน`;
             }
 
             renderTeacherStatus(statusKey);
@@ -545,8 +549,9 @@
                 const ctx = statusChart.getContext('2d');
                 new Chart(ctx, {
                     type: 'doughnut',
+                    
                     data: {
-                        labels: ['ชั่วโมงสอนครบ', 'ชั่วโมงสอนไม่ครบ'],
+                        labels: ['ครูที่ทำหลักสูตรเสร็จ', 'ครูที่ทำหลักสูตรยังไม่เสร็จ'],
                         datasets: [{
                             data: [completeCount, incompleteCount],
                             backgroundColor: ['#0ea5e9', '#f59e0b'],
@@ -554,6 +559,7 @@
                             hoverOffset: 6,
                         }],
                     },
+
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,

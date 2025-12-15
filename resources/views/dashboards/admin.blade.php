@@ -7,7 +7,7 @@
 <h1 class="text-3xl font-bold text-gray-800 mb-2" data-i18n-th="แดชบอร์ดผู้ดูแลระบบ" data-i18n-en="Admin Dashboard">แดชบอร์ดผู้ดูแลระบบ</h1>
 <p class="text-gray-600 mb-6" data-i18n-th="ยินดีต้อนรับ ผู้ดูแลระบบ" data-i18n-en="Welcome, Admin">ยินดีต้อนรับ ผู้ดูแลระบบ</p>
 
-<div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-6">
 
     <!-- จำนวนครู -->
     <div class="p-6 bg-green-100 border border-green-200 rounded-2xl shadow-sm">
@@ -27,9 +27,9 @@
         <p class="text-4xl font-bold text-purple-700">{{ number_format($classroomCount ?? 0) }}</p>
     </div>
 
-    <!-- ครูที่มีชั่วโมงสอนครบ -->
+    <!-- คุณครูที่ทำหลักสูตรเสร็จ -->
     <div class="p-6 bg-sky-100 border border-sky-200 rounded-2xl shadow-sm">
-        <h3 class="text-gray-600 mb-1" data-i18n-th="ครูที่มีชั่วโมงสอนครบ" data-i18n-en="Teachers complete">ครูที่มีชั่วโมงสอนครบ</h3>
+        <h3 class="text-gray-600 mb-1" data-i18n-th="คุณครูที่ทำหลักสูตรเสร็จ" data-i18n-en="Teachers with finished courses">คุณครูที่ทำหลักสูตรเสร็จ</h3>
         <p class="text-4xl font-bold text-sky-800">{{ number_format($completeTeacherCount ?? 0) }}</p>
         <button type="button"
                 class="mt-3 text-sm text-sky-700 font-semibold hover:underline"
@@ -38,9 +38,9 @@
         </button>
     </div>
 
-    <!-- ครูที่ชั่วโมงสอนไม่ครบ -->
+    <!-- คุณครูที่ทำหลักสูตรยังไม่เสร็จ -->
     <div class="p-6 bg-amber-100 border border-amber-200 rounded-2xl shadow-sm">
-        <h3 class="text-gray-600 mb-1" data-i18n-th="ครูที่ชั่วโมงสอนไม่ครบ" data-i18n-en="Teachers incomplete">ครูที่ชั่วโมงสอนไม่ครบ</h3>
+        <h3 class="text-gray-600 mb-1" data-i18n-th="คุณครูที่ทำหลักสูตรยังไม่เสร็จ" data-i18n-en="Teachers with unfinished courses">คุณครูที่ทำหลักสูตรยังไม่เสร็จ</h3>
         <p class="text-4xl font-bold text-amber-700">{{ number_format($incompleteTeacherCount ?? 0) }}</p>
         <button type="button"
                 class="mt-3 text-sm text-amber-700 font-semibold hover:underline"
@@ -56,14 +56,14 @@
     <div class="flex flex-col lg:flex-row items-start gap-8 lg:gap-12">
         <div class="flex-1 space-y-4">
             <div>
-                <h2 class="text-2xl font-semibold text-gray-900">ภาพรวมชั่วโมงสอนของครู</h2>
-                <p class="text-sm text-gray-500">สัดส่วนครูที่กรอกชั่วโมงสอนครบและไม่ครบ</p>
+                <h2 class="text-2xl font-semibold text-gray-900">สถานะหลักสูตรของครู</h2>
+                <p class="text-sm text-gray-500">แบ่งสัดส่วนครูที่ทำหลักสูตรเสร็จ ยังไม่เสร็จ และยังไม่ได้สร้างหลักสูตร</p>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="p-4 rounded-2xl bg-sky-50 border border-sky-100">
                     <div class="flex items-center gap-2 text-sky-600 font-medium">
                         <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
-                        ชั่วโมงสอนครบ
+                        ครูที่ทำหลักสูตรเสร็จ
                     </div>
                     <p class="text-3xl font-bold text-sky-700 mt-2">{{ number_format($completeTeacherCount ?? 0) }}</p>
                     <p class="text-sm text-sky-700/70">คน</p>
@@ -71,13 +71,13 @@
                 <div class="p-4 rounded-2xl bg-amber-50 border border-amber-100">
                     <div class="flex items-center gap-2 text-amber-600 font-medium">
                         <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                        ชั่วโมงสอนไม่ครบ
+                        ครูที่ทำหลักสูตรยังไม่เสร็จ
                     </div>
                     <p class="text-3xl font-bold text-amber-700 mt-2">{{ number_format($incompleteTeacherCount ?? 0) }}</p>
                     <p class="text-sm text-amber-700/70">คน</p>
                 </div>
             </div>
-            <p class="text-xs text-gray-500">รวมครูที่มีการสอนทั้งหมด {{ number_format(($completeTeacherCount ?? 0) + ($incompleteTeacherCount ?? 0)) }} คน</p>
+            <p class="text-xs text-gray-500">รวมครูทั้งหมด {{ number_format(($completeTeacherCount ?? 0) + ($incompleteTeacherCount ?? 0)) }} คน</p>
         </div>
         <div class="flex-1 w-full flex justify-center">
             <div class="relative w-full max-w-md aspect-square">
@@ -98,9 +98,9 @@
 <div id="teacherModal-overlay" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40 flex items-center justify-center px-4">
     <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 relative">
         <button type="button" onclick="toggleTeacherModal()" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
-        <h3 id="teacherModalTitle" class="text-xl font-semibold text-gray-900 mb-2">ครูที่ชั่วโมงสอนครบ</h3>
+        <h3 id="teacherModalTitle" class="text-xl font-semibold text-gray-900 mb-2">คุณครูที่ทำหลักสูตรเสร็จ</h3>
         <p id="teacherModalSubtitle" class="text-sm text-gray-500 mb-4"></p>
-        <div id="teacherModalBody" class="max-h-80 overflow-y-auto divide-y divide-gray-100">
+        <div id="teacherModalBody" class="max-h-80 overflow-y-auto">
             {{-- ใส่ผ่าน JS --}}
         </div>
     </div>
@@ -111,7 +111,7 @@
 <script>
     const teacherData = {
         complete: @json(($completeTeachers ?? collect())->values()->map(fn($t) => ['name' => $t->name, 'email' => $t->email])->all()),
-        incomplete: @json(($incompleteTeachers ?? collect())->values()->map(fn($t) => ['name' => $t->name, 'email' => $t->email])->all())
+        incomplete: @json(($incompleteTeachers ?? collect())->values()->map(fn($t) => ['name' => $t->name, 'email' => $t->email])->all()),
     };
     const teacherCountSummary = {
         complete: Number(@json($completeTeacherCount ?? 0)),
@@ -130,9 +130,15 @@
         const titleEl = document.getElementById('teacherModalTitle');
         const subtitleEl = document.getElementById('teacherModalSubtitle');
         const bodyEl = document.getElementById('teacherModalBody');
-
         const isComplete = type === 'complete';
-        titleEl.textContent = isComplete ? 'ครูที่ชั่วโมงสอนครบ' : 'ครูที่ชั่วโมงสอนไม่ครบ';
+        const isIncomplete = type === 'incomplete';
+        if (titleEl) {
+            titleEl.textContent = isComplete
+                ? 'คุณครูที่ทำหลักสูตรเสร็จ'
+                : isIncomplete
+                    ? 'คุณครูที่ทำหลักสูตรยังไม่เสร็จ'
+                    : 'คุณครูที่ยังไม่ได้สร้างหลักสูตร';
+        }
 
         const list = teacherData[type] || [];
         subtitleEl.textContent = `ทั้งหมด ${list.length} คน`;
@@ -144,15 +150,21 @@
             empty.textContent = 'ยังไม่มีข้อมูล';
             bodyEl.appendChild(empty);
         } else {
-            list.forEach(item => {
+            list.forEach((item, idx) => {
                 const div = document.createElement('div');
-                div.className = 'py-3';
+                const cardClass = isComplete
+                    ? 'bg-sky-50 border-sky-100'
+                    : 'bg-amber-50 border-amber-100';
+                div.className = `py-3 px-4 border rounded-2xl shadow-sm ${cardClass}`;
 
                 const name = document.createElement('p');
                 name.className = 'font-semibold text-gray-900';
                 name.textContent = item.name || '-';
-
                 div.appendChild(name);
+
+                const divider = document.createElement('div');
+                divider.className = 'w-full border-t-2 border-red-500 my-2';
+                div.appendChild(divider);
 
                 if (item.email) {
                     const email = document.createElement('p');
@@ -162,6 +174,12 @@
                 }
 
                 bodyEl.appendChild(div);
+
+                if (idx < list.length - 1) {
+                    const separator = document.createElement('div');
+                    separator.className = 'h-0.5 bg-red-500 rounded-full my-4';
+                    bodyEl.appendChild(separator);
+                }
             });
         }
 
@@ -196,7 +214,7 @@
         new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['ชั่วโมงสอนครบ', 'ชั่วโมงสอนไม่ครบ'],
+                labels: ['ครูที่ทำหลักสูตรเสร็จ', 'ครูที่ทำหลักสูตรยังไม่เสร็จ'],
                 datasets: [{
                     data: [complete, incomplete],
                     backgroundColor: ['#0284c7', '#f59e0b'],
