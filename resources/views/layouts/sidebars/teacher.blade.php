@@ -1,7 +1,27 @@
+@php
+    $sidebarLogoCandidates = ['png', 'jpg', 'jpeg'];
+    $sidebarLogoPath = null;
+    $sidebarLogoUrl = asset('images/school-logo-bcp.png');
+    foreach ($sidebarLogoCandidates as $ext) {
+        $candidatePath = public_path("images/school-logo-bcp.$ext");
+        if (file_exists($candidatePath)) {
+            $sidebarLogoPath = $candidatePath;
+            $sidebarLogoUrl = asset("images/school-logo-bcp.$ext");
+            break;
+        }
+    }
+    $sidebarLogoVersion = $sidebarLogoPath ? filemtime($sidebarLogoPath) : null;
+    $sidebarLogoUrl = $sidebarLogoUrl . ($sidebarLogoVersion ? ('?v=' . $sidebarLogoVersion) : '');
+@endphp
 <aside id="appSidebar" class="sidebar-panel">
     <div>
         <div class="flex items-center justify-between mb-4">
-            <div>
+            <div class="flex items-center gap-3">
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden">
+                    <img src="{{ $sidebarLogoUrl }}" alt="โลโก้โรงเรียน"
+                         class="w-full h-full object-contain"
+                         title="โลโก้โรงเรียน" data-i18n-title-th="โลโก้โรงเรียน" data-i18n-title-en="School logo">
+                </div>
                 <h1 id="sidebarTeacherName" class="text-lg font-bold">
                     {{ auth()->user()->name ?? '?????????' }}
                 </h1>
@@ -10,11 +30,14 @@
                     title="ซ่อน/แสดงเมนู" data-i18n-title-th="ซ่อน/แสดงเมนู" data-i18n-title-en="Hide/Show menu">
                 ☰
             </button>
-    </div>
+        </div>
 
     <nav class="space-y-2">
         <a href="{{ route('dashboard.teacher') }}"
-           class="nav-item {{ request()->routeIs('dashboard.teacher') ? 'active' : '' }}"
+           class="block py-2.5 px-4 rounded-2xl border transition-all duration-200
+           {{ request()->routeIs('dashboard.teacher')
+                ? 'bg-white/10 border-white/40 text-white font-semibold shadow-sm'
+                : 'border-white/10 text-white/90 hover:border-white/25 hover:bg-white/10 hover:shadow-md hover:-translate-y-0.5' }}"
            data-i18n-th="แดชบอร์ดครู" data-i18n-en="Teacher Dashboard">
                แดชบอร์ดครู
             </a>
@@ -35,14 +58,20 @@
             </a> --}}
 
             <a href="{{ route('teacher.course-create') }}"
-               class="nav-item {{ request()->routeIs('teacher.course-create') ? 'active' : '' }}"
+               class="block py-2.5 px-4 rounded-2xl border transition-all duration-200
+               {{ request()->routeIs('teacher.course-create')
+                    ? 'bg-white/10 border-white/40 text-white font-semibold shadow-sm'
+                    : 'border-white/10 text-white/90 hover:border-white/25 hover:bg-white/10 hover:shadow-md hover:-translate-y-0.5' }}"
                data-i18n-th="สร้างหลักสูตรการสอน" data-i18n-en="Create Course">
                สร้างหลักสูตรการสอน
             </a>
 
             <!-- Course Detail -->
             <a href="{{ route('course.detail') }}"
-               class="nav-item {{ request()->routeIs('course.detail') ? 'active' : '' }}"
+               class="block py-2.5 px-4 rounded-2xl border transition-all duration-200
+               {{ request()->routeIs('course.detail')
+                    ? 'bg-white/10 border-white/40 text-white font-semibold shadow-sm'
+                    : 'border-white/10 text-white/90 hover:border-white/25 hover:bg-white/10 hover:shadow-md hover:-translate-y-0.5' }}"
                data-i18n-th="รายละเอียดหลักสูตร" data-i18n-en="Course Detail">
                รายละเอียดหลักสูตร
             </a>
@@ -56,11 +85,11 @@
 
     </div>
 
-    <div class="mt-6 space-y-3">
+    <div class="mt-5 space-y-2">
 
         <!-- Profile Modal Button -->
         <button onclick="openProfileModal()"
-            class="w-full py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition text-center">
+            class="w-full py-2.5 rounded-xl border border-white/15 bg-transparent text-white/90 shadow-sm hover:shadow-lg hover:border-white/30 hover:bg-white/10 hover:-translate-y-0.5 transition-all text-center">
             <span data-i18n-th="จัดการโปรไฟล์" data-i18n-en="Manage profile">จัดการโปรไฟล์</span>
         </button>
 
@@ -77,7 +106,7 @@
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit"
-                    class="w-full py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition">
+                    class="w-full py-2.5 rounded-xl border border-rose-300/40 bg-transparent text-rose-200 shadow-sm hover:shadow-lg hover:border-rose-200/70 hover:bg-rose-500/20 hover:text-white hover:-translate-y-0.5 transition-all">
                 <span data-i18n-th="ออกจากระบบ" data-i18n-en="Logout">ออกจากระบบ</span>
             </button>
         </form>

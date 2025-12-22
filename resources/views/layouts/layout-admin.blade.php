@@ -20,11 +20,33 @@
         ☰
     </button>
     <aside id="appSidebar" class="sidebar-panel fixed left-0 top-0 bottom-0 z-50">
+        @php
+            $sidebarLogoCandidates = ['png', 'jpg', 'jpeg'];
+            $sidebarLogoPath = null;
+            $sidebarLogoUrl = asset('images/school-logo-bcp.png');
+            foreach ($sidebarLogoCandidates as $ext) {
+                $candidatePath = public_path("images/school-logo-bcp.$ext");
+                if (file_exists($candidatePath)) {
+                    $sidebarLogoPath = $candidatePath;
+                    $sidebarLogoUrl = asset("images/school-logo-bcp.$ext");
+                    break;
+                }
+            }
+            $sidebarLogoVersion = $sidebarLogoPath ? filemtime($sidebarLogoPath) : null;
+            $sidebarLogoUrl = $sidebarLogoUrl . ($sidebarLogoVersion ? ('?v=' . $sidebarLogoVersion) : '');
+        @endphp
 
         <div>
             <div class="flex items-center justify-between mb-6">
-                <h1 class="text-lg font-bold leading-tight select-none"
-                    data-i18n-th="ผู้ดูแลระบบ" data-i18n-en="Administrator">ผู้ดูแลระบบ</h1>
+                <div class="flex items-center gap-3">
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden">
+                        <img src="{{ $sidebarLogoUrl }}" alt="โลโก้โรงเรียน"
+                             class="w-full h-full object-contain"
+                             title="โลโก้โรงเรียน" data-i18n-title-th="โลโก้โรงเรียน" data-i18n-title-en="School logo">
+                    </div>
+                    <h1 class="text-lg font-bold leading-tight select-none"
+                        data-i18n-th="ผู้ดูแลระบบ" data-i18n-en="Administrator">ผู้ดูแลระบบ</h1>
+                </div>
                 <button id="sidebarToggle" type="button" class="sidebar-toggle-btn" aria-pressed="false"
                         title="ซ่อน/แสดงเมนู" data-i18n-title-th="ซ่อน/แสดงเมนู" data-i18n-title-en="Hide/Show menu">
                     ☰
@@ -35,10 +57,10 @@
 
                 <!-- Dashboard -->
                 <a href="{{ route('dashboard.admin') }}"
-                   class="block py-2.5 px-4 rounded-xl transition-all duration-200 nav-link
+                   class="block py-2.5 px-4 rounded-2xl border transition-all duration-200
                    {{ request()->routeIs('dashboard.admin') 
-                        ? 'bg-gray-700 font-semibold shadow-inner' 
-                        : 'hover:bg-gray-700' }}"
+                        ? 'bg-white/10 border-white/40 text-white font-semibold shadow-sm' 
+                        : 'border-white/10 text-white/90 hover:border-white/25 hover:bg-white/10 hover:shadow-md hover:-translate-y-0.5' }}"
                    data-nav
                    @if(request()->routeIs('dashboard.admin')) data-current="1" @endif
                     data-i18n-th="แดชบอร์ด" data-i18n-en="Dashboard">
@@ -47,10 +69,10 @@
 
                 <!-- Student -->
                 <a href="{{ route('admin.add-student') }}"
-                   class="block py-2.5 px-4 rounded-xl transition-all duration-200 nav-link
+                   class="block py-2.5 px-4 rounded-2xl border transition-all duration-200
                    {{ request()->routeIs('admin.add-student') 
-                        ? 'bg-gray-700 font-semibold shadow-inner' 
-                        : 'hover:bg-gray-700' }}"
+                        ? 'bg-white/10 border-white/40 text-white font-semibold shadow-sm' 
+                        : 'border-white/10 text-white/90 hover:border-white/25 hover:bg-white/10 hover:shadow-md hover:-translate-y-0.5' }}"
                    data-nav
                    @if(request()->routeIs('admin.add-student')) data-current="1" @endif
                     data-i18n-th="จัดการข้อมูลนักเรียน" data-i18n-en="Manage Students">
@@ -59,10 +81,10 @@
 
                 <!-- Teacher -->
                 <a href="{{ route('admin.add-teacher') }}"
-                   class="block py-2.5 px-4 rounded-xl transition-all duration-200 nav-link
+                   class="block py-2.5 px-4 rounded-2xl border transition-all duration-200
                    {{ request()->routeIs('admin.add-teacher') 
-                        ? 'bg-gray-700 font-semibold shadow-inner' 
-                        : 'hover:bg-gray-700' }}"
+                        ? 'bg-white/10 border-white/40 text-white font-semibold shadow-sm' 
+                        : 'border-white/10 text-white/90 hover:border-white/25 hover:bg-white/10 hover:shadow-md hover:-translate-y-0.5' }}"
                    data-nav
                    @if(request()->routeIs('admin.add-teacher')) data-current="1" @endif
                     data-i18n-th="จัดการข้อมูลครู" data-i18n-en="Manage Teachers">
@@ -71,10 +93,10 @@
 
                 <!-- Course -->
                 <a href="{{ route('admin.courses.index') }}"
-                   class="block py-2.5 px-4 rounded-xl transition-all duration-200 nav-link
+                   class="block py-2.5 px-4 rounded-2xl border transition-all duration-200
                    {{ request()->routeIs('admin.courses.*') 
-                        ? 'bg-gray-700 font-semibold shadow-inner' 
-                        : 'hover:bg-gray-700' }}"
+                        ? 'bg-white/10 border-white/40 text-white font-semibold shadow-sm' 
+                        : 'border-white/10 text-white/90 hover:border-white/25 hover:bg-white/10 hover:shadow-md hover:-translate-y-0.5' }}"
                    data-nav
                    @if(request()->routeIs('admin.courses.*')) data-current="1" @endif
                     data-i18n-th="จัดการหลักสูตร" data-i18n-en="Manage Courses">
@@ -85,13 +107,23 @@
         </div>
 
         <!-- Language + Logout -->
-        <div class="mt-8 space-y-3">
+        <div class="mt-6 space-y-2">
             <button type="button"
-                    class="w-full py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition text-center"
+                    class="w-full py-2.5 rounded-xl border border-white/15 bg-transparent text-white/90 shadow-sm hover:shadow-lg hover:border-white/30 hover:bg-white/10 hover:-translate-y-0.5 transition-all text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
                     data-i18n-th="จัดการโปรไฟล์" data-i18n-en="Manage profile"
                     onclick="openProfileModal()">
                 <span data-i18n-th="จัดการโปรไฟล์" data-i18n-en="Manage profile">จัดการโปรไฟล์</span>
             </button>
+            <a href="{{ route('admin.login-logo.edit') }}"
+               class="w-full block py-2.5 px-4 rounded-xl text-center border transition-all
+               {{ request()->routeIs('admin.login-logo.*')
+                    ? 'border-white/40 bg-white/10 text-white font-semibold shadow-md'
+                    : 'border-white/15 text-white/90 hover:border-white/30 hover:bg-white/10 hover:shadow-lg hover:-translate-y-0.5' }}"
+               data-nav
+               @if(request()->routeIs('admin.login-logo.*')) data-current="1" @endif
+                data-i18n-th="ตั้งค่าโลโก้หน้าเข้าสู่ระบบ" data-i18n-en="Login logo settings">
+                ตั้งค่าโลโก้หน้าเข้าสู่ระบบ
+            </a>
 
             <button type="button" data-lang-toggle class="lang-toggle w-full justify-center"
                     aria-label="เปลี่ยนภาษา" title="เปลี่ยนภาษา"
@@ -106,7 +138,7 @@
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit"
-                        class="w-full py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all duration-200">
+                        class="w-full py-2.5 rounded-xl border border-rose-300/40 bg-transparent text-rose-200 shadow-sm hover:shadow-lg hover:border-rose-200/70 hover:bg-rose-500/20 hover:text-white hover:-translate-y-0.5 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300/60">
                     <span data-i18n-th="ออกจากระบบ" data-i18n-en="Logout">ออกจากระบบ</span>
                 </button>
             </form>

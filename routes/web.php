@@ -13,6 +13,7 @@ use App\Http\Controllers\AdminStudentController;
 use App\Http\Controllers\DirectorController;
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\LoginLogoController;
 
 
 /*
@@ -250,6 +251,8 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::post('/admin/teachers', [AdminTeacherController::class, 'store'])->name('admin.teachers.store');
     Route::put('/admin/teachers/{teacher}', [AdminTeacherController::class, 'update'])->name('admin.teachers.update');
     Route::delete('/admin/teachers/{teacher}', [AdminTeacherController::class, 'destroy'])->name('admin.teachers.destroy');
+    Route::get('/admin/login-logo', [LoginLogoController::class, 'edit'])->name('admin.login-logo.edit');
+    Route::post('/admin/login-logo', [LoginLogoController::class, 'update'])->name('admin.login-logo.update');
 });
 
 

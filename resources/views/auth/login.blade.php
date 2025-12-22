@@ -1,19 +1,39 @@
 <!DOCTYPE html>
 <html lang="th">
+@php
+    $settingsPath = storage_path('app/login-settings.json');
+    $loginTitle = 'โรงเรียนบ้านช่องพลี';
+    if (file_exists($settingsPath)) {
+        $settings = json_decode(file_get_contents($settingsPath), true);
+        if (is_array($settings) && !empty($settings['login_title'])) {
+            $loginTitle = $settings['login_title'];
+        }
+    }
+
+    $logoCandidates = ['png', 'jpg', 'jpeg'];
+    $logoPath = null;
+    $logoUrl = asset('images/school-logo-bcp.png');
+    foreach ($logoCandidates as $ext) {
+        $candidatePath = public_path("images/school-logo-bcp.$ext");
+        if (file_exists($candidatePath)) {
+            $logoPath = $candidatePath;
+            $logoUrl = asset("images/school-logo-bcp.$ext");
+            break;
+        }
+    }
+    $logoVersion = $logoPath ? filemtime($logoPath) : null;
+    $logoPng = $logoUrl . ($logoVersion ? ('?v=' . $logoVersion) : '');
+    $logoFallback = $logoUrl;
+    $sessionExpired = session('session_expired') || request()->boolean('expired');
+@endphp
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เข้าสู่ระบบ | โรงเรียนบ้านช่องพลี</title>
+    <title>เข้าสู่ระบบ | {{ $loginTitle }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
 <body class="min-h-screen flex items-center justify-center bg-[#cfd3db] font-sans">
-@php
-    // รูปใหม่ของโรงเรียนบ้านช่องพลี
-    $logoPng = asset('images/school-logo-bcp.png');   // เปลี่ยนเป็นชื่อไฟล์โลโก้ใหม่
-    $logoFallback = asset('images/school-logo-bcp.png'); // ใช้รูปเดียวกันเป็น fallback
-    $sessionExpired = session('session_expired') || request()->boolean('expired');
-@endphp
 
     <!-- กล่องฟอร์ม -->
     <div class="bg-white shadow-xl rounded-2xl p-8 w-[90%] max-w-md flex flex-col items-center border border-gray-300">
@@ -22,12 +42,12 @@
         <div class="flex flex-col items-center mb-6">
     <div class="w-32 h-32 overflow-hidden flex items-center justify-center mb-3">
         <img src="{{ $logoPng }}"
-             alt="ตราโรงเรียนบ้านช่องพลี"
+             alt="โลโก้ {{ $loginTitle }}"
              class="w-full h-full object-contain"
              onerror="this.onerror=null; this.src='{{ $logoFallback }}';">
     </div>
 
-    <h1 class="text-2xl font-semibold text-blue-700">โรงเรียนบ้านช่องพลี</h1>
+    <h1 class="text-2xl font-semibold text-blue-700">{{ $loginTitle }}</h1>
 </div>
 
         <!-- ฟอร์ม -->
