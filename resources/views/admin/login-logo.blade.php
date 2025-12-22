@@ -3,8 +3,8 @@
 @section('title', 'ตั้งค่าโลโก้หน้าเข้าสู่ระบบ')
 
 @section('content')
-<h1 class="text-3xl font-bold text-gray-800 mb-2" data-i18n-th="ตั้งค่าโลโก้หน้าเข้าสู่ระบบ" data-i18n-en="Login logo settings">
-    ตั้งค่าโลโก้&หน้าเข้าสู่ระบบ
+<h1 class="text-3xl font-bold text-gray-800 mb-2" data-i18n-th="ตั้งค่าโลโก้และหน้าเข้าสู่ระบบ" data-i18n-en="Login logo settings">
+   ตั้งค่าโลโก้และหน้าเข้าสู่ระบบ
 </h1>
 <p class="text-gray-600 mb-6"
    data-i18n-th="อัปโหลดโลโก้ใหม่เพื่อใช้ในหน้าเข้าสู่ระบบและแถบด้านข้างของผู้ดูแล/ครู/ผอ. ชื่อด้านล่างใช้เฉพาะหน้าเข้าสู่ระบบ"

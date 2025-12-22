@@ -121,8 +121,8 @@
                     : 'border-white/15 text-white/90 hover:border-white/30 hover:bg-white/10 hover:shadow-lg hover:-translate-y-0.5' }}"
                data-nav
                @if(request()->routeIs('admin.login-logo.*')) data-current="1" @endif
-                data-i18n-th="ตั้งค่าโลโก้หน้าเข้าสู่ระบบ" data-i18n-en="Login logo settings">
-                ตั้งค่าโลโก้หน้าเข้าสู่ระบบ
+                data-i18n-th="ตั้งค่า/จัดการรูป" data-i18n-en="Login logo settings">
+                ตั้งค่า/จัดการรูป
             </a>
 
             <button type="button" data-lang-toggle class="lang-toggle w-full justify-center"
