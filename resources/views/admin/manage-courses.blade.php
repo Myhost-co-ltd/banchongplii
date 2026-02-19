@@ -222,15 +222,17 @@
                                     @endif
                                 </p>
                             </div>
-                            <div class="flex flex-wrap gap-2 text-sm text-gray-700 items-center">
-                                <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700">{{ $course->grade }}</span>
-                                @foreach(($course->rooms ?? []) as $room)
-                                    <span class="px-3 py-1 rounded-full bg-white border text-gray-700">{{ $room }}</span>
-                                @endforeach
-                                <span class="px-3 py-1 rounded-full bg-white border text-gray-600">
-                                    <span data-i18n-th="ปีการศึกษา" data-i18n-en="Academic year">ปีการศึกษา</span> {{ $course->year ?? '-' }}
-                                </span>
-                                <div class="flex flex-col items-start gap-2 text-sm ml-2">
+                            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3 text-sm text-gray-700">
+                                <div class="flex flex-wrap gap-2 items-center">
+                                    <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700">{{ $course->grade }}</span>
+                                    @foreach(($course->rooms ?? []) as $room)
+                                        <span class="px-3 py-1 rounded-full bg-white border text-gray-700">{{ $room }}</span>
+                                    @endforeach
+                                    <span class="px-3 py-1 rounded-full bg-white border text-gray-600">
+                                        <span data-i18n-th="ปีการศึกษา" data-i18n-en="Academic year">ปีการศึกษา</span> {{ $course->year ?? '-' }}
+                                    </span>
+                                </div>
+                                <div class="flex flex-col items-end gap-2 text-right whitespace-nowrap">
                                     <button type="button"
                                             class="text-gray-600 hover:underline"
                                             onclick="toggleCourseBody('course-body-{{ $course->id }}')">

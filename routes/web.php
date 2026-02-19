@@ -202,6 +202,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/director', [DirectorController::class, 'dashboard'])
         ->name('dashboard.director');
 
+    Route::get('/director/students', [DirectorController::class, 'students'])
+        ->name('director.students');
+
     Route::get('/director/teacher-plans', [DirectorController::class, 'teacherPlans'])
         ->name('director.teacher-plans');
 
