@@ -7,6 +7,7 @@ use App\Models\Role;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class DirectorController extends Controller
 {
@@ -15,26 +16,87 @@ class DirectorController extends Controller
         $studentCount = Student::count();
 
         $teacherRoleId = Role::where('name', 'teacher')->value('id');
-        $teacherQuery = $teacherRoleId
-            ? User::where('role_id', $teacherRoleId)
-            : User::query()->whereRaw('1 = 0');
+        $teacherIds = $teacherRoleId
+            ? User::where('role_id', $teacherRoleId)->pluck('id')
+            : collect();
+        $teacherIdLookup = $teacherIds->flip();
+        $teacherCount = $teacherIds->count();
 
-        $teacherCount = $teacherQuery->count();
-
-        $homeroomTeachers = $teacherQuery
+        $homeroomTeachers = $teacherRoleId
             ? User::query()
                 ->where('role_id', $teacherRoleId)
                 ->orderBy('name')
                 ->get(['id', 'name', 'email', 'major'])
             : collect();
 
-        $classCount = Course::query()
-            ->select('rooms')
+        $normalizeRoom = function ($room): ?string {
+            if (is_array($room)) {
+                if (array_key_exists('room', $room)) {
+                    $room = $room['room'];
+                } elseif (array_key_exists('name', $room)) {
+                    $room = $room['name'];
+                } elseif (array_key_exists(2, $room)) {
+                    $room = $room[2];
+                } else {
+                    $room = reset($room);
+                }
+            }
+
+            if (is_object($room)) {
+                if (isset($room->room)) {
+                    $room = $room->room;
+                } elseif (isset($room->name)) {
+                    $room = $room->name;
+                } else {
+                    $room = method_exists($room, '__toString') ? (string) $room : null;
+                }
+            }
+
+            if ($room === null) {
+                return null;
+            }
+
+            $normalized = trim((string) $room);
+            return $normalized !== '' ? $normalized : null;
+        };
+
+        $hasClassroomCol = Schema::hasColumn('students', 'classroom');
+        $studentColumns = $hasClassroomCol
+            ? ['id', 'student_code', 'title', 'first_name', 'last_name', 'room', 'classroom']
+            : ['id', 'student_code', 'title', 'first_name', 'last_name', 'room'];
+
+        $studentsByRoom = Student::query()
+            ->select($studentColumns)
+            ->orderBy('student_code')
             ->get()
-            ->flatMap(fn ($course) => collect($course->rooms ?? []))
-            ->filter(fn ($room) => $room !== null && $room !== '')
-            ->unique()
-            ->count();
+            ->map(function ($student) use ($normalizeRoom) {
+                $student->room_normalized = $normalizeRoom($student->classroom ?? $student->room ?? null);
+                return $student;
+            })
+            ->groupBy(fn ($student) => $student->room_normalized ?? 'ไม่ระบุห้อง')
+            ->sortKeys();
+
+        $roomOptions = $studentsByRoom
+            ->reject(fn ($_students, $room) => $room === 'ไม่ระบุห้อง')
+            ->keys()
+            ->values();
+        $classCount = $roomOptions->count();
+
+        $studentsByRoomPayload = $studentsByRoom
+            ->map(function ($students) {
+                return collect($students)
+                    ->map(function ($student) {
+                        $fullName = trim(($student->title ? $student->title . ' ' : '') . $student->first_name . ' ' . $student->last_name);
+
+                        return [
+                            'student_code' => $student->student_code,
+                            'name' => $fullName !== '' ? $fullName : '-',
+                        ];
+                    })
+                    ->values()
+                    ->all();
+            })
+            ->all();
 
         $majorPresets = [
             'คณิตศาสตร์',
@@ -105,7 +167,7 @@ class DirectorController extends Controller
             ->count();
 
         $teacherStatus = $courses
-            ->filter(fn ($course) => $course->teacher)
+            ->filter(fn ($course) => $course->teacher && $teacherIdLookup->has((int) $course->teacher->id))
             ->groupBy(fn ($course) => $course->teacher->id)
             ->map(function ($teacherCourses) {
                 $teacher = $teacherCourses->first()->teacher;
@@ -138,13 +200,18 @@ class DirectorController extends Controller
                 ];
             });
 
+        $teacherIdsWithCourses = $teacherStatus
+            ->keys()
+            ->map(fn ($teacherId) => (int) $teacherId)
+            ->values();
+
         $completeTeachers = $teacherStatus->where('complete', true)->values();
         $incompleteTeachers = $teacherStatus->where('complete', false)->values();
 
         $teachersWithoutCourses = $teacherRoleId
             ? User::query()
                 ->where('role_id', $teacherRoleId)
-                ->whereNotIn('id', $teacherStatus->keys())
+                ->whereNotIn('id', $teacherIdsWithCourses)
                 ->orderBy('name')
                 ->get(['id', 'name', 'email', 'major'])
             : collect();
@@ -171,6 +238,9 @@ class DirectorController extends Controller
             'studentCount' => $studentCount,
             'teacherCount' => $teacherCount,
             'classCount'   => $classCount,
+            'studentsByRoom' => $studentsByRoom,
+            'roomOptions' => $roomOptions,
+            'studentsByRoomPayload' => $studentsByRoomPayload,
             'homeroomTeachers' => $homeroomTeachers,
             'allMajors' => $allMajors,
             'teachersByMajor' => $teachersByMajor,
@@ -180,6 +250,140 @@ class DirectorController extends Controller
             'incompleteTeacherCount' => $incompleteTeacherCount,
             'completeTeachers' => $completeTeachers,
             'incompleteTeachers' => $incompleteTeachers,
+        ]);
+    }
+
+    public function students(Request $request)
+    {
+        $normalizeRoom = function ($room): ?string {
+            if (is_array($room)) {
+                if (array_key_exists('room', $room)) {
+                    $room = $room['room'];
+                } elseif (array_key_exists('name', $room)) {
+                    $room = $room['name'];
+                } elseif (array_key_exists(2, $room)) {
+                    $room = $room[2];
+                } else {
+                    $room = reset($room);
+                }
+            }
+
+            if (is_object($room)) {
+                if (isset($room->room)) {
+                    $room = $room->room;
+                } elseif (isset($room->name)) {
+                    $room = $room->name;
+                } else {
+                    $room = method_exists($room, '__toString') ? (string) $room : null;
+                }
+            }
+
+            if ($room === null) {
+                return null;
+            }
+
+            $normalized = trim((string) $room);
+            return $normalized !== '' ? $normalized : null;
+        };
+
+        $unknownRoomLabel = 'ไม่ระบุห้อง';
+        $unknownGradeLabel = 'ไม่ระบุชั้น';
+        $hasClassroomCol = Schema::hasColumn('students', 'classroom');
+        $studentColumns = $hasClassroomCol
+            ? ['id', 'student_code', 'title', 'first_name', 'last_name', 'room', 'classroom']
+            : ['id', 'student_code', 'title', 'first_name', 'last_name', 'room'];
+
+        $studentsByRoom = Student::query()
+            ->select($studentColumns)
+            ->orderBy('student_code')
+            ->get()
+            ->map(function ($student) use ($normalizeRoom) {
+                $student->room_normalized = $normalizeRoom($student->classroom ?? $student->room ?? null);
+                return $student;
+            })
+            ->groupBy(fn ($student) => $student->room_normalized ?? $unknownRoomLabel)
+            ->sortKeys();
+
+        $roomMetaPayload = $studentsByRoom->mapWithKeys(function ($students, $room) use ($unknownRoomLabel, $unknownGradeLabel) {
+            $roomText = trim((string) $room);
+            $grade = $unknownGradeLabel;
+            $roomLabel = $roomText;
+
+            if ($roomText !== '' && $roomText !== $unknownRoomLabel) {
+                $parts = explode('/', $roomText, 2);
+                $gradePart = trim((string) ($parts[0] ?? ''));
+                $roomPart = trim((string) ($parts[1] ?? ''));
+
+                $grade = $gradePart !== '' ? $gradePart : $unknownGradeLabel;
+                $roomLabel = $roomPart !== '' ? $roomPart : $roomText;
+            } else {
+                $roomLabel = $unknownRoomLabel;
+            }
+
+            return [
+                $room => [
+                    'grade' => $grade,
+                    'room_label' => $roomLabel,
+                    'full_label' => $roomText !== '' ? $roomText : $unknownRoomLabel,
+                    'count' => collect($students)->count(),
+                ],
+            ];
+        })->all();
+
+        $roomsByGradePayload = collect($roomMetaPayload)
+            ->groupBy('grade', true)
+            ->map(function ($rooms) {
+                return collect($rooms)->map(function ($meta, $roomValue) {
+                    return [
+                        'value' => $roomValue,
+                        'room_label' => $meta['room_label'],
+                        'full_label' => $meta['full_label'],
+                        'count' => $meta['count'],
+                    ];
+                })->values()->all();
+            })
+            ->all();
+
+        $gradeOptions = collect($roomsByGradePayload)->keys()->values();
+
+        $selectedGrade = trim((string) $request->query('grade', ''));
+        if ($selectedGrade === '' || ! array_key_exists($selectedGrade, $roomsByGradePayload)) {
+            $selectedGrade = $gradeOptions->first();
+        }
+
+        $roomOptions = collect($roomsByGradePayload[$selectedGrade] ?? []);
+        $selectedRoom = trim((string) $request->query('room', ''));
+        $validRoomValues = $roomOptions->pluck('value')->all();
+        if ($selectedRoom === '' || ! in_array($selectedRoom, $validRoomValues, true)) {
+            $selectedRoom = $roomOptions->first()['value'] ?? null;
+        }
+
+        $studentsByRoomPayload = $studentsByRoom
+            ->map(function ($students) {
+                return collect($students)
+                    ->map(function ($student) {
+                        $fullName = trim(($student->title ? $student->title . ' ' : '') . $student->first_name . ' ' . $student->last_name);
+                        return [
+                            'student_code' => $student->student_code,
+                            'name' => $fullName !== '' ? $fullName : '-',
+                        ];
+                    })
+                    ->values()
+                    ->all();
+            })
+            ->all();
+
+        $studentCount = $studentsByRoom->sum(fn ($students) => collect($students)->count());
+
+        return view('director.students', [
+            'gradeOptions' => $gradeOptions,
+            'roomsByGradePayload' => $roomsByGradePayload,
+            'roomMetaPayload' => $roomMetaPayload,
+            'roomOptions' => $roomOptions,
+            'selectedGrade' => $selectedGrade,
+            'selectedRoom' => $selectedRoom,
+            'studentsByRoomPayload' => $studentsByRoomPayload,
+            'studentCount' => $studentCount,
         ]);
     }
 

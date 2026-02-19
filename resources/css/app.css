@@ -10,6 +10,44 @@
   }
 }
 
+@layer components {
+  .stat-card {
+    @apply relative w-full overflow-visible rounded-3xl border text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .stat-card__body {
+    @apply flex h-full min-h-[210px] flex-col px-6 pb-6 pt-8 md:px-7 md:pb-7 md:pt-9;
+  }
+
+  .stat-card__top {
+    @apply flex items-start justify-between gap-4;
+  }
+
+  .stat-card__content {
+    @apply min-w-0 flex-1 ps-1;
+  }
+
+  .stat-card__label {
+    @apply text-sm font-semibold leading-7;
+  }
+
+  .stat-card__value {
+    @apply mt-2 text-5xl font-extrabold leading-tight tracking-tight;
+  }
+
+  .stat-card__divider {
+    @apply mt-4 h-px w-full;
+  }
+
+  .stat-card__footer {
+    @apply mt-auto inline-flex items-center gap-2 pt-4 text-sm font-semibold leading-6;
+  }
+
+  .stat-card__icon {
+    @apply relative mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border;
+  }
+}
+
 .nav-item {
   @apply block py-2.5 px-4 rounded-xl transition hover:bg-gray-700;
 }
@@ -52,7 +90,7 @@
 }
 
 .lang-toggle {
-  @apply inline-flex items-center gap-2 px-3 py-2.5 rounded-xl bg-transparent text-white/90 border border-white/15 shadow-sm hover:shadow-lg hover:border-white/30 hover:bg-white/10 hover:-translate-y-0.5 transition-all;
+  @apply inline-flex items-center gap-2 px-3 py-2.5 rounded-xl bg-transparent text-white/85 hover:text-white hover:bg-white/10 transition-colors;
 }
 .lang-toggle svg {
   @apply w-4 h-4;

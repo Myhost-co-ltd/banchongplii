@@ -14,135 +14,77 @@
         </p>
     </div>
 
-   <!-- สถิติหลัก -->
-<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <!-- สถิติหลัก -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
 
-    @php
-        $statCardBase = "stat-card group";
-    @endphp
-
-    <!-- Total teachers -->
-    <button type="button"
-        data-teacher-status-target="all"
-        class="{{ $statCardBase }} border-green-200 focus:ring-green-400 bg-green-100">
-        <div class="stat-card__body">
-            <div class="stat-card__top">
-                <div class="stat-card__content">
-                    <p class="stat-card__label text-green-900/80" data-i18n-th="จำนวนครูทั้งหมด" data-i18n-en="Total teachers">
-                        จำนวนครูทั้งหมด
-                    </p>
-                    <p class="stat-card__value text-green-800">
-                        {{ number_format($teacherCount ?? 0) }}
-                    </p>
-                </div>
-
-                <div class="relative">
-                    <div class="absolute -inset-2 rounded-2xl bg-green-200/40 blur-lg opacity-0 transition group-hover:opacity-100"></div>
-                    <div class="stat-card__icon bg-gradient-to-br from-green-50 to-green-200 border-green-200">
-                        <svg class="h-6 w-6 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M12 14l9-5-9-5-9 5 9 5z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M12 14l6.16-3.422A12.083 12.083 0 0112 21.5c-2.305 0-4.46-.65-6.16-1.922L12 14z" />
-                        </svg>
-                    </div>
-                </div>
+        <div class="relative p-6 min-h-[190px] bg-gradient-to-br from-blue-50 to-blue-200 border border-blue-300 rounded-2xl shadow">
+            <div class="pr-16">
+                <h3 class="text-gray-600 leading-tight min-h-[4.5rem]" data-i18n-th="จำนวนนักเรียนทั้งหมด" data-i18n-en="Total students">จำนวนนักเรียนทั้งหมด</h3>
+                <p class="text-sm mt-2 invisible select-none">ดูรายชื่อครู</p>
             </div>
-
-            <p class="stat-card__footer text-green-700">
-                <span data-i18n-th="ดูรายชื่อครู" data-i18n-en="View teachers">ดูรายชื่อครู</span>
-                <svg class="h-4 w-4 transition group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </p>
-            <div class="stat-card__divider bg-gradient-to-r from-green-100 via-green-200 to-transparent"></div>
+            <p class="absolute top-6 right-6 text-4xl font-bold text-blue-800 text-right leading-none">{{ number_format($studentCount ?? 0) }}</p>
         </div>
-    </button>
+
+
+        <div id="student-room-section" class="relative p-6 min-h-[190px] bg-gradient-to-br from-purple-50 to-purple-200 border border-purple-300 rounded-2xl shadow w-full text-left transition hover:-translate-y-0.5 hover:shadow-lg">
+            <div class="pr-16">
+                <h3 class="text-gray-600 leading-tight min-h-[4.5rem]" data-i18n-th="ห้องเรียนทั้งหมด" data-i18n-en="Total classrooms">ห้องเรียนทั้งหมด</h3>
+                <button type="button" id="roomDropdownToggle" class="text-sm text-purple-800 mt-2 underline hover:text-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-400 rounded" data-i18n-th="ดูนักเรียนรายห้อง" data-i18n-en="View students by room">ดูนักเรียนรายห้อง</button>
+            </div>
+            <p class="absolute top-6 right-6 text-4xl font-bold text-purple-800 text-right leading-none">{{ number_format($classCount ?? 0) }}</p>
+            <div id="roomDropdownPanel"
+                 class="hidden absolute left-0 top-full mt-3 w-[22rem] max-w-[85vw] rounded-2xl border border-purple-200 bg-white p-4 shadow-2xl z-30">
+                <label for="roomSelect" class="block text-sm font-medium text-gray-700 mb-1">Select classroom</label>
+                <select id="roomSelect"
+                        class="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option value="">Select classroom</option>
+                    @foreach(($roomOptions ?? collect()) as $room)
+                        <option value="{{ $room }}">{{ $room }} ({{ number_format(collect($studentsByRoomPayload[$room] ?? [])->count()) }} students)</option>
+                    @endforeach
+                </select>
+                <p id="roomDropdownSummary" class="text-sm text-gray-600 mt-3 mb-2"></p>
+                <div id="roomDropdownBody" class="max-h-72 overflow-y-auto space-y-2"></div>
+            </div>
+        </div>
+
+         <button type="button"
+                data-teacher-status-target="all"
+                class="relative p-6 min-h-[190px] bg-gradient-to-br from-green-50 to-green-200 border border-green-300 rounded-2xl shadow w-full text-left transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2">
+            <div class="pr-16">
+                <h3 class="text-gray-600 leading-tight min-h-[4.5rem]" data-i18n-th="จำนวนครูทั้งหมด" data-i18n-en="Total teachers">จำนวนครูทั้งหมด</h3>
+                <p class="text-sm text-green-800 mt-2 underline" data-i18n-th="ดูรายชื่อครู" data-i18n-en="View teachers">ดูรายชื่อครู</p>
+            </div>
+            <p class="absolute top-6 right-6 text-4xl font-bold text-green-800 text-right leading-none">{{ number_format($teacherCount ?? 0) }}</p>
+        </button>
 
         <button type="button"
                 data-teacher-status-target="complete"
-                class="p-6 bg-gradient-to-br from-sky-50 to-sky-200 border border-sky-300 rounded-2xl shadow w-full text-left transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2">
-            <div class="flex items-start justify-between gap-3">
-                <div>
-                    <h3 class="text-gray-600" data-i18n-th="คุณครูที่ทำหลักสูตรเสร็จ" data-i18n-en="Teachers with finished courses">คุณครูที่ทำหลักสูตรเสร็จ</h3>
-                    <p class="text-sm text-sky-800 mt-2 underline">ดูรายชื่อครู</p>
-                </div>
+                class="relative p-6 min-h-[190px] bg-gradient-to-br from-sky-50 to-sky-200 border border-sky-300 rounded-2xl shadow w-full text-left transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2">
+            <div class="pr-16">
+                <h3 class="text-gray-600 leading-tight min-h-[4.5rem]" data-i18n-th="หลักสูตรเสร็จแล้ว" data-i18n-en="Teachers with finished courses">หลักสูตรเสร็จแล้ว</h3>
+                <p class="text-sm text-sky-800 mt-2 underline" data-i18n-th="ดูรายชื่อครู" data-i18n-en="View teachers">ดูรายชื่อครู</p>
             </div>
-
-            <p class="stat-card__footer text-sky-700">
-                <span data-i18n-th="ดูรายชื่อครู" data-i18n-en="View teachers">ดูรายชื่อครู</span>
-                <svg class="h-4 w-4 transition group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </p>
-            <div class="stat-card__divider bg-gradient-to-r from-sky-100 via-sky-200 to-transparent"></div>
-        </div>
-    </button>
+            <p class="absolute top-6 right-6 text-4xl font-bold text-sky-800 text-right leading-none">{{ number_format($completeTeacherCount ?? 0) }}</p>
+        </button>
 
         <button type="button"
                 data-teacher-status-target="incomplete"
-                class="p-6 bg-gradient-to-br from-amber-50 to-amber-200 border border-amber-300 rounded-2xl shadow w-full text-left transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2">
-            <div class="flex items-start justify-between gap-3">
-                <div>
-                    <h3 class="text-gray-600" data-i18n-th="คุณครูที่ทำหลักสูตรยังไม่เสร็จ" data-i18n-en="Teachers with unfinished courses">คุณครูที่ทำหลักสูตรยังไม่เสร็จ</h3>
-                    <p class="text-sm text-amber-800 mt-2 underline">ดูรายชื่อครู</p>
-                </div>
+                class="relative p-6 min-h-[190px] bg-gradient-to-br from-amber-50 to-amber-200 border border-amber-300 rounded-2xl shadow w-full text-left transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2">
+            <div class="pr-16">
+                <h3 class="text-gray-600 leading-tight min-h-[4.5rem]" data-i18n-th="จำนวนครูที่ทำหลักสูตรยังไม่เสร็จ" data-i18n-en="Teachers with unfinished courses">จำนวนครูที่ทำหลักสูตรยังไม่เสร็จ</h3>
+                <p class="text-sm text-amber-800 mt-2 underline" data-i18n-th="ดูรายชื่อครู" data-i18n-en="View teachers">ดูรายชื่อครู</p>
             </div>
+            <p class="absolute top-6 right-6 text-4xl font-bold text-amber-800 text-right leading-none">{{ number_format($incompleteTeacherCount ?? 0) }}</p>
+        </button>
 
-            <p class="stat-card__footer text-amber-700">
-                <span data-i18n-th="ดูรายชื่อครู" data-i18n-en="View teachers">ดูรายชื่อครู</span>
-                <svg class="h-4 w-4 transition group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </p>
-            <div class="stat-card__divider bg-gradient-to-r from-amber-100 via-amber-200 to-transparent"></div>
-        </div>
-    </button>
-
-    <!-- Total classrooms (คลิก dropdown) -->
-    <div id="student-room-section" class="{{ $statCardBase }} border-purple-200 focus:ring-purple-400 bg-purple-100">
-        <div class="stat-card__body">
-            <div class="stat-card__top">
-                <div class="stat-card__content">
-                    <p class="stat-card__label text-purple-900/80" data-i18n-th="ห้องเรียนทั้งหมด" data-i18n-en="Total classrooms">
-                        ห้องเรียนทั้งหมด
-                    </p>
-                    <p class="stat-card__value text-purple-900">
-                        {{ number_format($classCount ?? 0) }}
-                    </p>
-                </div>
-
-                <div class="relative">
-                    <div class="absolute -inset-2 rounded-2xl bg-purple-200/40 blur-lg opacity-0 transition group-hover:opacity-100"></div>
-                    <div class="stat-card__icon bg-gradient-to-br from-purple-50 to-purple-200 border-purple-200">
-                        <svg class="h-6 w-6 text-purple-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M8 21h8m-8-4h8m-9-4h10M7 5h10l1 2H6l1-2z" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <button type="button" id="roomDropdownToggle"
-                class="stat-card__footer text-purple-700 hover:text-purple-900">
-                <span data-i18n-th="ดูนักเรียนรายห้อง" data-i18n-en="View students by room">ดูนักเรียนรายห้อง</span>
-                <svg class="h-4 w-4 transition group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
-            <div class="stat-card__divider bg-gradient-to-r from-purple-100 via-purple-200 to-transparent"></div>
-        </div>
     </div>
-
-</div>
-
 
     <!-- กราฟสัดส่วนครูตามสถานะชั่วโมงสอน -->
     <div class="bg-white rounded-3xl shadow p-8 border border-gray-100">
         <div class="flex flex-col lg:flex-row items-center gap-8">
         <div class="flex-1 space-y-3">
                 <div>
-                    <h2 class="text-xl font-semibold text-gray-800">สถานะหลักสูตร</h2>
+                    <h2 class="text-xl font-semibold text-gray-800">สถานะหลักสูตรของครู</h2>
                     <p class="text-sm text-gray-500">แสดงจำนวนครูที่ทำหลักสูตรเสร็จ ยังไม่เสร็จ และยังไม่ได้สร้างหลักสูตร</p>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -369,37 +311,6 @@
         </div>
     </div>
 </div>
-<div id="roomStudentsModal" class="fixed inset-0 z-50 hidden items-start justify-center bg-black/30 backdrop-blur-sm px-4 py-10">
-    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-            <div>
-                <h3 class="text-lg font-semibold text-gray-900" data-i18n-th="นักเรียนรายห้อง" data-i18n-en="Students by classroom">นักเรียนรายห้อง</h3>
-                <p id="roomModalSubtitle" class="text-sm text-gray-500" data-i18n-th="เลือกห้องเพื่อดูรายชื่อ" data-i18n-en="Select classroom to view list">เลือกห้องเพื่อดูรายชื่อ</p>
-            </div>
-            <button type="button" class="text-gray-500 hover:text-gray-700" data-close-room-modal>&times;</button>
-        </div>
-        <div class="p-6 space-y-4">
-            <div>
-                <label for="roomModalSelect"
-                       class="block text-sm font-semibold text-gray-700 mb-2"
-                       data-i18n-th="เลือกห้องเรียน" data-i18n-en="Select classroom">เลือกห้องเรียน</label>
-                <select id="roomModalSelect"
-                        class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    <option value=""
-                            data-i18n-th="เลือกห้องเรียน" data-i18n-en="Select classroom">เลือกห้องเรียน</option>
-                    @foreach(($roomOptions ?? collect()) as $room)
-                        <option value="{{ $room }}">{{ $room }} ({{ number_format(collect($studentsByRoomPayload[$room] ?? [])->count()) }} students)</option>
-                    @endforeach
-                </select>
-            </div>
-            <p id="roomModalSummary" class="text-sm text-gray-600"></p>
-            <div id="roomModalBody" class="max-h-[50vh] overflow-y-auto space-y-2"></div>
-        </div>
-        <div class="px-6 py-4 border-t border-gray-100 flex justify-end">
-            <button type="button" class="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200" data-close-room-modal>ปิด</button>
-        </div>
-    </div>
-</div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -421,10 +332,10 @@
         const statusChartEmpty = document.getElementById('teacherStatusChartEmpty');
         const statusChartTotal = document.getElementById('teacherStatusTotal');
         const roomDropdownToggle = document.getElementById('roomDropdownToggle');
-        const roomModal = document.getElementById('roomStudentsModal');
-        const roomModalSelect = document.getElementById('roomModalSelect');
-        const roomModalSummary = document.getElementById('roomModalSummary');
-        const roomModalBody = document.getElementById('roomModalBody');
+        const roomDropdownPanel = document.getElementById('roomDropdownPanel');
+        const roomSelect = document.getElementById('roomSelect');
+        const roomDropdownSummary = document.getElementById('roomDropdownSummary');
+        const roomDropdownBody = document.getElementById('roomDropdownBody');
         const roomStudentsData = @json($studentsByRoomPayload ?? []);
 
         const hideAllDetails = () => {
@@ -455,45 +366,42 @@
             }
         };
 
-        const closeRoomModal = () => {
-            roomModal?.classList.add('hidden');
-            roomModal?.classList.remove('flex');
+        const closeRoomDropdown = () => {
+            roomDropdownPanel?.classList.add('hidden');
         };
 
-        const openRoomModal = () => {
-            if (!roomModal) {
+        const openRoomDropdown = () => {
+            if (!roomDropdownPanel) {
                 return;
             }
 
-            roomModal.classList.remove('hidden');
-            roomModal.classList.add('flex');
-
-            if (roomModalSelect?.value) {
-                renderRoomStudents(roomModalSelect.value);
+            roomDropdownPanel.classList.remove('hidden');
+            if (roomSelect?.value) {
+                renderRoomStudents(roomSelect.value);
             } else {
                 renderRoomStudents('');
             }
-            roomModalSelect?.focus();
+            roomSelect?.focus();
         };
 
         const renderRoomStudents = (room) => {
-            if (!roomModalSummary || !roomModalBody) {
+            if (!roomDropdownSummary || !roomDropdownBody) {
                 return;
             }
 
             const list = room ? (roomStudentsData[room] || []) : [];
 
             if (!room) {
-                roomModalSummary.textContent = '';
-                roomModalBody.innerHTML = '<p class="py-3 text-sm text-gray-500 text-center">กรุณาเลือกห้องเรียน</p>';
+                roomDropdownSummary.textContent = '';
+                roomDropdownBody.innerHTML = '<p class="py-3 text-sm text-gray-500 text-center">Please select a classroom</p>';
                 return;
             }
 
-            roomModalSummary.textContent = `ห้อง ${room} - ${list.length} คน`;
-            roomModalBody.innerHTML = '';
+            roomDropdownSummary.textContent = `Room ${room} - ${list.length} students`;
+            roomDropdownBody.innerHTML = '';
 
             if (!list.length) {
-                roomModalBody.innerHTML = '<p class="py-3 text-sm text-gray-500 text-center">ไม่พบนักเรียนในห้องนี้</p>';
+                roomDropdownBody.innerHTML = '<p class="py-3 text-sm text-gray-500 text-center">No students in this classroom</p>';
                 return;
             }
 
@@ -503,60 +411,17 @@
                 item.innerHTML = `
                     <div class="flex items-center justify-between gap-3">
                         <p class="font-semibold text-gray-900">${student.name || '-'}</p>
-                        <span class="text-xs text-gray-500">รหัส ${student.student_code || '-'}</span>
+                        <span class="text-xs text-gray-500">Code ${student.student_code || '-'}</span>
                     </div>
                 `;
-                roomModalBody.appendChild(item);
+                roomDropdownBody.appendChild(item);
 
                 if (index < list.length - 1) {
                     const separator = document.createElement('div');
                     separator.className = 'h-0.5 bg-purple-200 rounded-full my-2';
-                    roomModalBody.appendChild(separator);
+                    roomDropdownBody.appendChild(separator);
                 }
             });
-        };
-
-        const escapeHtml = (value) => String(value ?? '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-
-        const getCourseProgress = (course) => {
-            const hasCoursePlan = Boolean(course?.has_hours);
-            const hasAssignments = Boolean(course?.has_assignments);
-            const isComplete = Boolean(course?.complete);
-
-            if (isComplete || (hasCoursePlan && hasAssignments)) {
-                return {
-                    badgeClass: 'bg-green-100 text-green-700',
-                    badgeText: 'เสร็จแล้ว',
-                    detailText: 'เสร็จแล้ว: หลักสูตร และกำหนดงาน',
-                };
-            }
-
-            if (hasCoursePlan && !hasAssignments) {
-                return {
-                    badgeClass: 'bg-amber-100 text-amber-700',
-                    badgeText: 'เสร็จบางส่วน',
-                    detailText: 'เสร็จแล้ว: หลักสูตร | ค้าง: กำหนดงาน',
-                };
-            }
-
-            if (!hasCoursePlan && hasAssignments) {
-                return {
-                    badgeClass: 'bg-amber-100 text-amber-700',
-                    badgeText: 'เสร็จบางส่วน',
-                    detailText: 'เสร็จแล้ว: กำหนดงาน | ค้าง: หลักสูตร',
-                };
-            }
-
-            return {
-                badgeClass: 'bg-rose-100 text-rose-700',
-                badgeText: 'ยังไม่เสร็จ',
-                detailText: 'ค้าง: หลักสูตร และกำหนดงาน',
-            };
         };
 
         const renderTeacherStatus = (statusKey) => {
@@ -576,113 +441,72 @@
             list.forEach((item) => {
                 const teacherInfo = item.teacher || item || {};
                 const card = document.createElement('div');
-
                 const isCompleteStatus = statusKey === 'complete';
-                const isIncompleteStatus = statusKey === 'incomplete';
-                const cardColor = isCompleteStatus
-                    ? 'bg-sky-50 border-sky-100'
-                    : isIncompleteStatus
-                        ? 'bg-amber-50 border-amber-100'
-                        : 'bg-slate-50 border-slate-200';
+                const cardColor = isCompleteStatus ? 'bg-sky-50 border-sky-100' : 'bg-amber-50 border-amber-100';
                 card.className = `border rounded-2xl p-4 shadow-sm ${cardColor}`;
-
-                const showCourses = isCompleteStatus || isIncompleteStatus;
-                const rawCourses = showCourses && Array.isArray(item.courses) ? item.courses : [];
-                const courses = isIncompleteStatus
-                    ? [...rawCourses].sort((a, b) => Number(a.complete) - Number(b.complete))
-                    : rawCourses;
-                const incompleteCourses = courses.filter((course) => !course.complete);
-
-                let incompleteGradeSummary = '';
-                if (isIncompleteStatus) {
-                    if (!courses.length) {
-                        incompleteGradeSummary = `
-                            <div class="mt-3 rounded-xl border border-amber-200 bg-amber-100/70 px-3 py-2 text-xs text-amber-900">
-                                ยังไม่มีรายวิชาที่ได้รับมอบหมาย
-                            </div>
-                        `;
-                    } else if (!incompleteCourses.length) {
-                        incompleteGradeSummary = `
-                            <div class="mt-3 rounded-xl border border-emerald-200 bg-emerald-100/70 px-3 py-2 text-xs text-emerald-800">
-                                รายวิชาทั้งหมดเรียบร้อยแล้ว
-                            </div>
-                        `;
-                    } else {
-                        const grouped = incompleteCourses.reduce((acc, course) => {
-                            const subjectName = String(course?.name || 'ไม่ระบุรายวิชา').trim() || 'ไม่ระบุรายวิชา';
-                            const gradeName = String(course?.grade || 'ไม่ระบุชั้น').trim() || 'ไม่ระบุชั้น';
-                            if (!acc[subjectName]) {
-                                acc[subjectName] = new Set();
-                            }
-                            acc[subjectName].add(gradeName);
-                            return acc;
-                        }, {});
-
-                        const summaryRows = Object.entries(grouped)
-                            .map(([subjectName, grades]) => `
-                                <div>
-                                    <span class="font-semibold">${escapeHtml(subjectName)}</span>:
-                                    ชั้นที่ยังไม่เรียบร้อย ${escapeHtml(Array.from(grades).join(', '))}
-                                </div>
-                            `)
-                            .join('');
-
-                        incompleteGradeSummary = `
-                            <div class="mt-3 rounded-xl border border-amber-200 bg-amber-100/70 px-3 py-2">
-                                <p class="text-xs font-semibold text-amber-900">ชั้นที่ยังไม่เรียบร้อย</p>
-                                <div class="mt-1 space-y-1 text-xs text-amber-900">${summaryRows}</div>
-                            </div>
-                        `;
-                    }
-                }
-
+                const showCourses = statusKey === 'complete' || statusKey === 'incomplete';
+                const courses = showCourses && Array.isArray(item.courses) ? item.courses : [];
                 const coursesHtml = !showCourses
                     ? ''
                     : (courses.map((course) => {
-                        const progress = getCourseProgress(course);
-                        const gradeText = String(course?.grade || '').trim() !== ''
-                            ? `ชั้นเรียน ${course.grade}`
-                            : 'ไม่ระบุชั้นเรียน';
+                        const statusClass = course.complete ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700';
+                        const detailText = course.complete
+                            ? 'ครบ'
+                            : [
+                                course.has_hours ? null : 'ขาดชั่วโมงสอน',
+                                course.has_assignments ? null : 'ขาดงานที่มอบหมาย',
+                            ].filter(Boolean).join(', ') || 'ไม่ครบ';
+                        const gradeText = course.grade ? `ชั้นเรียน ${course.grade}` : '';
 
                         return `
-                            <div class="rounded-xl border border-gray-200 bg-white/80 px-3 py-2">
-                                <div class="flex items-start justify-between gap-3">
-                                    <div>
-                                        <div class="font-semibold text-gray-900">${escapeHtml(course?.name || '-')}</div>
-                                        <div class="text-xs text-gray-500">${escapeHtml(gradeText)}</div>
-                                        <div class="text-xs text-gray-600 mt-1">${escapeHtml(progress.detailText)}</div>
-                                    </div>
-                                    <span class="text-xs font-semibold px-3 py-1 rounded-full ${progress.badgeClass}">
-                                        ${escapeHtml(progress.badgeText)}
-                                    </span>
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <div class="font-semibold text-gray-900">${course.name || '-'}</div>
+                                    <div class="text-xs text-gray-500">${gradeText}</div>
                                 </div>
+                                <span class="text-xs font-semibold px-3 py-1 rounded-full ${
+                                statusKey === 'complete'
+                                    ? 'คุณครูที่ทำหลักสูตรเสร็จ'
+                                    : statusKey === 'incomplete'
+                                        ? 'คุณครูที่ทำหลักสูตรยังไม่เสร็จ'
+                                : 'ไม่มีข้อมูล'
+                            }">
+                            ${
+                                statusKey === 'complete'
+                                    ? 'คุณครูที่ทำหลักสูตรเสร็จ'
+                                    : statusKey === 'incomplete'
+                                    ? 'คุณครูที่ทำหลักสูตรยังไม่เสร็จ'
+                                : 'ไม่มีข้อมูล'
+                            }
+                        </span>
                             </div>
                         `;
                     }).join('') || '<div class="text-xs text-gray-500">ยังไม่มีรายวิชา</div>');
 
                 const coursesSection = coursesHtml
-                    ? `<div class="mt-3 space-y-2">${incompleteGradeSummary}${coursesHtml}</div>`
-                    : incompleteGradeSummary;
-
-                const headerBadgeClass = isCompleteStatus
-                    ? 'bg-sky-100 text-sky-700'
-                    : isIncompleteStatus
-                        ? 'bg-amber-100 text-amber-700'
-                        : 'bg-slate-200 text-slate-700';
-                const headerBadgeText = isCompleteStatus
-                    ? 'หลักสูตรเสร็จแล้ว'
-                    : isIncompleteStatus
-                        ? 'หลักสูตรยังไม่เสร็จ'
-                        : 'ข้อมูลครู';
+                    ? `<div class="mt-3 space-y-2">${coursesHtml}</div>`
+                    : '';
 
                 card.innerHTML = `
                     <div class="flex items-start justify-between gap-3">
                         <div>
-                            <div class="text-base font-semibold text-gray-900">${escapeHtml(teacherInfo.name || '-')}</div>
-                            <div class="text-xs text-gray-500">${escapeHtml(teacherInfo.email || '')}</div>
+                            <div class="text-base font-semibold text-gray-900">${teacherInfo.name || '-'}</div>
+                            <div class="text-xs text-gray-500">${teacherInfo.email || ''}</div>
                         </div>
-                        <span class="text-xs font-semibold px-3 py-1 rounded-full ${headerBadgeClass}">
-                            ${escapeHtml(headerBadgeText)}
+                        <span class="text-xs font-semibold px-3 py-1 rounded-full ${
+                                statusKey === 'complete'
+                                    ? 'คุณครูที่ทำหลักสูตรเสร็จ'
+                                    : statusKey === 'incomplete'
+                                        ? 'คุณครูที่ทำหลักสูตรยังไม่เสร็จ'
+                                : 'ไม่มีข้อมูล'
+                            }">
+                            ${
+                                statusKey === 'complete'
+                                    ? 'คุณครูที่ทำหลักสูตรเสร็จ'
+                                : statusKey === 'incomplete'
+                                    ? 'คุณครูที่ทำหลักสูตรยังไม่เสร็จ'
+                                    : 'ไม่มีข้อมูล'
+                            }
                         </span>
                     </div>
                     ${coursesSection}
@@ -691,6 +515,7 @@
                 statusModalBody.appendChild(card);
             });
         };
+
         const openStatusModal = (statusKey) => {
             if (!statusModal) return;
 
@@ -743,28 +568,41 @@
 
         roomDropdownToggle?.addEventListener('click', (event) => {
             event.stopPropagation();
-            openRoomModal();
+            if (!roomDropdownPanel) {
+                return;
+            }
+
+            const shouldOpen = roomDropdownPanel.classList.contains('hidden');
+            if (!shouldOpen) {
+                closeRoomDropdown();
+                return;
+            }
+
+            openRoomDropdown();
         });
 
-        roomModalSelect?.addEventListener('change', (event) => {
+        roomSelect?.addEventListener('change', (event) => {
             renderRoomStudents(event.target.value);
         });
 
-        document.querySelectorAll('[data-close-room-modal]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                closeRoomModal();
-            });
+        roomDropdownPanel?.addEventListener('click', (event) => {
+            event.stopPropagation();
         });
 
-        roomModal?.addEventListener('click', (event) => {
-            if (event.target === roomModal) {
-                closeRoomModal();
+        document.addEventListener('click', (event) => {
+            if (!roomDropdownPanel || roomDropdownPanel.classList.contains('hidden')) {
+                return;
+            }
+            const clickedInsidePanel = roomDropdownPanel.contains(event.target);
+            const clickedToggle = roomDropdownToggle?.contains(event.target);
+            if (!clickedInsidePanel && !clickedToggle) {
+                closeRoomDropdown();
             }
         });
 
         const handleStudentRoomHash = () => {
             if (window.location.hash === '#student-room-section') {
-                openRoomModal();
+                openRoomDropdown();
             }
         };
         handleStudentRoomHash();

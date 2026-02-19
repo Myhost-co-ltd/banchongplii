@@ -57,10 +57,10 @@
 
                 <!-- Dashboard -->
                 <a href="{{ route('dashboard.admin') }}"
-                   class="block py-2.5 px-4 rounded-2xl border transition-all duration-200
+                   class="block py-2.5 px-4 rounded-2xl transition-colors duration-200
                    {{ request()->routeIs('dashboard.admin') 
-                        ? 'bg-white/10 border-white/40 text-white font-semibold shadow-sm' 
-                        : 'border-white/10 text-white/90 hover:border-white/25 hover:bg-white/10 hover:shadow-md hover:-translate-y-0.5' }}"
+                        ? 'bg-white/15 text-white font-semibold' 
+                        : 'text-white/80 hover:text-white hover:bg-white/10' }}"
                    data-nav
                    @if(request()->routeIs('dashboard.admin')) data-current="1" @endif
                     data-i18n-th="แดชบอร์ด" data-i18n-en="Dashboard">
@@ -69,10 +69,10 @@
 
                 <!-- Student -->
                 <a href="{{ route('admin.add-student') }}"
-                   class="block py-2.5 px-4 rounded-2xl border transition-all duration-200
+                   class="block py-2.5 px-4 rounded-2xl transition-colors duration-200
                    {{ request()->routeIs('admin.add-student') 
-                        ? 'bg-white/10 border-white/40 text-white font-semibold shadow-sm' 
-                        : 'border-white/10 text-white/90 hover:border-white/25 hover:bg-white/10 hover:shadow-md hover:-translate-y-0.5' }}"
+                        ? 'bg-white/15 text-white font-semibold' 
+                        : 'text-white/80 hover:text-white hover:bg-white/10' }}"
                    data-nav
                    @if(request()->routeIs('admin.add-student')) data-current="1" @endif
                     data-i18n-th="จัดการข้อมูลนักเรียน" data-i18n-en="Manage Students">
@@ -81,10 +81,10 @@
 
                 <!-- Teacher -->
                 <a href="{{ route('admin.add-teacher') }}"
-                   class="block py-2.5 px-4 rounded-2xl border transition-all duration-200
+                   class="block py-2.5 px-4 rounded-2xl transition-colors duration-200
                    {{ request()->routeIs('admin.add-teacher') 
-                        ? 'bg-white/10 border-white/40 text-white font-semibold shadow-sm' 
-                        : 'border-white/10 text-white/90 hover:border-white/25 hover:bg-white/10 hover:shadow-md hover:-translate-y-0.5' }}"
+                        ? 'bg-white/15 text-white font-semibold' 
+                        : 'text-white/80 hover:text-white hover:bg-white/10' }}"
                    data-nav
                    @if(request()->routeIs('admin.add-teacher')) data-current="1" @endif
                     data-i18n-th="จัดการข้อมูลครู" data-i18n-en="Manage Teachers">
@@ -93,10 +93,10 @@
 
                 <!-- Course -->
                 <a href="{{ route('admin.courses.index') }}"
-                   class="block py-2.5 px-4 rounded-2xl border transition-all duration-200
+                   class="block py-2.5 px-4 rounded-2xl transition-colors duration-200
                    {{ request()->routeIs('admin.courses.*') 
-                        ? 'bg-white/10 border-white/40 text-white font-semibold shadow-sm' 
-                        : 'border-white/10 text-white/90 hover:border-white/25 hover:bg-white/10 hover:shadow-md hover:-translate-y-0.5' }}"
+                        ? 'bg-white/15 text-white font-semibold' 
+                        : 'text-white/80 hover:text-white hover:bg-white/10' }}"
                    data-nav
                    @if(request()->routeIs('admin.courses.*')) data-current="1" @endif
                     data-i18n-th="จัดการหลักสูตร" data-i18n-en="Manage Courses">
@@ -109,16 +109,16 @@
         <!-- Language + Logout -->
         <div class="mt-6 space-y-2">
             <button type="button"
-                    class="w-full py-2.5 rounded-xl border border-white/15 bg-transparent text-white/90 shadow-sm hover:shadow-lg hover:border-white/30 hover:bg-white/10 hover:-translate-y-0.5 transition-all text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+                    class="w-full py-2.5 rounded-xl bg-transparent text-white/85 hover:text-white hover:bg-white/10 transition-colors text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
                     data-i18n-th="จัดการโปรไฟล์" data-i18n-en="Manage profile"
                     onclick="openProfileModal()">
                 <span data-i18n-th="จัดการโปรไฟล์" data-i18n-en="Manage profile">จัดการโปรไฟล์</span>
             </button>
             <a href="{{ route('admin.login-logo.edit') }}"
-               class="w-full block py-2.5 px-4 rounded-xl text-center border transition-all
+               class="w-full block py-2.5 px-4 rounded-xl text-center transition-colors
                {{ request()->routeIs('admin.login-logo.*')
-                    ? 'border-white/40 bg-white/10 text-white font-semibold shadow-md'
-                    : 'border-white/15 text-white/90 hover:border-white/30 hover:bg-white/10 hover:shadow-lg hover:-translate-y-0.5' }}"
+                    ? 'bg-white/15 text-white font-semibold'
+                    : 'text-white/85 hover:text-white hover:bg-white/10' }}"
                data-nav
                @if(request()->routeIs('admin.login-logo.*')) data-current="1" @endif
                 data-i18n-th="ตั้งค่า/จัดการรูป" data-i18n-en="Login logo settings">
@@ -138,7 +138,7 @@
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit"
-                        class="w-full py-2.5 rounded-xl border border-rose-300/40 bg-transparent text-rose-200 shadow-sm hover:shadow-lg hover:border-rose-200/70 hover:bg-rose-500/20 hover:text-white hover:-translate-y-0.5 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300/60">
+                        class="w-full py-2.5 rounded-xl bg-transparent text-rose-200 hover:text-white hover:bg-rose-500/20 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300/60">
                     <span data-i18n-th="ออกจากระบบ" data-i18n-en="Logout">ออกจากระบบ</span>
                 </button>
             </form>

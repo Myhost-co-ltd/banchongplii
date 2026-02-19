@@ -1,4 +1,4 @@
-@extends('layouts.layout-director')
+﻿@extends('layouts.layout-director')
 
 @section('title', 'แดชบอร์ดผู้อำนวยการ')
 
@@ -15,30 +15,40 @@
     </div>
 
    <!-- สถิติหลัก -->
-<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 
     @php
-        $statCardBase = "stat-card group";
+        // helper class สำหรับการ์ดให้คงมาตรฐานทุกใบ
+        $statCardBase =
+            "group relative w-full text-left rounded-3xl border
+             shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl
+             focus:outline-none focus:ring-2 focus:ring-offset-2";
     @endphp
 
     <!-- Total teachers -->
     <button type="button"
         data-teacher-status-target="all"
         class="{{ $statCardBase }} border-green-200 focus:ring-green-400 bg-green-100">
-        <div class="stat-card__body">
-            <div class="stat-card__top">
-                <div class="stat-card__content">
-                    <p class="stat-card__label text-green-900/80" data-i18n-th="จำนวนครูทั้งหมด" data-i18n-en="Total teachers">
+        <div class="px-7 pt-8 pb-7 min-h-[210px]">
+            <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0 pl-3 md:pl-4">
+                    <p class="text-sm leading-6 font-medium text-green-900/80" data-i18n-th="จำนวนครูทั้งหมด" data-i18n-en="Total teachers">
                         จำนวนครูทั้งหมด
                     </p>
-                    <p class="stat-card__value text-green-800">
+                    <p class="mt-2 text-4xl font-extrabold tracking-tight text-green-800">
                         {{ number_format($teacherCount ?? 0) }}
+                    </p>
+                    <p class="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-green-700">
+                        <span data-i18n-th="ดูรายชื่อครู" data-i18n-en="View teachers">ดูรายชื่อครู</span>
+                        <svg class="h-4 w-4 transition group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
                     </p>
                 </div>
 
                 <div class="relative">
-                    <div class="absolute -inset-2 rounded-2xl bg-green-200/40 blur-lg opacity-0 transition group-hover:opacity-100"></div>
-                    <div class="stat-card__icon bg-gradient-to-br from-green-50 to-green-200 border-green-200">
+                    <div class="absolute -inset-2 rounded-2xl bg-green-200/40 blur-lg opacity-0 group-hover:opacity-100 transition"></div>
+                    <div class="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-green-50 to-green-200 border border-green-200">
                         <svg class="h-6 w-6 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M12 14l9-5-9-5-9 5 9 5z" />
@@ -49,72 +59,106 @@
                 </div>
             </div>
 
-            <p class="stat-card__footer text-green-700">
-                <span data-i18n-th="ดูรายชื่อครู" data-i18n-en="View teachers">ดูรายชื่อครู</span>
-                <svg class="h-4 w-4 transition group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </p>
-            <div class="stat-card__divider bg-gradient-to-r from-green-100 via-green-200 to-transparent"></div>
+            <div class="mt-6 h-px w-full bg-gradient-to-r from-green-100 via-green-200 to-transparent"></div>
         </div>
-    </button>
-
-        <button type="button"
-                data-teacher-status-target="complete"
-                class="p-6 bg-gradient-to-br from-sky-50 to-sky-200 border border-sky-300 rounded-2xl shadow w-full text-left transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2">
-            <div class="flex items-start justify-between gap-3">
-                <div>
-                    <h3 class="text-gray-600" data-i18n-th="คุณครูที่ทำหลักสูตรเสร็จ" data-i18n-en="Teachers with finished courses">คุณครูที่ทำหลักสูตรเสร็จ</h3>
-                    <p class="text-sm text-sky-800 mt-2 underline">ดูรายชื่อครู</p>
-                </div>
-            </div>
-
-            <p class="stat-card__footer text-sky-700">
-                <span data-i18n-th="ดูรายชื่อครู" data-i18n-en="View teachers">ดูรายชื่อครู</span>
-                <svg class="h-4 w-4 transition group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </p>
-            <div class="stat-card__divider bg-gradient-to-r from-sky-100 via-sky-200 to-transparent"></div>
-        </div>
-    </button>
-
-        <button type="button"
-                data-teacher-status-target="incomplete"
-                class="p-6 bg-gradient-to-br from-amber-50 to-amber-200 border border-amber-300 rounded-2xl shadow w-full text-left transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2">
-            <div class="flex items-start justify-between gap-3">
-                <div>
-                    <h3 class="text-gray-600" data-i18n-th="คุณครูที่ทำหลักสูตรยังไม่เสร็จ" data-i18n-en="Teachers with unfinished courses">คุณครูที่ทำหลักสูตรยังไม่เสร็จ</h3>
-                    <p class="text-sm text-amber-800 mt-2 underline">ดูรายชื่อครู</p>
-                </div>
-            </div>
-
-            <p class="stat-card__footer text-amber-700">
-                <span data-i18n-th="ดูรายชื่อครู" data-i18n-en="View teachers">ดูรายชื่อครู</span>
-                <svg class="h-4 w-4 transition group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </p>
-            <div class="stat-card__divider bg-gradient-to-r from-amber-100 via-amber-200 to-transparent"></div>
-        </div>
-    </button>
-
-    <!-- Total classrooms (คลิก dropdown) -->
-    <div id="student-room-section" class="{{ $statCardBase }} border-purple-200 focus:ring-purple-400 bg-purple-100">
-        <div class="stat-card__body">
-            <div class="stat-card__top">
-                <div class="stat-card__content">
-                    <p class="stat-card__label text-purple-900/80" data-i18n-th="ห้องเรียนทั้งหมด" data-i18n-en="Total classrooms">
-                        ห้องเรียนทั้งหมด
+    </button> 
+    
+      <!-- Finished courses -->
+    <button type="button"
+        data-teacher-status-target="complete"
+        class="{{ $statCardBase }} border-sky-200 focus:ring-sky-400 bg-sky-100">
+        <div class="px-7 pt-8 pb-7 min-h-[210px]">
+            <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0 pl-3 md:pl-4">
+                    <p class="text-sm leading-6 font-medium text-sky-900/80" data-i18n-th="หลักสูตรเสร็จแล้ว" data-i18n-en="Teachers with finished courses">
+                        หลักสูตรเสร็จแล้ว
                     </p>
-                    <p class="stat-card__value text-purple-900">
-                        {{ number_format($classCount ?? 0) }}
+                    <p class="mt-2 text-4xl font-extrabold tracking-tight text-sky-900">
+                        {{ number_format($completeTeacherCount ?? 0) }}
+                    </p>
+                    <p class="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-sky-700">
+                        <span data-i18n-th="ดูรายชื่อครู" data-i18n-en="View teachers">ดูรายชื่อครู</span>
+                        <svg class="h-4 w-4 transition group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
                     </p>
                 </div>
 
                 <div class="relative">
-                    <div class="absolute -inset-2 rounded-2xl bg-purple-200/40 blur-lg opacity-0 transition group-hover:opacity-100"></div>
-                    <div class="stat-card__icon bg-gradient-to-br from-purple-50 to-purple-200 border-purple-200">
+                    <div class="absolute -inset-2 rounded-2xl bg-sky-200/40 blur-lg opacity-0 group-hover:opacity-100 transition"></div>
+                    <div class="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-50 to-sky-200 border border-sky-200">
+                        <svg class="h-6 w-6 text-sky-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 h-px w-full bg-gradient-to-r from-sky-100 via-sky-200 to-transparent"></div>
+        </div>
+    </button>
+
+    <!-- Unfinished courses -->
+    <button type="button"
+        data-teacher-status-target="incomplete"
+        class="{{ $statCardBase }} border-amber-200 focus:ring-amber-400 bg-amber-100">
+        <div class="px-7 pt-8 pb-7 min-h-[210px]">
+            <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0 pl-3 md:pl-4">
+                    <p class="text-sm leading-6 font-medium text-amber-900/80" data-i18n-th="หลักสูตรยังไม่เสร็จ" data-i18n-en="Teachers with unfinished courses">
+                        หลักสูตรยังไม่เสร็จ
+                    </p>
+                    <p class="mt-2 text-4xl font-extrabold tracking-tight text-amber-900">
+                        {{ number_format($incompleteTeacherCount ?? 0) }}
+                    </p>
+                    <p class="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-amber-700">
+                        <span data-i18n-th="ดูรายชื่อครู" data-i18n-en="View teachers">ดูรายชื่อครู</span>
+                        <svg class="h-4 w-4 transition group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </p>
+                </div>
+
+                <div class="relative">
+                    <div class="absolute -inset-2 rounded-2xl bg-amber-200/40 blur-lg opacity-0 group-hover:opacity-100 transition"></div>
+                    <div class="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-50 to-amber-200 border border-amber-200">
+                        <svg class="h-6 w-6 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 h-px w-full bg-gradient-to-r from-amber-100 via-amber-200 to-transparent"></div>
+        </div>
+    </button>   
+
+    <!-- Total classrooms (คลิก dropdown) -->
+    <div id="student-room-section" class="{{ $statCardBase }} border-purple-200 focus:ring-purple-400 bg-purple-100">
+        <div class="px-7 pt-8 pb-7 min-h-[210px]">
+            <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0 pl-3 md:pl-4">
+                    <p class="text-sm leading-6 font-medium text-purple-900/80" data-i18n-th="ห้องเรียนทั้งหมด" data-i18n-en="Total classrooms">
+                        ห้องเรียนทั้งหมด
+                    </p>
+                    <p class="mt-2 text-4xl font-extrabold tracking-tight text-purple-900">
+                        {{ number_format($classCount ?? 0) }}
+                    </p>
+
+                    <button type="button" id="roomDropdownToggle"
+                        class="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-purple-700 hover:text-purple-900">
+                        <span data-i18n-th="ดูนักเรียนรายห้อง" data-i18n-en="View students by room">ดูนักเรียนรายห้อง</span>
+                        <svg class="h-4 w-4 transition group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="relative">
+                    <div class="absolute -inset-2 rounded-2xl bg-purple-200/40 blur-lg opacity-0 group-hover:opacity-100 transition"></div>
+                    <div class="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-50 to-purple-200 border border-purple-200">
                         <svg class="h-6 w-6 text-purple-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M8 21h8m-8-4h8m-9-4h10M7 5h10l1 2H6l1-2z" />
@@ -123,14 +167,22 @@
                 </div>
             </div>
 
-            <button type="button" id="roomDropdownToggle"
-                class="stat-card__footer text-purple-700 hover:text-purple-900">
-                <span data-i18n-th="ดูนักเรียนรายห้อง" data-i18n-en="View students by room">ดูนักเรียนรายห้อง</span>
-                <svg class="h-4 w-4 transition group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
-            <div class="stat-card__divider bg-gradient-to-r from-purple-100 via-purple-200 to-transparent"></div>
+            <div class="mt-6 h-px w-full bg-gradient-to-r from-purple-100 via-purple-200 to-transparent"></div>
+
+            <!-- dropdown panel (เดิมของคุณ ใช้ได้เลย แค่คงไว้) -->
+            <div id="roomDropdownPanel"
+                 class="hidden absolute left-0 top-full mt-3 w-[22rem] max-w-[85vw] rounded-3xl border border-purple-100 bg-white p-4 shadow-2xl z-30">
+                <label for="roomSelect" class="block text-sm font-semibold text-gray-700 mb-2">Select classroom</label>
+                <select id="roomSelect"
+                        class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option value="">Select classroom</option>
+                    @foreach(($roomOptions ?? collect()) as $room)
+                        <option value="{{ $room }}">{{ $room }} ({{ number_format(collect($studentsByRoomPayload[$room] ?? [])->count()) }} students)</option>
+                    @endforeach
+                </select>
+                <p id="roomDropdownSummary" class="text-sm text-gray-600 mt-3 mb-2"></p>
+                <div id="roomDropdownBody" class="max-h-72 overflow-y-auto space-y-2"></div>
+            </div>
         </div>
     </div>
 
@@ -369,37 +421,6 @@
         </div>
     </div>
 </div>
-<div id="roomStudentsModal" class="fixed inset-0 z-50 hidden items-start justify-center bg-black/30 backdrop-blur-sm px-4 py-10">
-    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-            <div>
-                <h3 class="text-lg font-semibold text-gray-900" data-i18n-th="นักเรียนรายห้อง" data-i18n-en="Students by classroom">นักเรียนรายห้อง</h3>
-                <p id="roomModalSubtitle" class="text-sm text-gray-500" data-i18n-th="เลือกห้องเพื่อดูรายชื่อ" data-i18n-en="Select classroom to view list">เลือกห้องเพื่อดูรายชื่อ</p>
-            </div>
-            <button type="button" class="text-gray-500 hover:text-gray-700" data-close-room-modal>&times;</button>
-        </div>
-        <div class="p-6 space-y-4">
-            <div>
-                <label for="roomModalSelect"
-                       class="block text-sm font-semibold text-gray-700 mb-2"
-                       data-i18n-th="เลือกห้องเรียน" data-i18n-en="Select classroom">เลือกห้องเรียน</label>
-                <select id="roomModalSelect"
-                        class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    <option value=""
-                            data-i18n-th="เลือกห้องเรียน" data-i18n-en="Select classroom">เลือกห้องเรียน</option>
-                    @foreach(($roomOptions ?? collect()) as $room)
-                        <option value="{{ $room }}">{{ $room }} ({{ number_format(collect($studentsByRoomPayload[$room] ?? [])->count()) }} students)</option>
-                    @endforeach
-                </select>
-            </div>
-            <p id="roomModalSummary" class="text-sm text-gray-600"></p>
-            <div id="roomModalBody" class="max-h-[50vh] overflow-y-auto space-y-2"></div>
-        </div>
-        <div class="px-6 py-4 border-t border-gray-100 flex justify-end">
-            <button type="button" class="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200" data-close-room-modal>ปิด</button>
-        </div>
-    </div>
-</div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -421,10 +442,10 @@
         const statusChartEmpty = document.getElementById('teacherStatusChartEmpty');
         const statusChartTotal = document.getElementById('teacherStatusTotal');
         const roomDropdownToggle = document.getElementById('roomDropdownToggle');
-        const roomModal = document.getElementById('roomStudentsModal');
-        const roomModalSelect = document.getElementById('roomModalSelect');
-        const roomModalSummary = document.getElementById('roomModalSummary');
-        const roomModalBody = document.getElementById('roomModalBody');
+        const roomDropdownPanel = document.getElementById('roomDropdownPanel');
+        const roomSelect = document.getElementById('roomSelect');
+        const roomDropdownSummary = document.getElementById('roomDropdownSummary');
+        const roomDropdownBody = document.getElementById('roomDropdownBody');
         const roomStudentsData = @json($studentsByRoomPayload ?? []);
 
         const hideAllDetails = () => {
@@ -455,45 +476,42 @@
             }
         };
 
-        const closeRoomModal = () => {
-            roomModal?.classList.add('hidden');
-            roomModal?.classList.remove('flex');
+        const closeRoomDropdown = () => {
+            roomDropdownPanel?.classList.add('hidden');
         };
 
-        const openRoomModal = () => {
-            if (!roomModal) {
+        const openRoomDropdown = () => {
+            if (!roomDropdownPanel) {
                 return;
             }
 
-            roomModal.classList.remove('hidden');
-            roomModal.classList.add('flex');
-
-            if (roomModalSelect?.value) {
-                renderRoomStudents(roomModalSelect.value);
+            roomDropdownPanel.classList.remove('hidden');
+            if (roomSelect?.value) {
+                renderRoomStudents(roomSelect.value);
             } else {
                 renderRoomStudents('');
             }
-            roomModalSelect?.focus();
+            roomSelect?.focus();
         };
 
         const renderRoomStudents = (room) => {
-            if (!roomModalSummary || !roomModalBody) {
+            if (!roomDropdownSummary || !roomDropdownBody) {
                 return;
             }
 
             const list = room ? (roomStudentsData[room] || []) : [];
 
             if (!room) {
-                roomModalSummary.textContent = '';
-                roomModalBody.innerHTML = '<p class="py-3 text-sm text-gray-500 text-center">กรุณาเลือกห้องเรียน</p>';
+                roomDropdownSummary.textContent = '';
+                roomDropdownBody.innerHTML = '<p class="py-3 text-sm text-gray-500 text-center">Please select a classroom</p>';
                 return;
             }
 
-            roomModalSummary.textContent = `ห้อง ${room} - ${list.length} คน`;
-            roomModalBody.innerHTML = '';
+            roomDropdownSummary.textContent = `Room ${room} - ${list.length} students`;
+            roomDropdownBody.innerHTML = '';
 
             if (!list.length) {
-                roomModalBody.innerHTML = '<p class="py-3 text-sm text-gray-500 text-center">ไม่พบนักเรียนในห้องนี้</p>';
+                roomDropdownBody.innerHTML = '<p class="py-3 text-sm text-gray-500 text-center">No students in this classroom</p>';
                 return;
             }
 
@@ -503,15 +521,15 @@
                 item.innerHTML = `
                     <div class="flex items-center justify-between gap-3">
                         <p class="font-semibold text-gray-900">${student.name || '-'}</p>
-                        <span class="text-xs text-gray-500">รหัส ${student.student_code || '-'}</span>
+                        <span class="text-xs text-gray-500">Code ${student.student_code || '-'}</span>
                     </div>
                 `;
-                roomModalBody.appendChild(item);
+                roomDropdownBody.appendChild(item);
 
                 if (index < list.length - 1) {
                     const separator = document.createElement('div');
                     separator.className = 'h-0.5 bg-purple-200 rounded-full my-2';
-                    roomModalBody.appendChild(separator);
+                    roomDropdownBody.appendChild(separator);
                 }
             });
         };
@@ -743,28 +761,41 @@
 
         roomDropdownToggle?.addEventListener('click', (event) => {
             event.stopPropagation();
-            openRoomModal();
+            if (!roomDropdownPanel) {
+                return;
+            }
+
+            const shouldOpen = roomDropdownPanel.classList.contains('hidden');
+            if (!shouldOpen) {
+                closeRoomDropdown();
+                return;
+            }
+
+            openRoomDropdown();
         });
 
-        roomModalSelect?.addEventListener('change', (event) => {
+        roomSelect?.addEventListener('change', (event) => {
             renderRoomStudents(event.target.value);
         });
 
-        document.querySelectorAll('[data-close-room-modal]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                closeRoomModal();
-            });
+        roomDropdownPanel?.addEventListener('click', (event) => {
+            event.stopPropagation();
         });
 
-        roomModal?.addEventListener('click', (event) => {
-            if (event.target === roomModal) {
-                closeRoomModal();
+        document.addEventListener('click', (event) => {
+            if (!roomDropdownPanel || roomDropdownPanel.classList.contains('hidden')) {
+                return;
+            }
+            const clickedInsidePanel = roomDropdownPanel.contains(event.target);
+            const clickedToggle = roomDropdownToggle?.contains(event.target);
+            if (!clickedInsidePanel && !clickedToggle) {
+                closeRoomDropdown();
             }
         });
 
         const handleStudentRoomHash = () => {
             if (window.location.hash === '#student-room-section') {
-                openRoomModal();
+                openRoomDropdown();
             }
         };
         handleStudentRoomHash();

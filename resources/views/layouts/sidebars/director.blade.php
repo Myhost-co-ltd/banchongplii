@@ -32,18 +32,24 @@
 
     <nav class="space-y-2">
       <a href="/dashboard/director"
-         class="block py-2.5 px-4 rounded-2xl border transition-all duration-200
-         {{ request()->is('dashboard/director')
-              ? 'bg-white/10 border-white/40 text-white font-semibold shadow-sm'
-              : 'border-white/10 text-white/90 hover:border-white/25 hover:bg-white/10 hover:shadow-md hover:-translate-y-0.5' }}"
+         class="block py-2.5 px-4 rounded-2xl transition-colors duration-200
+         {{ request()->routeIs('dashboard.director', 'dashboard.admin')
+              ? 'bg-white/15 text-white font-semibold'
+              : 'text-white/80 hover:text-white hover:bg-white/10' }}"
          data-i18n-th="แดชบอร์ดผู้อำนวยการ" data-i18n-en="Director Dashboard">แดชบอร์ดผู้อำนวยการ</a>
       {{-- <a href="/evaluation" class="nav-item {{ request()->is('evaluation') ? 'active' : '' }}" data-i18n-th="แบบบันทึกผลการเรียน" data-i18n-en="Gradebook">แบบบันทึกผลการเรียน</a>
       <a href="/summary" class="nav-item {{ request()->is('summary') ? 'active' : '' }}" data-i18n-th="สรุปผลสัมฤทธิ์รายวิชา" data-i18n-en="Subject Summary">สรุปผลสัมฤทธิ์รายวิชา</a> --}}
+      <a href="{{ route('director.students') }}"
+         class="block py-2.5 px-4 rounded-2xl transition-colors duration-200
+         {{ request()->routeIs('director.students')
+              ? 'bg-white/15 text-white font-semibold'
+              : 'text-white/80 hover:text-white hover:bg-white/10' }}"
+         data-i18n-th="ดูรายชื่อนักเรียน" data-i18n-en="Student List">ดูรายชื่อนักเรียน</a>
       <a href="{{ route('director.teacher-plans') }}"
-         class="block py-2.5 px-4 rounded-2xl border transition-all duration-200
+         class="block py-2.5 px-4 rounded-2xl transition-colors duration-200
          {{ request()->routeIs('director.teacher-plans', 'director.course-detail')
-              ? 'bg-white/10 border-white/40 text-white font-semibold shadow-sm'
-              : 'border-white/10 text-white/90 hover:border-white/25 hover:bg-white/10 hover:shadow-md hover:-translate-y-0.5' }}"
+              ? 'bg-white/15 text-white font-semibold'
+              : 'text-white/80 hover:text-white hover:bg-white/10' }}"
          data-i18n-th="แผนการสอนของครู" data-i18n-en="Teacher Plans">แผนการสอนของครู</a>
       {{-- <a href="/chart-summary" class="nav-item {{ request()->is('chart-summary') ? 'active' : '' }}" data-i18n-th="แผนภูมิ" data-i18n-en="Charts">แผนภูมิ</a> --}}
     </nav>
@@ -52,7 +58,7 @@
 
   <div class="mt-6 space-y-2">
     <button onclick="openProfileModal()"
-            class="w-full py-2.5 rounded-xl border border-white/15 bg-transparent text-white/90 shadow-sm hover:shadow-lg hover:border-white/30 hover:bg-white/10 hover:-translate-y-0.5 transition-all text-center">
+            class="w-full py-2.5 rounded-xl bg-transparent text-white/85 hover:text-white hover:bg-white/10 transition-colors text-center">
       <span data-i18n-th="จัดการโปรไฟล์" data-i18n-en="Manage profile">จัดการโปรไฟล์</span>
     </button>
 
@@ -68,7 +74,7 @@
 
     <form method="POST" action="{{ route('logout') }}">
       @csrf
-      <button type="submit" class="w-full py-2.5 rounded-xl border border-rose-300/40 bg-transparent text-rose-200 shadow-sm hover:shadow-lg hover:border-rose-200/70 hover:bg-rose-500/20 hover:text-white hover:-translate-y-0.5 transition-all">
+      <button type="submit" class="w-full py-2.5 rounded-xl bg-transparent text-rose-200 hover:text-white hover:bg-rose-500/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300/60">
         <span data-i18n-th="ออกจากระบบ" data-i18n-en="Logout">ออกจากระบบ</span>
       </button>
     </form>
