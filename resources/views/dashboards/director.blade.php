@@ -45,7 +45,7 @@
                 class="p-6 bg-gradient-to-br from-sky-50 to-sky-200 border border-sky-300 rounded-2xl shadow w-full text-left transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2">
             <div class="flex items-start justify-between gap-3">
                 <div>
-                    <h3 class="text-gray-600" data-i18n-th="คุณครูที่ทำหลักสูตรเสร็จ" data-i18n-en="Teachers with finished courses">คุณครูที่ทำหลักสูตรเสร็จ</h3>
+                    <h3 class="text-gray-600" data-i18n-th="หลักสูตรที่เสร็จ" data-i18n-en="Teachers with finished courses">หลักสูตรที่เสร็จ</h3>
                     <p class="text-sm text-sky-800 mt-2 underline">ดูรายชื่อครู</p>
                 </div>
                 <p class="text-4xl font-bold text-sky-800 mt-1">{{ number_format($completeTeacherCount ?? 0) }}</p>
@@ -57,7 +57,7 @@
                 class="p-6 bg-gradient-to-br from-amber-50 to-amber-200 border border-amber-300 rounded-2xl shadow w-full text-left transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2">
             <div class="flex items-start justify-between gap-3">
                 <div>
-                    <h3 class="text-gray-600" data-i18n-th="คุณครูที่ทำหลักสูตรยังไม่เสร็จ" data-i18n-en="Teachers with unfinished courses">คุณครูที่ทำหลักสูตรยังไม่เสร็จ</h3>
+                    <h3 class="text-gray-600" data-i18n-th="หลักสูตรที่ยังไม่เสร็จ" data-i18n-en="Teachers with unfinished courses">หลักสูตรที่ยังไม่เสร็จ</h3>
                     <p class="text-sm text-amber-800 mt-2 underline">ดูรายชื่อครู</p>
                 </div>
                 <p class="text-4xl font-bold text-amber-800 mt-1">{{ number_format($incompleteTeacherCount ?? 0) }}</p>
@@ -71,7 +71,7 @@
         <div class="flex flex-col lg:flex-row items-center gap-8">
         <div class="flex-1 space-y-3">
                 <div>
-                    <h2 class="text-xl font-semibold text-gray-800">สถานะหลักสูตรของครู</h2>
+                    <h2 class="text-xl font-semibold text-gray-800">สถานะหลักสูตร</h2>
                     <p class="text-sm text-gray-500">แสดงจำนวนครูที่ทำหลักสูตรเสร็จ ยังไม่เสร็จ และยังไม่ได้สร้างหลักสูตร</p>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
