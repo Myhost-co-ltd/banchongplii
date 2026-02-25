@@ -43,6 +43,18 @@
             @if (! empty(optional($course->teacher)->email))
                 <p class="text-sm text-blue-800 mt-1">{{ $course->teacher->email }}</p>
             @endif
+            @if ($course->teacher)
+                <div class="mt-3 flex flex-wrap gap-2">
+                    <a href="{{ route('attendance', ['course_id' => $course->id, 'teacher_id' => $course->teacher->id, 'course_name' => $course->name, 'teacher_name' => $course->teacher->name]) }}"
+                       class="inline-flex items-center rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-500">
+                        ดูการเช็คมาเรียน
+                    </a>
+                    <a href="{{ route('evaluation', ['course_id' => $course->id, 'teacher_id' => $course->teacher->id, 'course_name' => $course->name, 'teacher_name' => $course->teacher->name]) }}"
+                       class="inline-flex items-center rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-rose-500">
+                        ดูการตัดคะแนน
+                    </a>
+                </div>
+            @endif
         </div>
         <div class="p-4 rounded-2xl border border-emerald-100 bg-emerald-50">
             <p class="text-xs text-emerald-700">ห้องเรียนในหลักสูตร</p>

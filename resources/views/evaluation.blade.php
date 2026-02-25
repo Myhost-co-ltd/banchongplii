@@ -3,6 +3,10 @@
 @section('title', 'ประเมินผลการเรียน | โรงเรียนบ้านช่องพลี')
 
 @section('content')
+@php
+  $contextTeacherName = trim((string) request('teacher_name', ''));
+  $contextCourseName = trim((string) request('course_name', ''));
+@endphp
 <div class="p-6 bg-gray-50 rounded-3xl shadow-inner space-y-6">
 
   <!-- 🔹 หัวข้อ -->
@@ -11,6 +15,14 @@
   </h2>
 
   <!-- ✅ ตาราง -->
+  @if ($contextTeacherName !== '' || $contextCourseName !== '')
+    <p class="text-center text-sm text-slate-600 -mt-2">
+      ครู: {{ $contextTeacherName !== '' ? $contextTeacherName : '-' }}
+      <span class="mx-2 text-slate-300">|</span>
+      วิชา: {{ $contextCourseName !== '' ? $contextCourseName : '-' }}
+    </p>
+  @endif
+
   <div class="bg-white rounded-2xl shadow-md p-4 border border-gray-200">
     <div class="overflow-x-auto relative">
     <table id="evaluationTable" class="min-w-[1600px] w-full text-sm text-center border-collapse table-fixed">
