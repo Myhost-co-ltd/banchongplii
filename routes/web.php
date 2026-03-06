@@ -125,6 +125,18 @@ Route::middleware(['auth'])->group(function () {
         ->name('teacher.courses.assignments.cap');
     Route::get('/teacher/courses/{course}/export', [TeacherCourseController::class, 'export'])
         ->name('teacher.courses.export');
+    Route::get('/teacher/courses/{course}/attendance', [TeacherCourseController::class, 'attendance'])
+        ->name('teacher.courses.attendance');
+    Route::get('/teacher/courses/{course}/attendance-report', [TeacherCourseController::class, 'attendanceReport'])
+        ->name('teacher.courses.attendance.report');
+    Route::get('/teacher/courses/{course}/attendance-report/export', [TeacherCourseController::class, 'exportAttendanceReport'])
+        ->name('teacher.courses.attendance.report.export');
+    Route::post('/teacher/courses/{course}/attendance', [TeacherCourseController::class, 'storeAttendance'])
+        ->name('teacher.courses.attendance.store');
+    Route::get('/teacher/courses/{course}/deductions', [TeacherCourseController::class, 'deductions'])
+        ->name('teacher.courses.deductions');
+    Route::post('/teacher/courses/{course}/deductions', [TeacherCourseController::class, 'storeDeductions'])
+        ->name('teacher.courses.deductions.store');
 
     // Select course page
     Route::get('/teacher/course/select', function () {
@@ -193,6 +205,18 @@ Route::middleware(['auth'])->group(function () {
         ->name('teacher.courses.assignments.destroy');
     Route::put('/teacher/course/{course}/assignment-cap', [TeacherCourseController::class, 'updateAssignmentCap'])
         ->name('teacher.courses.assignments.cap');
+    Route::get('/teacher/course/{course}/attendance', [TeacherCourseController::class, 'attendance'])
+        ->name('teacher.courses.attendance');
+    Route::get('/teacher/course/{course}/attendance-report', [TeacherCourseController::class, 'attendanceReport'])
+        ->name('teacher.courses.attendance.report');
+    Route::get('/teacher/course/{course}/attendance-report/export', [TeacherCourseController::class, 'exportAttendanceReport'])
+        ->name('teacher.courses.attendance.report.export');
+    Route::post('/teacher/course/{course}/attendance', [TeacherCourseController::class, 'storeAttendance'])
+        ->name('teacher.courses.attendance.store');
+    Route::get('/teacher/course/{course}/deductions', [TeacherCourseController::class, 'deductions'])
+        ->name('teacher.courses.deductions');
+    Route::post('/teacher/course/{course}/deductions', [TeacherCourseController::class, 'storeDeductions'])
+        ->name('teacher.courses.deductions.store');
     Route::get('/teacher/students/export', [StudentController::class, 'export'])
         ->name('teacher.students.export');
 
@@ -207,6 +231,11 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/director/teacher-plans', [DirectorController::class, 'teacherPlans'])
         ->name('director.teacher-plans');
+
+    Route::get('/director/attendance-holidays', [DirectorController::class, 'attendanceHolidays'])
+        ->name('director.attendance-holidays');
+    Route::post('/director/attendance-holidays', [DirectorController::class, 'storeAttendanceHoliday'])
+        ->name('director.attendance-holidays.store');
 
     Route::get('/director/courses/{course}', [DirectorController::class, 'courseDetail'])
         ->name('director.course-detail');

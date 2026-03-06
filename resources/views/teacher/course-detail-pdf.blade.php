@@ -1,5 +1,13 @@
 ﻿@php
-    $termLabel = $selectedTerm === '2' ? 'ภาคเรียนที่ 2' : 'ภาคเรียนที่ 1';
+    $termLabel = match ((string) $selectedTerm) {
+        '2' => 'ภาคเรียนที่ 2',
+        'summer' => 'ภาคฤดูร้อน',
+        default => 'ภาคเรียนที่ 1',
+    };
+    $roomText = collect($course->rooms ?? [])
+        ->map(fn ($room) => trim((string) $room))
+        ->filter(fn ($room) => $room !== '')
+        ->implode(',');
     $fontTHSarabunRegular    = 'file:///' . str_replace('\\', '/', storage_path('fonts/THSarabunNew-Regular.ttf'));
     $fontTHSarabunBold       = 'file:///' . str_replace('\\', '/', storage_path('fonts/THSarabunNew-Bold.ttf'));
     $fontTHSarabunItalic     = 'file:///' . str_replace('\\', '/', storage_path('fonts/THSarabunNew-Italic.ttf'));
@@ -107,19 +115,15 @@ table {
 
     {{-- ✅ บรรทัดที่ 1: ข้อมูลหลัก --}}
     <p style="margin:6px 0 6px 0;">
-        <span>ระดับชั้น: **{{ $course->grade ?? '-' }}**</span>
-        <span style="margin-left: 20px;">ปีการศึกษา: **{{ $course->year ?? '-' }}**</span>
-        <span style="margin-left: 20px;">ภาคเรียน: **{{ $termLabel }}**</span>
+        <span>ระดับชั้น: {{ $course->grade ?? '-' }}</span>
+        <span style="margin-left: 20px;">ปีการศึกษา: {{ $course->year ?? '-' }}</span>
+        <span style="margin-left: 20px;">ภาคเรียน: {{ $termLabel }}</span>
     </p>
 
     {{-- ✅ บรรทัดที่ 2: ห้องเรียน (แยกออกมา) --}}
     <p style="margin:0;">
         <span style="font-weight:700; vertical-align:top; margin-right: 10px;">ห้องเรียน:</span>
-        @forelse($course->rooms ?? [] as $room)
-            <span class="pill" style="vertical-align:middle; ">{{ $room }}</span>
-        @empty
-            <span class="muted">-</span>
-        @endforelse
+        <span class="pill" style="vertical-align:middle;">{{ $roomText !== '' ? $roomText : '-' }}</span>
     </p>
 </div>
 
@@ -211,3 +215,4 @@ table {
 
 </body>
 </html>
+

@@ -73,7 +73,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
                     </span>
-                    <input type="email" name="email" placeholder="อีเมล"
+                    <input type="text" name="email" placeholder="อีเมล / username / รหัสครู"
                         value="{{ old('email') }}"
                         class="w-full border-0 focus:ring-0 text-sm py-2 pr-3"
                         required>

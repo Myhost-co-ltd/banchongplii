@@ -32,7 +32,7 @@
                     <p class="text-sm text-gray-600">
                         ระดับ {{ $course->grade ?? '-' }}
                         @if (! empty($course->term))
-                            | เทอม {{ $course->term }}
+                            | เทอม {{ match ((string) $course->term) { '1' => '1', '2' => '2', 'summer' => 'ฤดูร้อน', default => $course->term } }}
                         @endif
                         @if (! empty($course->year))
                             | ปี {{ $course->year }}

@@ -8,6 +8,11 @@
     $lessons = collect($course->lessons ?? []);
     $assignments = collect($course->assignments ?? []);
     $tz = config('app.timezone', 'Asia/Bangkok');
+    $termLabels = [
+        '1' => 'ภาคเรียนที่ 1',
+        '2' => 'ภาคเรียนที่ 2',
+        'summer' => 'ภาคฤดูร้อน',
+    ];
 
     $hoursByTerm = $hours->groupBy(fn ($item) => $item['term'] ?? $course->term ?? '-');
     $lessonsByTerm = $lessons->groupBy(fn ($item) => $item['term'] ?? $course->term ?? '-');
@@ -23,7 +28,7 @@
             <p class="text-gray-600 mt-2">
                 ระดับ {{ $course->grade ?? '-' }}
                 @if ($course->term)
-                    | ภาคเรียน {{ $course->term }}
+                    | {{ $termLabels[(string) $course->term] ?? ('ภาคเรียน ' . $course->term) }}
                 @endif
                 @if ($course->year)
                     | ปีการศึกษา {{ $course->year }}
@@ -63,7 +68,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
                 <p class="text-sm text-gray-500">ภาคเรียน</p>
-                <p class="text-lg font-semibold text-gray-900">{{ $course->term ?? '-' }}</p>
+                <p class="text-lg font-semibold text-gray-900">{{ $termLabels[(string) ($course->term ?? '')] ?? ($course->term ?? '-') }}</p>
             </div>
             <div>
                 <p class="text-sm text-gray-500">ปีการศึกษา</p>
@@ -100,7 +105,7 @@
         <div class="space-y-6">
             @forelse ($hoursByTerm as $term => $items)
                 <div class="space-y-3">
-                    <p class="text-sm font-semibold text-gray-700">ภาคเรียน {{ $term }}</p>
+                    <p class="text-sm font-semibold text-gray-700">{{ $termLabels[(string) $term] ?? ('ภาคเรียน ' . $term) }}</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         @foreach ($items as $item)
                             <div class="border border-gray-100 rounded-2xl p-4 space-y-1">
@@ -129,7 +134,7 @@
         <div class="space-y-6">
             @forelse ($lessonsByTerm as $term => $items)
                 <div class="space-y-3">
-                    <p class="text-sm font-semibold text-gray-700">ภาคเรียน {{ $term }}</p>
+                    <p class="text-sm font-semibold text-gray-700">{{ $termLabels[(string) $term] ?? ('ภาคเรียน ' . $term) }}</p>
                     <div class="space-y-3">
                         @foreach ($items as $item)
                             <div class="border border-gray-100 rounded-2xl p-4 space-y-1">
@@ -163,7 +168,7 @@
         <div class="space-y-6">
             @forelse ($assignmentsByTerm as $term => $items)
                 <div class="space-y-3">
-                    <p class="text-sm font-semibold text-gray-700">ภาคเรียน {{ $term }}</p>
+                    <p class="text-sm font-semibold text-gray-700">{{ $termLabels[(string) $term] ?? ('ภาคเรียน ' . $term) }}</p>
                     <div class="space-y-3">
                         @foreach ($items as $item)
                             <div class="border border-gray-100 rounded-2xl p-4 space-y-1">

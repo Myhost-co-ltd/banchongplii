@@ -72,13 +72,18 @@
                         <option value="">-- เลือกภาคเรียน --</option>
                         <option value="1" @selected(old('term', $course->term) == '1')>ภาคเรียนที่ 1</option>
                         <option value="2" @selected(old('term', $course->term) == '2')>ภาคเรียนที่ 2</option>
+                        <option value="summer" @selected(old('term', $course->term) === 'summer')>ภาคฤดูร้อน</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">ปีการศึกษา</label>
-                    <input type="text" name="year" value="{{ old('year', $course->year) }}"
+                    <input type="number"
+                           name="year"
+                           min="{{ now(config('app.timezone', 'Asia/Bangkok'))->year + 543 }}"
+                           max="{{ now(config('app.timezone', 'Asia/Bangkok'))->year + 543 }}"
+                           value="{{ old('year', $course->year ?? (now(config('app.timezone', 'Asia/Bangkok'))->year + 543)) }}"
                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-                           placeholder="เช่น 2567">
+                           placeholder="{{ now(config('app.timezone', 'Asia/Bangkok'))->year + 543 }}">
                 </div>
             </div>
 
@@ -95,7 +100,7 @@
                 </label>
                 <input type="number"
                        name="assignment_cap"
-                       min="1" max="100" step="0.5"
+                       min="1" max="100" step="1"
                        value="{{ old('assignment_cap', $course->assignment_cap ?? 70) }}"
                        class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
                 <p class="text-xs text-gray-500 mt-1">

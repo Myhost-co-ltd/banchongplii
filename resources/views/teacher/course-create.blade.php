@@ -4,9 +4,20 @@
 
 @section('content')
 @php
-    $usedGrades = ($courses ?? collect())->pluck('grade')->filter()->unique();
+    $todayDate = now(config('app.timezone', 'Asia/Bangkok'))->toDateString();
+    $teacherId = (int) Auth::id();
+    $usedGrades = collect($courses ?? [])
+        ->filter(fn ($course) => $course->isTeacherResponsible($teacherId, $todayDate))
+        ->pluck('grade')
+        ->filter()
+        ->unique();
     $currentYearAd = now(config('app.timezone', 'Asia/Bangkok'))->year;
     $currentYearBe = $currentYearAd + 543;
+    $termLabels = [
+        '1' => 'ภาคเรียนที่ 1',
+        '2' => 'ภาคเรียนที่ 2',
+        'summer' => 'ภาคฤดูร้อน',
+    ];
 @endphp
 <div class="space-y-8 overflow-y-auto pr-2 pb-10">
 
@@ -165,6 +176,7 @@
                         <option value="">-- เลือกภาคเรียน --</option>
                         <option value="1" @selected(old('term') == 1)>ภาคเรียนที่ 1</option>
                         <option value="2" @selected(old('term') == 2)>ภาคเรียนที่ 2</option>
+                        <option value="summer" @selected(old('term') === 'summer')>ภาคฤดูร้อน</option>
                     </select>
                 </div> -->
                 <div>
@@ -255,12 +267,16 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100 bg-white">
                         @foreach ($courses as $course)
+                            @php($canManageCourse = $course->isTeacherResponsible((int) Auth::id(), $todayDate))
                             <tr class="hover:bg-slate-50 transition">
                                 <td class="py-3 px-4 font-medium text-gray-900">
                                     <a href="{{ route('course.detail', $course) }}"
                                        class="text-blue-600 hover:underline">
                                         {{ $course->name }}
                                     </a>
+                                    @unless($canManageCourse)
+                                        <span class="ml-2 text-xs text-gray-500">History</span>
+                                    @endunless
                                 </td>
                                 <td class="py-3 px-4 text-center">{{ $course->grade }}</td>
                                 <td class="py-3 px-4 text-center">
@@ -272,9 +288,10 @@
                                         <span class="text-gray-400 text-xs">-</span>
                                     @endforelse
                                 </td>
-                                <td class="py-3 px-4 text-center">{{ $course->term ?? '-' }}</td>
+                                <td class="py-3 px-4 text-center">{{ $termLabels[(string) ($course->term ?? '')] ?? ($course->term ?? '-') }}</td>
                                 <td class="py-3 px-4 text-center">{{ $course->year ?? '-' }}</td>
                                 <td class="py-3 px-4 text-center">
+                                    @if($canManageCourse)
                                     <form action="{{ route('teacher.courses.destroy', $course) }}"
                                           method="POST"
                                           onsubmit="return confirm('ยืนยันการลบหลักสูตรนี้หรือไม่?')">
@@ -283,6 +300,9 @@
                                         <button type="submit" class="text-red-600 hover:underline"
                                                 data-i18n-th="ลบ" data-i18n-en="Delete">ลบ</button>
                                     </form>
+                                    @else
+                                        <span class="text-xs text-gray-500">Read-only</span>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach
