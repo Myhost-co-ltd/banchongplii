@@ -9,8 +9,6 @@
     $fontNotoBold            = 'file:///' . str_replace('\\', '/', storage_path('fonts/NotoSansThai-Bold.ttf'));
     $printedAt               = now()->timezone('Asia/Bangkok')->addYears(543)->format('d/m/Y H:i');
 
-    $logoPathFile = public_path('images/school-logo.png');
-    $logoPath     = file_exists($logoPathFile) ? ('file:///' . str_replace('\\', '/', $logoPathFile)) : null;
 @endphp
 <!DOCTYPE html>
 <html lang="th">
@@ -78,12 +76,15 @@
 <body>
     <div class="page">
         <div class="header">
+            <p style="margin: 0 0 2px; text-align:center; font-size:20px; font-weight:700;">
+                {{ $schoolName ?? 'โรงเรียนบ้านช่องพลี' }}
+            </p>
             <h1>รายชื่อนักเรียนตามห้อง</h1>
             <div class="meta meta-row">
+                <span><strong>ครู:</strong> {{ $teacher->name ?? '-' }}</span>
                 @if(!empty($courseName))
                     <span><strong>หลักสูตร:</strong> {{ $courseName }}</span>
                 @endif
-                <span><strong>ครู:</strong> {{ $teacher->name ?? '-' }}</span>
                 @php
                     $roomsList = collect($assignedRooms ?? [])->filter()->values();
                 @endphp
@@ -94,35 +95,27 @@
             <p class="muted" style="margin-top: 4px;">พิมพ์เมื่อ: {{ $printedAt }}</p>
         </div>
 
-        @if($logoPath)
-            <div style="text-align:center; margin: 6px 0 12px 0;">
-                <img src="{{ $logoPath }}" alt="โลโก้โรงเรียน" style="height:80px; object-fit:contain;">
-            </div>
-        @endif
-
         @foreach(($studentsByRoom ?? collect()) as $room => $list)
             <h2>ห้องเรียน: {{ $room }}</h2>
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 15%;">รหัส</th>
-                        <th style="width: 15%;">คำนำหน้า</th>
-                        <th style="width: 25%;">ชื่อ</th>
-                        <th style="width: 25%;">นามสกุล</th>
-                        <th style="width: 10%;">ห้องเรียน</th>
+                        <th style="width: 20%;">รหัส</th>
+                        <th style="width: 30%;">ชื่อ</th>
+                        <th style="width: 30%;">นามสกุล</th>
+                        <th style="width: 12%;">ห้องเรียน</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($list as $student)
                         <tr>
                             <td class="center-text">{{ $student->student_code }}</td>
-                            <td class="center-text">{{ $student->title ?? '-' }}</td>
                             <td>{{ $student->first_name }}</td>
                             <td>{{ $student->last_name }}</td>
                             <td class="center-text">{{ $student->room_normalized ?? '-' }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="muted" style="text-align:center;">ยังไม่มีนักเรียนในห้องนี้</td></tr>
+                        <tr><td colspan="4" class="muted" style="text-align:center;">ยังไม่มีนักเรียนในห้องนี้</td></tr>
                     @endforelse
                 </tbody>
             </table>

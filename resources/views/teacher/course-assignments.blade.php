@@ -77,6 +77,7 @@
                                 <option value="">-- เลือกภาคเรียน --</option>
                                 <option value="1" {{ $currentTerm === '1' ? 'selected' : '' }}>ภาคเรียนที่ 1</option>
                                 <option value="2" {{ $currentTerm === '2' ? 'selected' : '' }}>ภาคเรียนที่ 2</option>
+                                <option value="summer" {{ $currentTerm === 'summer' ? 'selected' : '' }}>ภาคฤดูร้อน</option>
                             </select>
                         </form>
                         <p class="text-xs text-gray-400 mt-1">* เลือกภาคเรียนเพื่อดูงานในเทอมนั้น</p>
@@ -116,9 +117,9 @@
                 <div class="p-4 rounded-2xl bg-amber-50 border border-amber-100">
                     <p class="text-sm text-amber-700">คะแนนรวม / เพดาน</p>
                     <p class="text-lg font-semibold text-amber-800">
-                        {{ number_format($assignmentTotalScore, 2) }} / {{ number_format($assignmentCapScore, 2) }}
+                        {{ number_format($assignmentTotalScore, 0) }} / {{ number_format($assignmentCapScore, 0) }}
                     </p>
-                    <p class="text-xs text-amber-700/80 mt-1">เหลือได้กำหนด: {{ number_format($assignmentRemainingScore, 2) }}</p>
+                    <p class="text-xs text-amber-700/80 mt-1">เหลือได้กำหนด: {{ number_format($assignmentRemainingScore, 0) }}</p>
                 </div>
                 <div class="p-4 rounded-2xl bg-purple-50 border border-purple-100 md:col-span-3 lg:col-span-1">
                     <p class="text-sm text-purple-700">จำนวนนักเรียนในห้อง</p>
@@ -199,7 +200,7 @@
                                 <div class="space-y-1">
                                     <p class="text-lg font-semibold text-gray-900">{{ $assignment['title'] ?? '-' }}</p>
                                     <p class="text-sm text-gray-600">
-                                        คะแนนเต็ม: {{ $score !== null ? number_format($score, 2) : '-' }}
+                                        คะแนนเต็ม: {{ $score !== null ? number_format($score, 0) : '-' }}
                                         @if($dueDate)
                                             • ส่งภายใน: <span class="{{ $isOverdue ? 'text-red-600' : 'text-gray-800' }}">{{ \Carbon\Carbon::parse($dueDate, $tz)->locale('th')->isoFormat('D MMM YYYY') }}</span>
                                         @endif

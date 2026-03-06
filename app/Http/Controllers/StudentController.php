@@ -30,6 +30,7 @@ class StudentController extends Controller
     public function exportHomeroom()
     {
         $data = $this->buildHomeroomData();
+        $schoolName = $this->resolveSchoolName();
 
         $rooms = $data['assignedRooms']->isNotEmpty()
             ? $data['assignedRooms']
@@ -65,6 +66,7 @@ class StudentController extends Controller
                 'rooms' => $rooms,
                 'studentsByRoom' => $studentsByRoom,
                 'generatedAt' => now(),
+                'schoolName' => $schoolName,
             ]);
 
         // Register Thai fonts so Dompdf embeds them
@@ -168,15 +170,17 @@ class StudentController extends Controller
 
         $assignedRooms = $homeroomRooms->isNotEmpty() ? $homeroomRooms : $courseRooms;
         $assignedRooms = $assignedRooms->map($normalizeRoom)->filter()->values();
+        $assignedRoomLookup = $this->buildAssignedRoomLookup($assignedRooms);
+        $assignedRoomFilters = $this->buildAssignedRoomFilterValues($assignedRooms);
 
         $studentQuery = Student::query();
         if ($assignedRooms->isNotEmpty()) {
-            $studentQuery->where(function ($q) use ($assignedRooms, $hasClassroomCol) {
+            $studentQuery->where(function ($q) use ($assignedRoomFilters, $hasClassroomCol) {
                 if ($hasClassroomCol) {
-                    $q->whereIn('classroom', $assignedRooms)
-                      ->orWhereIn('room', $assignedRooms);
+                    $q->whereIn('classroom', $assignedRoomFilters)
+                      ->orWhereIn('room', $assignedRoomFilters);
                 } else {
-                    $q->whereIn('room', $assignedRooms);
+                    $q->whereIn('room', $assignedRoomFilters);
                 }
             });
         } elseif ($user && $user->hasRole('teacher')) {
@@ -187,8 +191,9 @@ class StudentController extends Controller
             ->when($hasClassroomCol, fn ($q) => $q->orderBy('classroom'))
             ->orderBy('student_code')
             ->get();
-        $students = $students->map(function ($student) use ($normalizeRoom) {
-            $student->room_normalized = $normalizeRoom($student->classroom ?? $student->room ?? null);
+        $students = $students->map(function ($student) use ($normalizeRoom, $assignedRoomLookup) {
+            $rawRoom = $normalizeRoom($student->classroom ?? $student->room ?? null);
+            $student->room_normalized = $this->resolveAssignedRoomLabel($rawRoom, $assignedRoomLookup);
             return $student;
         });
 
@@ -216,6 +221,7 @@ class StudentController extends Controller
     public function export(Request $request)
     {
         $user = Auth::user();
+        $schoolName = $this->resolveSchoolName();
 
         $hasClassroomCol = Schema::hasColumn('students', 'classroom');
         $courseName = null;
@@ -249,21 +255,24 @@ class StudentController extends Controller
         // Force to support collection of plain strings to avoid Eloquent contains() calling getKey()
         $assignedRooms = $homeroomRooms->isNotEmpty() ? $homeroomRooms->values() : $courseRooms;
         $assignedRooms = collect($assignedRooms->all())->map($normalizeRoom)->filter()->values();
+        $assignedRoomLookup = $this->buildAssignedRoomLookup($assignedRooms);
+        $assignedRoomFilters = $this->buildAssignedRoomFilterValues($assignedRooms);
 
         $studentsByRoom = Student::query()
-            ->when($assignedRooms->isNotEmpty(), fn ($q) => $q->where(function ($qq) use ($assignedRooms, $hasClassroomCol) {
+            ->when($assignedRooms->isNotEmpty(), fn ($q) => $q->where(function ($qq) use ($assignedRoomFilters, $hasClassroomCol) {
                 if ($hasClassroomCol) {
-                    $qq->whereIn('classroom', $assignedRooms)
-                       ->orWhereIn('room', $assignedRooms);
+                    $qq->whereIn('classroom', $assignedRoomFilters)
+                       ->orWhereIn('room', $assignedRoomFilters);
                 } else {
-                    $qq->whereIn('room', $assignedRooms);
+                    $qq->whereIn('room', $assignedRoomFilters);
                 }
             }))
             ->when($hasClassroomCol, fn ($q) => $q->orderBy('classroom'))
             ->orderBy('student_code')
             ->get()
-            ->map(function ($student) use ($normalizeRoom) {
-                $student->room_normalized = $normalizeRoom($student->classroom ?? $student->room ?? null);
+            ->map(function ($student) use ($normalizeRoom, $assignedRoomLookup) {
+                $rawRoom = $normalizeRoom($student->classroom ?? $student->room ?? null);
+                $student->room_normalized = $this->resolveAssignedRoomLabel($rawRoom, $assignedRoomLookup);
                 return $student;
             })
             ->groupBy(fn ($s) => $s->room_normalized ?? '-');
@@ -305,6 +314,7 @@ class StudentController extends Controller
                 'studentsByRoom' => $studentsByRoom,
                 'assignedRooms' => $assignedRooms,
                 'courseName' => $courseName,
+                'schoolName' => $schoolName,
             ]);
 
         // Register Thai fonts so Dompdf embeds them
@@ -351,6 +361,163 @@ class StudentController extends Controller
         return $pdf->download($fileName);
     }
 
+    private function resolveSchoolName(): string
+    {
+        $default = 'โรงเรียนบ้านช่องพลี';
+        $path = storage_path('app/login-settings.json');
+
+        if (! file_exists($path)) {
+            return $default;
+        }
+
+        $settings = json_decode((string) file_get_contents($path), true);
+        if (! is_array($settings)) {
+            return $default;
+        }
+
+        $name = trim((string) ($settings['login_title'] ?? ''));
+        return $name !== '' ? $name : $default;
+    }
+
+    private function buildAssignedRoomLookup($assignedRooms): array
+    {
+        $lookup = [];
+
+        foreach (collect($assignedRooms)->filter() as $room) {
+            $canonical = $this->normalizeRoomValue($room);
+            if ($canonical === null) {
+                continue;
+            }
+
+            foreach ($this->buildRoomAliases($canonical) as $alias) {
+                $key = $this->roomAliasKey($alias);
+                if ($key !== null && ! isset($lookup[$key])) {
+                    $lookup[$key] = $canonical;
+                }
+            }
+        }
+
+        return $lookup;
+    }
+
+    private function buildAssignedRoomFilterValues($assignedRooms)
+    {
+        return collect($assignedRooms)
+            ->filter()
+            ->flatMap(fn ($room) => $this->buildRoomAliases((string) $room))
+            ->map(fn ($room) => trim((string) $room))
+            ->filter(fn ($room) => $room !== '')
+            ->unique(fn ($room) => $this->roomAliasKey($room) ?? $room)
+            ->values();
+    }
+
+    private function resolveAssignedRoomLabel(?string $room, array $assignedRoomLookup): ?string
+    {
+        if ($room === null) {
+            return null;
+        }
+
+        foreach ($this->buildRoomAliases($room) as $alias) {
+            $key = $this->roomAliasKey($alias);
+            if ($key !== null && isset($assignedRoomLookup[$key])) {
+                return $assignedRoomLookup[$key];
+            }
+        }
+
+        return $room;
+    }
+
+    private function buildRoomAliases(string $room): array
+    {
+        $base = trim($room);
+        if ($base === '') {
+            return [];
+        }
+
+        $aliases = collect([$base]);
+        $compact = preg_replace('/\s+/u', '', $base) ?? $base;
+        $aliases->push($compact);
+
+        $parsed = $this->extractGradeRoomFromText($base);
+        if ($parsed !== null) {
+            $grade = (int) ($parsed['grade'] ?? 0);
+            $roomNo = (int) ($parsed['room'] ?? 0);
+
+            if ($grade > 0 && $roomNo > 0) {
+                $aliases->push(sprintf('%d%02d', $grade, $roomNo));
+                $aliases->push($grade . '/' . $roomNo);
+                $aliases->push('ป.' . $grade . '/' . $roomNo);
+                $aliases->push('U.' . $grade . '/' . $roomNo);
+                $aliases->push('P.' . $grade . '/' . $roomNo);
+                $aliases->push('ประถมศึกษา ' . $grade . '/' . $roomNo);
+                $aliases->push('ประถมศึกษา' . $grade . '/' . $roomNo);
+            }
+        }
+
+        return $aliases
+            ->map(fn ($value) => trim((string) $value))
+            ->filter(fn ($value) => $value !== '')
+            ->unique(fn ($value) => $this->roomAliasKey($value) ?? $value)
+            ->values()
+            ->all();
+    }
+
+    private function extractGradeRoomFromText(string $value): ?array
+    {
+        $text = trim($value);
+        if ($text === '') {
+            return null;
+        }
+
+        $text = strtr($text, [
+            '๐' => '0', '๑' => '1', '๒' => '2', '๓' => '3', '๔' => '4',
+            '๕' => '5', '๖' => '6', '๗' => '7', '๘' => '8', '๙' => '9',
+        ]);
+        $compact = preg_replace('/\s+/u', '', $text) ?? $text;
+
+        if (preg_match('/^(\d)(\d{2})$/', $compact, $matches) === 1) {
+            return [
+                'grade' => (int) $matches[1],
+                'room' => (int) $matches[2],
+            ];
+        }
+
+        $patterns = [
+            '/^(?:u|p|ป|ม)\.?(\d{1,2})\/(\d{1,2})$/iu',
+            '/^ประถมศึกษา(\d{1,2})\/(\d{1,2})$/u',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $compact, $matches) === 1) {
+                return [
+                    'grade' => (int) $matches[1],
+                    'room' => (int) $matches[2],
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    private function roomAliasKey(?string $room): ?string
+    {
+        $value = trim((string) ($room ?? ''));
+        if ($value === '') {
+            return null;
+        }
+
+        $value = strtr($value, [
+            '๐' => '0', '๑' => '1', '๒' => '2', '๓' => '3', '๔' => '4',
+            '๕' => '5', '๖' => '6', '๗' => '7', '๘' => '8', '๙' => '9',
+        ]);
+        $value = preg_replace('/\s+/u', '', $value) ?? $value;
+        $value = str_replace('.', '', $value);
+
+        return function_exists('mb_strtolower')
+            ? mb_strtolower($value, 'UTF-8')
+            : strtolower($value);
+    }
+
     /**
      * Normalize room values that may arrive as strings, objects, or arrays.
      * Supports array shapes like ['room' => 'X'], ['name' => 'X'], or [0, 1, 2] (uses index 2 first).
@@ -390,4 +557,3 @@ class StudentController extends Controller
         return null;
     }
 }
-

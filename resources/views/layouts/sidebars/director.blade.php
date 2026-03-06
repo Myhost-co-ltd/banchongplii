@@ -51,6 +51,12 @@
               ? 'bg-white/15 text-white font-semibold'
               : 'text-white/80 hover:text-white hover:bg-white/10' }}"
          data-i18n-th="แผนการสอนของครู" data-i18n-en="Teacher Plans">แผนการสอนของครู</a>
+      <a href="{{ route('director.attendance-holidays') }}"
+         class="block py-2.5 px-4 rounded-2xl transition-colors duration-200
+         {{ request()->routeIs('director.attendance-holidays')
+              ? 'bg-white/15 text-white font-semibold'
+              : 'text-white/80 hover:text-white hover:bg-white/10' }}"
+         data-i18n-th="กำหนดวันหยุด" data-i18n-en="Manage Holidays">กำหนดวันหยุด</a>
       {{-- <a href="/chart-summary" class="nav-item {{ request()->is('chart-summary') ? 'active' : '' }}" data-i18n-th="แผนภูมิ" data-i18n-en="Charts">แผนภูมิ</a> --}}
     </nav>
 

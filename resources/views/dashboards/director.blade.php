@@ -1,4 +1,4 @@
-@extends('layouts.layout-director')
+﻿@extends('layouts.layout-director')
 
 @section('title', 'แดชบอร์ดผู้อำนวยการ')
 
@@ -65,8 +65,22 @@
             <div class="stat-card__body">
             <div class="stat-card__top">
                 <div class="stat-card__content">
-                    <h3 class="text-gray-600" data-i18n-th="หลักสูตรที่เรียบร้อยแล้ว" data-i18n-en="Teachers with finished courses">ที่ทำหลักสูตรเสร็จ</h3>
-                    <p class="stat-card__value text-sky-800">{{ number_format($completeTeacherCount ?? 0) }}</p>
+                    <p class="stat-card__label text-sky-900/80" data-i18n-th="หลักสูตรเสร็จแล้ว" data-i18n-en="Teachers with finished courses">
+                        หลักสูตรเสร็จแล้ว
+                    </p>
+                    <p class="stat-card__value text-sky-900">
+                        {{ number_format($completeTeacherCount ?? 0) }}
+                    </p>
+                </div>
+
+                <div class="relative">
+                    <div class="absolute -inset-2 rounded-2xl bg-sky-200/40 blur-lg opacity-0 transition group-hover:opacity-100"></div>
+                    <div class="stat-card__icon bg-gradient-to-br from-sky-50 to-sky-200 border-sky-200">
+                        <svg class="h-6 w-6 text-sky-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
                 </div>
             </div>
 
@@ -86,8 +100,22 @@
             <div class="stat-card__body">
             <div class="stat-card__top">
                 <div class="stat-card__content">
-                    <h3 class="text-gray-600" data-i18n-th="หลักสูตรยังไม่เรียบร้อย" data-i18n-en="Teachers with unfinished courses">หลักสูตรยังไม่เสร็จ</h3>
-                    <p class="stat-card__value text-amber-800">{{ number_format($incompleteTeacherCount ?? 0) }}</p>
+                    <p class="stat-card__label text-amber-900/80" data-i18n-th="หลักสูตรยังไม่เสร็จ" data-i18n-en="Teachers with unfinished courses">
+                        หลักสูตรยังไม่เสร็จ
+                    </p>
+                    <p class="stat-card__value text-amber-900">
+                        {{ number_format($incompleteTeacherCount ?? 0) }}
+                    </p>
+                </div>
+
+                <div class="relative">
+                    <div class="absolute -inset-2 rounded-2xl bg-amber-200/40 blur-lg opacity-0 transition group-hover:opacity-100"></div>
+                    <div class="stat-card__icon bg-gradient-to-br from-amber-50 to-amber-200 border-amber-200">
+                        <svg class="h-6 w-6 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
                 </div>
             </div>
 
@@ -145,13 +173,13 @@
         <div class="flex-1 space-y-3">
                 <div>
                     <h2 class="text-xl font-semibold text-gray-800">สถานะหลักสูตร</h2>
-                    <p class="text-sm text-gray-500">แสดงจำนวนครูที่ทำหลักสูตรเสร็จ ยังไม่เสร็จ และยังไม่ได้สร้างหลักสูตร</p>
+                    <p class="text-sm text-gray-500">แสดงจำนวนครูที่สร้างหลักสูตรแล้ว และครูที่ยังไม่ได้สร้างหลักสูตร</p>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div class="flex items-center gap-3 p-3 rounded-2xl bg-sky-50 border border-sky-100">
                         <span class="w-3 h-3 rounded-full bg-sky-500"></span>
                         <div>
-                            <p class="text-xs text-gray-600">หลักสูตรเรียบร้อยแล้ว</p>
+                            <p class="text-xs text-gray-600">ครูที่ทำหลักสูตรเสร็จ</p>
                             <p class="text-2xl font-bold text-sky-700">{{ number_format($completeTeacherCount ?? 0) }}</p>
                             <p class="text-xs text-sky-700/80 mt-1">คน</p>
                         </div>
@@ -159,7 +187,7 @@
                     <div class="flex items-center gap-3 p-3 rounded-2xl bg-amber-50 border border-amber-100">
                         <span class="w-3 h-3 rounded-full bg-amber-500"></span>
                         <div>
-                            <p class="text-xs text-gray-600">หลักสูตรยังไม่เรียบร้อย</p>
+                            <p class="text-xs text-gray-600">ครูที่ทำหลักสูตรยังไม่เสร็จ</p>
                             <p class="text-2xl font-bold text-amber-700">{{ number_format($incompleteTeacherCount ?? 0) }}</p>
                             <p class="text-xs text-amber-700/80 mt-1">คน</p>
                         </div>
@@ -185,7 +213,7 @@
         </div>
     </div>
 
-    <!-- วิชาเอกของครู -->
+    <!-- รายวิชาของครู -->
     @php
         $majorsList = $allMajors ?? collect();
     @endphp
@@ -193,8 +221,8 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
             <div>
                 <h2 class="text-xl font-semibold text-gray-800"
-                    data-i18n-th="วิชาเอกของครู" data-i18n-en="Teacher majors">
-                    วิชาเอกของครู
+                    data-i18n-th="รายวิชาของครู" data-i18n-en="Teacher subjects">
+                    รายวิชาของครู
                 </h2>
                 <p class="text-sm text-gray-500"
                    data-i18n-th="เลือกวิชาเพื่อดูครูผู้รับผิดชอบ"
@@ -209,8 +237,8 @@
                 </label>
                 <select id="directorMajorFilter" class="border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
                     <option value=""
-                            data-i18n-th="วิชาเอกทั้งหมด" data-i18n-en="All majors">
-                        วิชาเอกทั้งหมด
+                            data-i18n-th="รายวิชาทั้งหมด" data-i18n-en="All subjects">
+                        รายวิชาทั้งหมด
                     </option>
                     @foreach($majorsList as $major)
                         <option value="{{ $major }}">{{ $major }}</option>
@@ -224,8 +252,8 @@
                 <thead class="bg-blue-600 text-white">
                     <tr>
                         <th class="py-3 px-4 text-left"
-                            data-i18n-th="วิชาเอก" data-i18n-en="Major">
-                            วิชาเอก
+                            data-i18n-th="รายวิชา" data-i18n-en="Subject">
+                            รายวิชา
                         </th>
                         <th class="py-3 px-4 text-center w-32"
                             data-i18n-th="ดูรายละเอียด" data-i18n-en="Details">
@@ -282,8 +310,8 @@
                     @empty
                         <tr>
                             <td colspan="2" class="py-4 px-4 text-center text-gray-500"
-                                data-i18n-th="ยังไม่มีข้อมูลวิชาเอก" data-i18n-en="No major data yet">
-                                ยังไม่มีข้อมูลวิชาเอก
+                                data-i18n-th="ยังไม่มีข้อมูลรายวิชา" data-i18n-en="No subject data yet">
+                                ยังไม่มีข้อมูลรายวิชา
                             </td>
                         </tr>
                     @endforelse
@@ -291,8 +319,8 @@
             </table>
         </div>
         <p class="text-xs text-gray-500 mt-3" id="directorMajorSummary"
-           data-i18n-th="แสดงวิชาเอกทั้งหมด" data-i18n-en="Showing all majors">
-            แสดงวิชาเอกทั้งหมด {{ $majorsList->count() }} วิชา
+           data-i18n-th="แสดงรายวิชาทั้งหมด" data-i18n-en="Showing all subjects">
+            แสดงรายวิชาทั้งหมด {{ $majorsList->count() }} วิชา
         </p>
     </div>
 
@@ -412,7 +440,7 @@
         const teacherStatusData = {
             complete: @json($completeTeachers ?? []),
             incomplete: @json($incompleteTeachers ?? []),
-            all: @json($homeroomTeachers ?? []),
+            all: @json($teacherDirectoryAll ?? $homeroomTeachers ?? []),
         };
         const statusButtons = Array.from(document.querySelectorAll('[data-teacher-status-target]'));
         const statusModal = document.getElementById('teacherStatusModal');
@@ -452,8 +480,8 @@
 
             if (summary) {
                 summary.textContent = selected
-                    ? `แสดงเฉพาะวิชา ${majorFilter.value} (${visibleCount} รายการ)`
-                    : `แสดงวิชาเอกทั้งหมด ${majorRows.length} วิชา`;
+                    ? `แสดงเฉพาะรายวิชา ${majorFilter.value} (${visibleCount} รายการ)`
+                    : `แสดงรายวิชาทั้งหมด ${majorRows.length} วิชา`;
             }
         };
 
@@ -767,16 +795,16 @@
                         ? `<div class="mt-3 space-y-2">${incompleteGradeSummary}${coursesHtml}</div>`
                         : incompleteGradeSummary;
 
-                    const headerBadgeClass = isCompleteStatus
-                        ? 'bg-sky-100 text-sky-700'
-                        : isIncompleteStatus
-                            ? 'bg-amber-100 text-amber-700'
-                            : 'bg-slate-200 text-slate-700';
-                    const headerBadgeText = isCompleteStatus
-                        ? 'หลักสูตรเสร็จแล้ว'
-                        : isIncompleteStatus
-                            ? 'หลักสูตรยังไม่เสร็จ'
-                            : 'ข้อมูลครู';
+                const headerBadgeClass = isCompleteStatus
+                    ? 'bg-sky-100 text-sky-700'
+                    : isIncompleteStatus
+                        ? 'bg-amber-100 text-amber-700'
+                        : 'bg-slate-200 text-slate-700';
+                const headerBadgeText = isCompleteStatus
+                    ? 'หลักสูตรเสร็จแล้ว'
+                    : isIncompleteStatus
+                        ? 'หลักสูตรยังไม่เสร็จ'
+                        : 'ข้อมูลครู';
 
                     card.innerHTML = `
                         <div class="flex items-start justify-between gap-3">
@@ -808,9 +836,9 @@
 
             if (statusModalTitle) {
                 statusModalTitle.textContent = statusKey === 'complete'
-                    ? 'คุณครูที่ทำหลักสูตรเรียบร้อยแล้ว'
+                    ? 'คุณครูที่ทำหลักสูตรเสร็จ'
                     : statusKey === 'incomplete'
-                        ? 'คุณครูที่ทำหลักสูตรยังไม่เรียบร้อย'
+                        ? 'คุณครูที่ทำหลักสูตรยังไม่เสร็จ'
                         : 'ครูทั้งหมด';
 
             statusModalSubtitle.textContent = `ทั้งหมด ${count} คน`;
@@ -939,7 +967,7 @@
                     type: 'doughnut',
                     
                     data: {
-                        labels: ['ครูที่ทำหลักสูตรเรียบร้อยแล้ว', 'ครูที่ทำหลักสูตรยังไม่เรียบร้อย'],
+                        labels: ['ครูที่ทำหลักสูตรเสร็จ', 'ครูที่ทำหลักสูตรยังไม่เสร็จ'],
                         datasets: [{
                             data: [completeCount, incompleteCount],
                             backgroundColor: ['#0ea5e9', '#f59e0b'],

@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -15,6 +17,9 @@ class Course extends Model
 
     protected $fillable = [
         'user_id',
+        'temporary_teacher_id',
+        'temporary_until',
+        'temporary_assigned_by',
         'name',
         'grade',
         'rooms',
@@ -29,6 +34,7 @@ class Course extends Model
 
     protected $casts = [
         'rooms' => 'array',
+        'temporary_until' => 'date',
         'teaching_hours' => 'array',
         'lessons' => 'array',
         'assignments' => 'array',
@@ -43,6 +49,89 @@ class Course extends Model
     public function teacher()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function temporaryTeacher()
+    {
+        return $this->belongsTo(User::class, 'temporary_teacher_id');
+    }
+
+    public function temporaryAssigner()
+    {
+        return $this->belongsTo(User::class, 'temporary_assigned_by');
+    }
+
+    public function scopeAccessibleByTeacher(Builder $query, int $teacherId, ?string $onDate = null): Builder
+    {
+        $date = $onDate ?: now(config('app.timezone', 'Asia/Bangkok'))->toDateString();
+
+        return $query->where(function (Builder $outer) use ($teacherId, $date): void {
+            $outer->where(function (Builder $owner) use ($teacherId, $date): void {
+                $owner->where('user_id', $teacherId)
+                    ->where(function (Builder $substituteState) use ($teacherId, $date): void {
+                        $substituteState->whereNull('temporary_teacher_id')
+                            ->orWhereNull('temporary_until')
+                            ->orWhereDate('temporary_until', '<', $date)
+                            ->orWhere('temporary_teacher_id', $teacherId);
+                    });
+            })->orWhere(function (Builder $activeSubstitute) use ($teacherId, $date): void {
+                $activeSubstitute->where('temporary_teacher_id', $teacherId)
+                    ->whereNotNull('temporary_until')
+                    ->whereDate('temporary_until', '>=', $date);
+            });
+        });
+    }
+
+    public function scopeVisibleToTeacher(Builder $query, int $teacherId): Builder
+    {
+        return $query->where(function (Builder $visibility) use ($teacherId): void {
+            $visibility->where('user_id', $teacherId)
+                ->orWhere('temporary_teacher_id', $teacherId);
+        });
+    }
+
+    public static function clearExpiredTemporaryAssignments(?string $onDate = null): int
+    {
+        $date = $onDate ?: now(config('app.timezone', 'Asia/Bangkok'))->toDateString();
+
+        return static::query()
+            ->whereNotNull('temporary_teacher_id')
+            ->whereNotNull('temporary_until')
+            ->whereDate('temporary_until', '<', $date)
+            ->update([
+                'temporary_teacher_id' => null,
+                'temporary_until' => null,
+                'temporary_assigned_by' => null,
+                'updated_at' => now(),
+            ]);
+    }
+
+    public function isTemporaryTeacherActive(?string $onDate = null): bool
+    {
+        if (! $this->temporary_teacher_id || ! $this->temporary_until) {
+            return false;
+        }
+
+        $date = $onDate ?: now(config('app.timezone', 'Asia/Bangkok'))->toDateString();
+        $untilDate = $this->temporary_until instanceof Carbon
+            ? $this->temporary_until->toDateString()
+            : Carbon::parse($this->temporary_until, config('app.timezone', 'Asia/Bangkok'))->toDateString();
+
+        return $untilDate >= $date;
+    }
+
+    public function responsibleTeacherId(?string $onDate = null): ?int
+    {
+        if ($this->isTemporaryTeacherActive($onDate)) {
+            return (int) $this->temporary_teacher_id;
+        }
+
+        return $this->user_id ? (int) $this->user_id : null;
+    }
+
+    public function isTeacherResponsible(int $teacherId, ?string $onDate = null): bool
+    {
+        return $this->responsibleTeacherId($onDate) === $teacherId;
     }
 
     protected static function booted(): void

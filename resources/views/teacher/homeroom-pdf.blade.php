@@ -11,8 +11,14 @@
     $roomsList   = ($rooms ?? collect())->filter();
     $printedAt   = ($generatedAt ?? now())->timezone('Asia/Bangkok');
     $printedAtTh = $printedAt->copy()->addYears(543)->format('d/m/Y H:i');
-    $logoFile    = public_path('images/school-logo.png');
-    $logoPath    = file_exists($logoFile) ? ('file:///' . str_replace('\\', '/', $logoFile)) : null;
+    $logoPath = null;
+    foreach (['school-logo-bcp.png', 'school-logo-bcp.jpg', 'school-logo-bcp.jpeg', 'school-logo.png', 'school-logo.jpg', 'school-logo.jpeg'] as $logoName) {
+        $candidate = public_path('images/' . $logoName);
+        if (file_exists($candidate)) {
+            $logoPath = 'file:///' . str_replace('\\', '/', $candidate);
+            break;
+        }
+    }
 
     $normalizeRoom = function ($item) {
         if (is_string($item) && str_starts_with(trim($item), '[')) {
@@ -167,6 +173,11 @@
 <body>
 <div class="wrap">
 <header>สรุปหลักสูตรและนักเรียนที่รับผิดชอบ</header>
+
+<p style="text-align:center; font-size:17px; font-weight:700; margin:0 0 8px 0;">
+    {{ $schoolName ?? 'โรงเรียนบ้านช่องพลี' }}
+</p>
+
 @if($logoPath)
     <div style="text-align:center; margin: 0 0 8px 0;">
         <img src="{{ $logoPath }}" alt="โลโก้โรงเรียน" style="height:70px; object-fit:contain;">

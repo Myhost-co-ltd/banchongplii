@@ -176,7 +176,8 @@
                         <p class="text-sm text-gray-600">
                             <span data-i18n-th="ระดับ" data-i18n-en="Grade">ระดับ</span> {{ $course->grade ?? '-' }}
                             @if (! empty($course->term))
-                                | <span data-i18n-th="เทอม" data-i18n-en="Term">เทอม</span> {{ $course->term }}
+                                | <span data-i18n-th="เทอม" data-i18n-en="Term">เทอม</span>
+                                {{ match ((string) $course->term) { '1' => '1', '2' => '2', 'summer' => 'ฤดูร้อน', default => $course->term } }}
                             @endif
                             @if (! empty($course->year))
                                 | <span data-i18n-th="ปี" data-i18n-en="Year">ปี</span> {{ $course->year }}
@@ -223,11 +224,17 @@
                         </div>
 
                         {{-- ปุ่มดูรายละเอียดหลักสูตรของครูที่สร้าง --}}
-                        <a href="{{ route('director.course-detail', $course) }}"
-                            class="inline-flex items-center justify-center px-4 py-2 text-sm rounded-xl bg-blue-600 text-white hover:bg-blue-500"
-                            data-i18n-th="รายละเอียด" data-i18n-en="Details">
-                            รายละเอียด
-                        </a>
+                        @if(($course->is_legacy_group_course ?? false) === true)
+                            <span class="inline-flex items-center justify-center px-4 py-2 text-xs rounded-xl bg-gray-100 text-gray-600 border border-gray-200">
+                                หลักสูตรจากระบบเดิม
+                            </span>
+                        @else
+                            <a href="{{ route('director.course-detail', $course) }}"
+                                class="inline-flex items-center justify-center px-4 py-2 text-sm rounded-xl bg-blue-600 text-white hover:bg-blue-500"
+                                data-i18n-th="รายละเอียด" data-i18n-en="Details">
+                                รายละเอียด
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>

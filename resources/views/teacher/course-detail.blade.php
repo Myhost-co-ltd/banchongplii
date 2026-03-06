@@ -8,6 +8,7 @@
     $currentTerm = $selectedTerm ?? request('term');
     $tz = config('app.timezone', 'Asia/Bangkok');
     $todayDate = now($tz)->toDateString();
+    $canManageCourse = (bool) ($canManageCourse ?? true);
 
     $hoursByTerm = collect($hours ?? []);
     $lessonsByTerm = collect($lessons ?? []);
@@ -18,7 +19,7 @@
     $assignmentCap = $course->assignment_cap ?? 70;
 @endphp
 
-<div class="space-y-8 overflow-y-auto pr-2 pb-10">
+<div class="space-y-8 overflow-y-auto pr-2 pb-10 {{ $canManageCourse ? '' : 'course-readonly' }}">
 
     {{-- HEADER --}}
     <div class="bg-white rounded-3xl shadow-md p-8 border border-gray-100">
@@ -44,18 +45,34 @@
                     </a>
 
                     @if($course)
-                        <a href="{{ route('teacher.courses.edit', $course) }}"
-                           class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm"
-                           data-i18n-th="แก้ไขหลักสูตร"
-                           data-i18n-en="Edit course">
-                            แก้ไขหลักสูตร
-                        </a>
+                        @if($canManageCourse)
+                            <a href="{{ route('teacher.courses.edit', $course) }}"
+                               class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm"
+                               data-i18n-th="แก้ไขหลักสูตร"
+                               data-i18n-en="Edit course">
+                                แก้ไขหลักสูตร
+                            </a>
+                        @endif
                         <a href="{{ route('teacher.courses.export', ['course' => $course->id, 'term' => $currentTerm]) }}"
                            class="px-4 py-2 bg-green-600 text-white rounded-xl text-sm"
                            data-i18n-th="Export PDF"
                            data-i18n-en="Export PDF">
                             Export PDF
                         </a>
+                        @if($canManageCourse)
+                            <a href="{{ route('teacher.courses.attendance', ['course' => $course->id, 'term' => $currentTerm]) }}"
+                               class="px-4 py-2 bg-amber-500 text-white rounded-xl text-sm"
+                               data-i18n-th="เช็คมาเรียน"
+                               data-i18n-en="Attendance">
+                                เช็คมาเรียน
+                            </a>
+                            <a href="{{ route('teacher.courses.deductions', ['course' => $course->id, 'term' => $currentTerm]) }}"
+                               class="px-4 py-2 bg-pink-600 text-white rounded-xl text-sm hover:bg-pink-700 transition"
+                               data-i18n-th="ตัดคะแนน"
+                               data-i18n-en="Deduct points">
+                                ตัดคะแนน
+                            </a>
+                        @endif
                     @endif
                 </div>
             </div>
@@ -113,6 +130,10 @@
                                         data-i18n-th="ภาคเรียนที่ 2" data-i18n-en="Term 2">
                                     ภาคเรียนที่ 2
                                 </option>
+                                <option value="summer" {{ $currentTerm === 'summer' ? 'selected' : '' }}
+                                        data-i18n-th="ภาคฤดูร้อน" data-i18n-en="Summer term">
+                                    ภาคฤดูร้อน
+                                </option>
                             </select>
                         </form>
 
@@ -127,6 +148,12 @@
             </div>
         </div>
     </div>
+
+    @if($course && ! $canManageCourse)
+        <div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-3xl p-6">
+            กำลังดูหลักสูตรย้อนหลังแบบอ่านอย่างเดียว
+        </div>
+    @endif
 
     {{-- ถ้ายังไม่ได้เลือกหลักสูตร --}}
     @unless($course)
@@ -176,6 +203,8 @@
                             ภาคเรียนที่ 1
                         @elseif($currentTerm === '2')
                             ภาคเรียนที่ 2
+                        @elseif($currentTerm === 'summer')
+                            ภาคฤดูร้อน
                         @else
                             -
                         @endif
@@ -221,7 +250,7 @@
             <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-3xl p-6">
                 <p class="font-semibold mb-1">ยังไม่ได้เลือกภาคเรียน</p>
                 <p class="text-sm">
-                    กรุณาเลือก <strong>ภาคเรียนที่ 1</strong> หรือ <strong>ภาคเรียนที่ 2</strong>
+                    กรุณาเลือก <strong>ภาคเรียนที่ 1</strong>, <strong>ภาคเรียนที่ 2</strong> หรือ <strong>ภาคฤดูร้อน</strong>
                     เพื่อดูข้อมูลบทเรียน ชั่วโมงสอน และงาน/คะแนนเก็บ
                 </p>
             </div>
@@ -441,17 +470,17 @@
                             งาน / คะแนนเก็บ
                         </h3>
                         <p class="text-sm text-gray-500"
-                           data-i18n-th="กำหนดงาน คะแนนเต็ม และสัดส่วนคะแนนเก็บรวมของภาคเรียนนี้ (ไม่เกิน {{ number_format($assignmentCap, 2) }} คะแนน)"
-                           data-i18n-en="Set assignments, full marks, and score proportions for this term (cap {{ number_format($assignmentCap, 2) }} points)">
-                            กำหนดงาน คะแนนเต็ม และสัดส่วนคะแนนเก็บรวมของภาคเรียนนี้ (ไม่เกิน {{ number_format($assignmentCap, 2) }} คะแนน)
+                           data-i18n-th="กำหนดงาน คะแนนเต็ม และสัดส่วนคะแนนเก็บรวมของภาคเรียนนี้ (ไม่เกิน {{ number_format($assignmentCap, 0) }} คะแนน)"
+                           data-i18n-en="Set assignments, full marks, and score proportions for this term (cap {{ number_format($assignmentCap, 0) }} points)">
+                            กำหนดงาน คะแนนเต็ม และสัดส่วนคะแนนเก็บรวมของภาคเรียนนี้ (ไม่เกิน {{ number_format($assignmentCap, 0) }} คะแนน)
                         </p>
 
                         <div class="mt-2 text-sm">
                             <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-xl">
-                                รวม: {{ $assignmentTotal ?? 0 }} / {{ number_format($assignmentCap, 2) }}
+                                รวม: {{ number_format($assignmentTotal ?? 0, 0) }} / {{ number_format($assignmentCap, 0) }}
                             </span>
                             <span class="bg-green-50 text-green-700 px-2 py-1 rounded-xl ml-2">
-                                เหลือให้กำหนด: {{ $assignmentRemaining ?? $assignmentCap }}
+                                เหลือให้กำหนด: {{ number_format($assignmentRemaining ?? $assignmentCap, 0) }}
                             </span>
                         </div>
 
@@ -474,7 +503,7 @@
                                 <div>
                                     <p class="font-semibold text-gray-900">{{ $assignment['title'] }}</p>
                                     <p class="text-sm text-gray-600">
-                                        คะแนนเต็ม: {{ $assignment['score'] }}
+                                        คะแนนเต็ม: {{ array_key_exists('score', $assignment) && $assignment['score'] !== null ? number_format($assignment['score'], 0) : '-' }}
 
                                         @if($assignment['due_date'])
                                             <span class="mx-1 text-gray-400">|</span>
@@ -537,7 +566,7 @@
                                         value="{{ $assignment['due_date'] }}"
                                         min="{{ $todayDate }}">
 
-                                <input type="number" step="0.1" name="score"
+                                <input type="number" step="1" min="0" name="score"
                                         class="border rounded-xl px-3 py-2"
                                         value="{{ $assignment['score'] }}" required>
 
@@ -579,7 +608,7 @@
 
                     <input type="date" name="due_date" class="border rounded-xl px-3 py-2" min="{{ $todayDate }}">
 
-                    <input type="number" step="0.1" name="score"
+                    <input type="number" step="1" min="0" name="score"
                             class="border rounded-xl px-3 py-2"
                             placeholder="คะแนนเต็ม" required>
 
@@ -594,6 +623,15 @@
         @endif {{-- END: if currentTerm --}}
     @endunless
 </div>
+
+@if(! $canManageCourse)
+    <style>
+        .course-readonly button,
+        .course-readonly form[method="POST"] {
+            display: none !important;
+        }
+    </style>
+@endif
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {

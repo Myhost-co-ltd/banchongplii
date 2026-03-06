@@ -106,20 +106,8 @@
         </div>
 
         @php
-            $normalizeGrade = function ($value) {
-                $v = preg_replace('/\s+/u', '', (string) $value);
-                if ($v === '') {
-                    return '';
-                }
-                $v = preg_replace('/^(?:\x{0E21}|[MmPp])\.?/u', 'ป.', $v);
-                if (! str_contains($v, '.')) {
-                    $v = preg_replace('/^([^\d]+)(\d+)/u', '$1.$2', $v);
-                }
-                return $v;
-            };
-
-            $studentsByRoom = collect($students ?? [])->groupBy(function ($s) use ($normalizeGrade) {
-                return $s->classroom ?? $normalizeGrade($s->room ?? '') ?: '-';
+            $studentsByRoom = collect($students ?? [])->groupBy(function ($s) {
+                return $s->room_normalized ?? $s->classroom ?? $s->room ?? '-';
             });
             $roomLoop = ($assignedRooms ?? collect())->isNotEmpty() ? $assignedRooms : $studentsByRoom->keys();
         @endphp
@@ -156,15 +144,21 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @php
-                            $list = $studentsByRoom->get($room, $studentsByRoom->get($normalizeGrade($room), collect()));
+                            $list = $studentsByRoom->get($room, collect());
                         @endphp
                         @forelse($list as $student)
+                            @php
+                                $displayRoom = $student->room_normalized ?? $student->classroom ?? $student->room ?? '-';
+                                $displayGrade = str_contains((string) $displayRoom, '/')
+                                    ? \Illuminate\Support\Str::before((string) $displayRoom, '/')
+                                    : ($student->room ?? '-');
+                            @endphp
                             <tr class="hover:bg-blue-50">
                                 <td class="py-2 px-4 font-semibold text-blue-700">{{ $student->student_code }}</td>
                                 <td class="py-2 px-4">{{ $student->first_name }}</td>
                                 <td class="py-2 px-4">{{ $student->last_name }}</td>
-                                <td class="py-2 px-4 text-center">{{ $student->room ?? '-' }}</td>
-                                <td class="py-2 px-4 text-center">{{ $student->classroom ?? $student->room ?? '-' }}</td>
+                                <td class="py-2 px-4 text-center">{{ $displayGrade }}</td>
+                                <td class="py-2 px-4 text-center">{{ $displayRoom }}</td>
                             </tr>
                         @empty
                             <tr>

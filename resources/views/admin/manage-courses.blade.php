@@ -28,6 +28,16 @@
         </div>
     @endif
 
+    @php
+        $currentBe = now(config('app.timezone', 'Asia/Bangkok'))->year + 543;
+        $todayDate = now(config('app.timezone', 'Asia/Bangkok'))->toDateString();
+        $termLabels = [
+            '1' => 'ภาคเรียนที่ 1',
+            '2' => 'ภาคเรียนที่ 2',
+            'summer' => 'ภาคฤดูร้อน',
+        ];
+    @endphp
+
     <div class="bg-white rounded-3xl shadow-sm p-8 border border-gray-100">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div>
@@ -125,23 +135,6 @@
                            value="{{ old('name') }}">
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="ภาคเรียน (ถ้ามี)" data-i18n-en="Term (if any)">ภาคเรียน (ถ้ามี)</label>
-                    <select name="term" class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500">
-                        <option value="" data-i18n-th="-- เลือกภาคเรียน --" data-i18n-en="-- Select term --">-- เลือกภาคเรียน --</option>
-                        <option value="1" @selected(old('term') == 1) data-i18n-th="ภาคเรียนที่ 1" data-i18n-en="Term 1">ภาคเรียนที่ 1</option>
-                        <option value="2" @selected(old('term') == 2) data-i18n-th="ภาคเรียนที่ 2" data-i18n-en="Term 2">ภาคเรียนที่ 2</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="ปีการศึกษา" data-i18n-en="Academic year">ปีการศึกษา</label>
-                    <input type="number" name="year"
-                           class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                           {{-- data-i18n-placeholder-th="2567"
-                           data-i18n-placeholder-en="2024" --}}
-                           value="{{ old('year') }}">
-                </div>
             </div>
 
             {{-- <div>
@@ -205,6 +198,10 @@
                     @php
                         $groupedHours = collect($course->teaching_hours ?? [])->groupBy('term');
                         $defaultTerm = $course->term ?? '1';
+                        $temporaryActive = $course->isTemporaryTeacherActive($todayDate);
+                        $effectiveTeacherName = $temporaryActive
+                            ? ($course->temporaryTeacher?->name ?? $course->teacher?->name)
+                            : ($course->teacher?->name);
                     @endphp
                     <div class="border border-gray-100 rounded-2xl p-6 shadow-sm bg-gray-50/70 course-card"
                          data-name="{{ strtolower($course->name) }}"
@@ -215,12 +212,20 @@
                                 <h3 class="text-lg font-semibold text-gray-900">{{ $course->name }}</h3>
                                 <p class="text-sm text-gray-600">
                                     <span data-i18n-th="ครูผู้รับผิดชอบ:" data-i18n-en="Responsible teacher:">ครูผู้รับผิดชอบ:</span>
-                                    @if($course->teacher?->name)
-                                        <span class="font-semibold text-gray-800">{{ $course->teacher->name }}</span>
+                                    @if($effectiveTeacherName)
+                                        <span class="font-semibold text-gray-800">{{ $effectiveTeacherName }}</span>
                                     @else
                                         <span class="font-semibold text-gray-800" data-i18n-th="ไม่พบข้อมูลครู" data-i18n-en="Teacher not found">ไม่พบข้อมูลครู</span>
                                     @endif
                                 </p>
+                                @if($temporaryActive)
+                                    <p class="text-xs text-amber-700">
+                                        <span data-i18n-th="ครูแทนชั่วคราวถึงวันที่" data-i18n-en="Temporary assignment until">
+                                            ครูแทนชั่วคราวถึงวันที่
+                                        </span>
+                                        {{ optional($course->temporary_until)->locale('th')->addYears(543)->isoFormat('D MMM YYYY') }}
+                                    </p>
+                                @endif
                             </div>
                             <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3 text-sm text-gray-700">
                                 <div class="flex flex-wrap gap-2 items-center">
@@ -259,7 +264,7 @@
                               class="hidden bg-white border border-gray-100 rounded-xl p-4 mb-4 text-sm">
                             @csrf
                             @method('PUT')
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="ชื่อหลักสูตร" data-i18n-en="Course name">ชื่อหลักสูตร</label>
                                     <input type="text" name="name"
@@ -272,13 +277,60 @@
                                         <option value="" data-i18n-th="-- เลือกภาคเรียน --" data-i18n-en="-- Select term --">-- เลือกภาคเรียน --</option>
                                         <option value="1" @selected(($course->term ?? null) == '1') data-i18n-th="ภาคเรียนที่ 1" data-i18n-en="Term 1">ภาคเรียนที่ 1</option>
                                         <option value="2" @selected(($course->term ?? null) == '2') data-i18n-th="ภาคเรียนที่ 2" data-i18n-en="Term 2">ภาคเรียนที่ 2</option>
+                                        <option value="summer" @selected(($course->term ?? null) === 'summer') data-i18n-th="ภาคฤดูร้อน" data-i18n-en="Summer term">ภาคฤดูร้อน</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="ปีการศึกษา" data-i18n-en="Academic year">ปีการศึกษา</label>
                                     <input type="number" name="year"
                                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                                           value="{{ $course->year }}">
+                                           min="{{ $currentBe }}"
+                                           max="{{ $currentBe }}"
+                                           value="{{ $course->year ?? $currentBe }}">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1"
+                                           data-i18n-th="ครูประจำวิชา"
+                                           data-i18n-en="Permanent teacher">ครูประจำวิชา</label>
+                                    <select name="teacher_id"
+                                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                        <option value="" data-i18n-th="-- ยังไม่ระบุ --" data-i18n-en="-- Unassigned --">-- ยังไม่ระบุ --</option>
+                                        @foreach(($teachers ?? collect()) as $teacherOption)
+                                            <option value="{{ $teacherOption->id }}"
+                                                @selected((int) ($course->user_id ?? 0) === (int) $teacherOption->id)>
+                                                {{ $teacherOption->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1"
+                                           data-i18n-th="ครูแทนชั่วคราว"
+                                           data-i18n-en="Temporary substitute teacher">ครูแทนชั่วคราว</label>
+                                    <select name="temporary_teacher_id"
+                                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                        <option value="" data-i18n-th="-- ไม่มีการมอบหมายแทน --" data-i18n-en="-- No temporary assignment --">-- ไม่มีการมอบหมายแทน --</option>
+                                        @foreach(($teachers ?? collect()) as $teacherOption)
+                                            <option value="{{ $teacherOption->id }}"
+                                                @selected((int) ($course->temporary_teacher_id ?? 0) === (int) $teacherOption->id)>
+                                                {{ $teacherOption->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1"
+                                           data-i18n-th="ให้แทนถึงวันที่"
+                                           data-i18n-en="Temporary until date">ให้แทนถึงวันที่</label>
+                                    <input type="date" name="temporary_until"
+                                           class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                                           min="{{ $todayDate }}"
+                                           value="{{ optional($course->temporary_until)->toDateString() }}">
+                                    <p class="text-xs text-gray-500 mt-1"
+                                       data-i18n-th="ปล่อยว่างทั้ง 2 ช่องนี้ ระบบจะยกเลิกการมอบหมายแทนอัตโนมัติ"
+                                       data-i18n-en="Leave both temporary fields empty to remove temporary assignment.">
+                                        ปล่อยว่างทั้ง 2 ช่องนี้ ระบบจะยกเลิกการมอบหมายแทนอัตโนมัติ
+                                    </p>
                                 </div>
                             </div>
                             <div class="mt-3">
@@ -289,7 +341,17 @@
                                           data-i18n-placeholder-th="จุดประสงค์รายวิชา / เนื้อหาโดยย่อ"
                                           data-i18n-placeholder-en="Course objectives / Summary">{{ $course->description }}</textarea>
                             </div>
-                            <div class="text-right mt-3">
+                            <div class="text-right mt-3 flex items-center justify-end gap-2">
+                                @if($course->temporary_teacher_id && $course->temporary_until)
+                                    <button type="submit"
+                                            name="cancel_temporary_assignment"
+                                            value="1"
+                                            class="px-5 py-2 bg-amber-100 text-amber-800 rounded-lg hover:bg-amber-200"
+                                            onclick="return confirmWithLocale('ยืนยันยกเลิกการมอบหมายครูแทนตอนนี้ใช่หรือไม่?', 'Cancel temporary assignment now?')">
+                                        <span data-i18n-th="ยกเลิกการมอบหมายแทน"
+                                              data-i18n-en="Cancel substitution">ยกเลิกการมอบหมายแทน</span>
+                                    </button>
+                                @endif
                                 <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                                     <span data-i18n-th="บันทึกการแก้ไข" data-i18n-en="Save changes">บันทึกการแก้ไข</span>
                                 </button>
@@ -312,7 +374,7 @@
                                         @foreach($groupedHours as $term => $hours)
                                             <div class="bg-white border border-gray-100 rounded-xl p-3">
                                                 <p class="text-sm font-semibold text-gray-800 mb-2">
-                                                    <span data-i18n-th="ภาคเรียนที่" data-i18n-en="Term">ภาคเรียนที่</span> {{ $term ?? '-' }}
+                                                    {{ $termLabels[(string) ($term ?? '')] ?? ($term ?? '-') }}
                                                 </p>
                                                 <div class="space-y-2">
                                                     @foreach($hours as $hour)
@@ -362,6 +424,7 @@
                                                                     <select name="term" class="border rounded-lg px-2 py-2" required>
                                                                         <option value="1" @selected(($hour['term'] ?? null) == '1') data-i18n-th="ภาคเรียนที่ 1" data-i18n-en="Term 1">ภาคเรียนที่ 1</option>
                                                                         <option value="2" @selected(($hour['term'] ?? null) == '2') data-i18n-th="ภาคเรียนที่ 2" data-i18n-en="Term 2">ภาคเรียนที่ 2</option>
+                                                                        <option value="summer" @selected(($hour['term'] ?? null) === 'summer') data-i18n-th="ภาคฤดูร้อน" data-i18n-en="Summer term">ภาคฤดูร้อน</option>
                                                                     </select>
                                         <select name="category" class="border rounded-lg px-2 py-2" required>
                                             <option value="" data-i18n-th="เลือกประเภทชั่วโมง" data-i18n-en="Select hour type">เลือกประเภทชั่วโมง</option>
@@ -403,6 +466,7 @@
                                         <select name="term" class="border rounded-lg px-2 py-2" required>
                                             <option value="1" @selected($defaultTerm == '1') data-i18n-th="ภาคเรียนที่ 1" data-i18n-en="Term 1">ภาคเรียนที่ 1</option>
                                             <option value="2" @selected($defaultTerm == '2') data-i18n-th="ภาคเรียนที่ 2" data-i18n-en="Term 2">ภาคเรียนที่ 2</option>
+                                            <option value="summer" @selected($defaultTerm === 'summer') data-i18n-th="ภาคฤดูร้อน" data-i18n-en="Summer term">ภาคฤดูร้อน</option>
                                         </select>
                                         <select name="category" class="border rounded-lg px-2 py-2" required>
                                             <option value="" data-i18n-th="เลือกประเภทชั่วโมง" data-i18n-en="Select hour type">เลือกประเภทชั่วโมง</option>
