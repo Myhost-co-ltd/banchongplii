@@ -390,6 +390,183 @@ class DirectorController extends Controller
             ->with('status', $status);
     }
 
+    public function attendanceHolidaysGlobal(Request $request)
+    {
+        if (($request->user()->role_name ?? null) !== 'director') {
+            abort(403);
+        }
+
+        $today = now(config('app.timezone', 'Asia/Bangkok'));
+        $filters = $request->validate([
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'month' => 'nullable|date_format:Y-m',
+        ], [
+            'end_date.after_or_equal' => 'วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่มต้น',
+            'month.date_format' => 'เดือนที่เลือกไม่ถูกต้อง',
+        ]);
+
+        $startDate = $filters['start_date'] ?? null;
+        $endDate = $filters['end_date'] ?? ($startDate ?: null);
+        $selectedMonth = $filters['month'] ?? $today->format('Y-m');
+        $monthCursor = Carbon::createFromFormat('Y-m', $selectedMonth, config('app.timezone', 'Asia/Bangkok'));
+        $previewStartDate = $monthCursor->copy()->startOfMonth()->toDateString();
+        $previewEndDate = $monthCursor->copy()->endOfMonth()->toDateString();
+        $holidayPreview = $this->buildHolidayPreview($previewStartDate, $previewEndDate);
+
+        $recentHolidays = CourseAttendanceHoliday::query()
+            ->whereNull('course_id')
+            ->whereNull('term')
+            ->orderByDesc('holiday_date')
+            ->limit(30)
+            ->get();
+
+        return view('director.attendance-holidays', [
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'selectedMonth' => $selectedMonth,
+            'previewStartDate' => $previewStartDate,
+            'previewEndDate' => $previewEndDate,
+            'holidayPreview' => $holidayPreview,
+            'recentHolidays' => $recentHolidays,
+        ]);
+    }
+
+    public function storeAttendanceHolidayGlobal(Request $request)
+    {
+        if (($request->user()->role_name ?? null) !== 'director') {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'action' => 'required|in:holiday,clear_holiday',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'holiday_date' => 'nullable|date',
+            'holiday_name' => 'nullable|string|max:255',
+            'holiday_note' => 'nullable|string|max:1000',
+        ], [
+            'start_date.date' => 'กรุณาเลือกวันที่เริ่มต้นให้ถูกต้อง',
+            'end_date.date' => 'กรุณาเลือกวันที่สิ้นสุดให้ถูกต้อง',
+            'end_date.after_or_equal' => 'วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่มต้น',
+            'holiday_date.date' => 'วันที่วันหยุดไม่ถูกต้อง',
+        ]);
+
+        if ($data['action'] === 'holiday') {
+            $startDate = $data['start_date']
+                ?? now(config('app.timezone', 'Asia/Bangkok'))->toDateString();
+            $endDate = $data['end_date'] ?? $startDate;
+            $holidayName = trim((string) ($data['holiday_name'] ?? ''));
+            $holidayNote = trim((string) ($data['holiday_note'] ?? ''));
+            $dates = $this->buildGlobalHolidayDateRange($startDate, $endDate);
+
+            if ($dates === []) {
+                return redirect()
+                    ->route('director.attendance-holidays', [
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                        'month' => Carbon::parse($startDate)->format('Y-m'),
+                    ])
+                    ->with('status', 'วันเสาร์และวันอาทิตย์เป็นวันหยุดอัตโนมัติอยู่แล้ว จึงไม่ต้องบันทึกเพิ่ม');
+            }
+
+            foreach ($dates as $holidayDate) {
+                CourseAttendanceHoliday::query()->updateOrCreate(
+                    [
+                        'course_id' => null,
+                        'term' => null,
+                        'holiday_date' => $holidayDate,
+                    ],
+                    [
+                        'holiday_name' => $holidayName !== '' ? $holidayName : null,
+                        'note' => $holidayNote !== '' ? $holidayNote : null,
+                        'recorded_by' => (int) ($request->user()->id ?? 0),
+                    ]
+                );
+            }
+
+            $status = count($dates) === 1
+                ? 'บันทึกวันหยุดเรียบร้อยแล้ว'
+                : 'บันทึกวันหยุดเรียบร้อยแล้ว จำนวน ' . count($dates) . ' วัน';
+        } else {
+            $holidayDate = $data['holiday_date']
+                ?? $data['start_date']
+                ?? now(config('app.timezone', 'Asia/Bangkok'))->toDateString();
+
+            CourseAttendanceHoliday::query()
+                ->whereNull('course_id')
+                ->whereNull('term')
+                ->whereDate('holiday_date', $holidayDate)
+                ->delete();
+
+            $startDate = $holidayDate;
+            $endDate = $holidayDate;
+            $status = 'ยกเลิกวันหยุดเรียบร้อยแล้ว';
+        }
+
+        return redirect()
+            ->route('director.attendance-holidays', [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'month' => Carbon::parse($startDate)->format('Y-m'),
+            ])
+            ->with('status', $status);
+    }
+
+    private function buildGlobalHolidayDateRange(string $startDate, string $endDate): array
+    {
+        $dates = [];
+        $cursor = Carbon::parse($startDate)->startOfDay();
+        $lastDate = Carbon::parse($endDate)->startOfDay();
+
+        while ($cursor->lte($lastDate)) {
+            if (! $this->isWeekendDate($cursor->toDateString())) {
+                $dates[] = $cursor->toDateString();
+            }
+            $cursor->addDay();
+        }
+
+        return $dates;
+    }
+
+    private function buildHolidayPreview(string $startDate, string $endDate)
+    {
+        $storedHolidays = CourseAttendanceHoliday::query()
+            ->whereNull('course_id')
+            ->whereNull('term')
+            ->whereBetween('holiday_date', [$startDate, $endDate])
+            ->orderBy('holiday_date')
+            ->get()
+            ->keyBy(fn (CourseAttendanceHoliday $holiday) => $holiday->holiday_date->toDateString());
+
+        $preview = collect();
+        $cursor = Carbon::parse($startDate)->startOfDay();
+        $lastDate = Carbon::parse($endDate)->startOfDay();
+
+        while ($cursor->lte($lastDate)) {
+            $date = $cursor->toDateString();
+
+            if ($storedHolidays->has($date)) {
+                $preview->push($storedHolidays->get($date));
+            } elseif ($this->isWeekendDate($date)) {
+                $preview->push(new CourseAttendanceHoliday([
+                    'holiday_date' => $date,
+                    'holiday_name' => Carbon::parse($date)->isSaturday() ? 'วันเสาร์' : 'วันอาทิตย์',
+                    'note' => 'เสาร์-อาทิตย์เป็นวันหยุดอัตโนมัติ',
+                ]));
+            }
+
+            $cursor->addDay();
+        }
+
+        return $preview;
+    }
+
+    private function isWeekendDate(string $date): bool
+    {
+        return Carbon::parse($date)->isWeekend();
+    }
+
     public function students(Request $request)
     {
         $normalizeRoom = function ($room): ?string {

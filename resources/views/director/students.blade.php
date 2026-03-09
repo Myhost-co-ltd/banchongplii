@@ -65,7 +65,7 @@
         </p>
 
         <p id="studentRoomSummary" class="text-sm text-gray-600 mt-4"></p>
-        <div id="studentRoomList" class="mt-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3"></div>
+        <div id="studentRoomList" class="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white"></div>
     </div>
 </div>
 @endsection
@@ -157,28 +157,63 @@
 
             if (!students.length) {
                 const empty = document.createElement('p');
-                empty.className = 'text-sm text-gray-500';
+                empty.className = 'px-4 py-6 text-sm text-gray-500';
                 empty.textContent = t('noStudents');
                 listEl.appendChild(empty);
                 return;
             }
 
-            students.forEach((student) => {
-                const card = document.createElement('div');
-                card.className = 'rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3';
+            const tableWrap = document.createElement('div');
+            tableWrap.className = 'overflow-x-auto';
 
-                const nameEl = document.createElement('p');
-                nameEl.className = 'text-sm font-semibold text-gray-900';
-                nameEl.textContent = student.name || '-';
+            const table = document.createElement('table');
+            table.className = 'min-w-full table-fixed border-collapse';
 
-                const codeEl = document.createElement('p');
-                codeEl.className = 'text-xs text-gray-500 mt-1';
-                codeEl.textContent = `${t('studentCode')}: ${student.student_code || '-'}`;
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            headerRow.className = 'bg-slate-100 text-slate-700';
 
-                card.appendChild(nameEl);
-                card.appendChild(codeEl);
-                listEl.appendChild(card);
+            const headers = [
+                { label: '#', className: 'w-20' },
+                { label: t('studentCode'), className: 'w-48' },
+                { label: currentLang() === 'en' ? 'Student Name' : 'ชื่อ-สกุล', className: '' },
+            ];
+
+            headers.forEach((header) => {
+                const th = document.createElement('th');
+                th.className = `border border-slate-200 px-4 py-3 text-left text-sm font-semibold ${header.className}`.trim();
+                th.textContent = header.label;
+                headerRow.appendChild(th);
             });
+
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+
+            students.forEach((student, index) => {
+                const row = document.createElement('tr');
+                row.className = index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70';
+
+                const cells = [
+                    { value: String(index + 1), className: 'text-center font-medium text-slate-700' },
+                    { value: student.student_code || '-', className: 'text-slate-700' },
+                    { value: student.name || '-', className: 'font-medium text-slate-900' },
+                ];
+
+                cells.forEach((cell) => {
+                    const td = document.createElement('td');
+                    td.className = `border border-slate-200 px-4 py-3 text-sm ${cell.className}`.trim();
+                    td.textContent = cell.value;
+                    row.appendChild(td);
+                });
+
+                tbody.appendChild(row);
+            });
+
+            table.appendChild(tbody);
+            tableWrap.appendChild(table);
+            listEl.appendChild(tableWrap);
         };
 
         const refreshSelections = (preferredRoom = '') => {
