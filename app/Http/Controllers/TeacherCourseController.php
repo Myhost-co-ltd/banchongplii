@@ -228,7 +228,7 @@ class TeacherCourseController extends Controller
         if ($attendanceDate !== $todayDate) {
             $attendanceDate = $todayDate;
         }
-        $holidayRecord = $this->findAttendanceHoliday($course->id, $selectedTerm, $attendanceDate);
+        $holidayRecord = $this->findAttendanceHolidayWithGlobal($course->id, $selectedTerm, $attendanceDate);
         $isHoliday = $holidayRecord !== null;
 
         $studentData = $this->buildCourseStudentData($course);
@@ -552,6 +552,19 @@ class TeacherCourseController extends Controller
         $term = (string) $data['term'];
         $attendanceDate = $data['attendance_date'];
         $selectedRoom = trim((string) ($data['room'] ?? ''));
+
+        if ($this->findAttendanceHolidayWithGlobal($course->id, $term, $attendanceDate)) {
+            return redirect()
+                ->route('teacher.courses.attendance', [
+                    'course' => $course->id,
+                    'term' => $data['term'],
+                    'date' => $attendanceDate,
+                    'room' => $selectedRoom !== '' ? $selectedRoom : null,
+                ])
+                ->withErrors([
+                    'attendance_date' => 'วันที่นี้ถูกกำหนดเป็นวันหยุดแล้ว จึงไม่สามารถบันทึกการเช็กชื่อได้',
+                ]);
+        }
 
         if ($this->findAttendanceHoliday($course->id, $term, $attendanceDate)) {
             return redirect()
@@ -908,6 +921,37 @@ class TeacherCourseController extends Controller
                 'room' => $data['room'] ?? null,
             ])
             ->with('status', 'บันทึกการตัดคะแนนเรียบร้อยแล้ว');
+<<<<<<< HEAD
+=======
+    }
+
+    private function findAttendanceHolidayWithGlobal(int $courseId, string $term, string $attendanceDate): ?CourseAttendanceHoliday
+    {
+        if ($this->isWeekendDate($attendanceDate)) {
+            return new CourseAttendanceHoliday([
+                'holiday_date' => $attendanceDate,
+                'holiday_name' => \Illuminate\Support\Carbon::parse($attendanceDate)->isSaturday() ? 'วันเสาร์' : 'วันอาทิตย์',
+                'note' => 'เสาร์-อาทิตย์เป็นวันหยุดอัตโนมัติ',
+            ]);
+        }
+
+        $courseHoliday = $this->findAttendanceHoliday($courseId, $term, $attendanceDate);
+
+        if ($courseHoliday) {
+            return $courseHoliday;
+        }
+
+        return CourseAttendanceHoliday::query()
+            ->whereNull('course_id')
+            ->whereNull('term')
+            ->whereDate('holiday_date', $attendanceDate)
+            ->first();
+    }
+
+    private function isWeekendDate(string $date): bool
+    {
+        return \Illuminate\Support\Carbon::parse($date)->isWeekend();
+>>>>>>> 10fffd100439c08823ba3f31a75f40a6037a822a
     }
 
     private function findAttendanceHoliday(int $courseId, string $term, string $attendanceDate): ?CourseAttendanceHoliday

@@ -44,13 +44,13 @@
          {{ request()->routeIs('director.students')
               ? 'bg-white/15 text-white font-semibold'
               : 'text-white/80 hover:text-white hover:bg-white/10' }}"
-         data-i18n-th="ดูรายชื่อนักเรียน" data-i18n-en="Student List">ดูรายชื่อนักเรียน</a>
+         data-i18n-th="รายชื่อนักเรียน" data-i18n-en="Student List">รายชื่อนักเรียน</a>
       <a href="{{ route('director.teacher-plans') }}"
          class="block py-2.5 px-4 rounded-2xl transition-colors duration-200
          {{ request()->routeIs('director.teacher-plans', 'director.course-detail')
               ? 'bg-white/15 text-white font-semibold'
               : 'text-white/80 hover:text-white hover:bg-white/10' }}"
-         data-i18n-th="แผนการสอนของครู" data-i18n-en="Teacher Plans">แผนการสอนของครู</a>
+         data-i18n-th="แผนการสอนครู" data-i18n-en="Teacher Plans">แผนการสอนครู</a>
       <a href="{{ route('director.attendance-holidays') }}"
          class="block py-2.5 px-4 rounded-2xl transition-colors duration-200
          {{ request()->routeIs('director.attendance-holidays')

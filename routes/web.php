@@ -232,9 +232,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/director/teacher-plans', [DirectorController::class, 'teacherPlans'])
         ->name('director.teacher-plans');
 
-    Route::get('/director/attendance-holidays', [DirectorController::class, 'attendanceHolidays'])
+    Route::get('/director/attendance-holidays', [DirectorController::class, 'attendanceHolidaysGlobal'])
         ->name('director.attendance-holidays');
-    Route::post('/director/attendance-holidays', [DirectorController::class, 'storeAttendanceHoliday'])
+    Route::post('/director/attendance-holidays', [DirectorController::class, 'storeAttendanceHolidayGlobal'])
         ->name('director.attendance-holidays.store');
 
     Route::get('/director/courses/{course}', [DirectorController::class, 'courseDetail'])

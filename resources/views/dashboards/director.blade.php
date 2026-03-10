@@ -1,4 +1,4 @@
-@extends('layouts.layout-director')
+﻿@extends('layouts.layout-director')
 
 @section('title', 'แดชบอร์ดผู้อำนวยการ')
 
@@ -50,7 +50,7 @@
             </div>
 
             <p class="stat-card__footer text-green-700">
-                <span data-i18n-th="ดูรายชื่อครู" data-i18n-en="View teachers">ดูรายชื่อครู</span>
+                <span data-i18n-th="รายชื่อครู" data-i18n-en="View teachers">รายชื่อครู</span>
                 <svg class="h-4 w-4 transition group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
@@ -59,15 +59,14 @@
         </div>
     </button>
 
-    <!-- Finished courses -->
-    <button type="button"
-        data-teacher-status-target="complete"
-        class="{{ $statCardBase }} border-sky-200 focus:ring-sky-400 bg-sky-100">
-        <div class="stat-card__body">
+        <button type="button"
+                data-teacher-status-target="complete"
+                class="{{ $statCardBase }} border-sky-200 focus:ring-sky-400 bg-sky-100">
+            <div class="stat-card__body">
             <div class="stat-card__top">
                 <div class="stat-card__content">
-                    <p class="stat-card__label text-sky-900/80" data-i18n-th="ครูสร้างหลักสูตรแล้ว" data-i18n-en="Teachers who created courses">
-                        ครูสร้างหลักสูตรแล้ว
+                    <p class="stat-card__label text-sky-900/80" data-i18n-th="หลักสูตรเสร็จแล้ว" data-i18n-en="Teachers with finished courses">
+                        หลักสูตรเสร็จแล้ว
                     </p>
                     <p class="stat-card__value text-sky-900">
                         {{ number_format($completeTeacherCount ?? 0) }}
@@ -86,7 +85,7 @@
             </div>
 
             <p class="stat-card__footer text-sky-700">
-                <span data-i18n-th="ดูรายชื่อครู" data-i18n-en="View teachers">ดูรายชื่อครู</span>
+                <span data-i18n-th="รายชื่อครู" data-i18n-en="View teachers">รายชื่อครู</span>
                 <svg class="h-4 w-4 transition group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
@@ -95,15 +94,14 @@
         </div>
     </button>
 
-    <!-- Unfinished courses -->
-    <button type="button"
-        data-teacher-status-target="incomplete"
-        class="{{ $statCardBase }} border-amber-200 focus:ring-amber-400 bg-amber-100">
-        <div class="stat-card__body">
+        <button type="button"
+                data-teacher-status-target="incomplete"
+                class="{{ $statCardBase }} border-amber-200 focus:ring-amber-400 bg-amber-100">
+            <div class="stat-card__body">
             <div class="stat-card__top">
                 <div class="stat-card__content">
-                    <p class="stat-card__label text-amber-900/80" data-i18n-th="ครูยังไม่สร้างหลักสูตร" data-i18n-en="Teachers without courses yet">
-                        ครูยังไม่สร้างหลักสูตร
+                    <p class="stat-card__label text-amber-900/80" data-i18n-th="หลักสูตรยังไม่เสร็จ" data-i18n-en="Teachers with unfinished courses">
+                        หลักสูตรยังไม่เสร็จ
                     </p>
                     <p class="stat-card__value text-amber-900">
                         {{ number_format($incompleteTeacherCount ?? 0) }}
@@ -122,7 +120,7 @@
             </div>
 
             <p class="stat-card__footer text-amber-700">
-                <span data-i18n-th="ดูรายชื่อครู" data-i18n-en="View teachers">ดูรายชื่อครู</span>
+                <span data-i18n-th="รายชื่อครู" data-i18n-en="View teachers">รายชื่อครู</span>
                 <svg class="h-4 w-4 transition group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
@@ -157,7 +155,7 @@
 
             <button type="button" id="roomDropdownToggle"
                 class="stat-card__footer text-purple-700 hover:text-purple-900">
-                <span data-i18n-th="ดูนักเรียนรายห้อง" data-i18n-en="View students by room">ดูนักเรียนรายห้อง</span>
+                <span data-i18n-th="นักเรียนรายห้อง" data-i18n-en="View students by room">นักเรียนรายห้อง</span>
                 <svg class="h-4 w-4 transition group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
@@ -181,7 +179,7 @@
                     <div class="flex items-center gap-3 p-3 rounded-2xl bg-sky-50 border border-sky-100">
                         <span class="w-3 h-3 rounded-full bg-sky-500"></span>
                         <div>
-                            <p class="text-xs text-gray-600">ครูที่สร้างหลักสูตรแล้ว</p>
+                            <p class="text-xs text-gray-600">ครูที่ทำหลักสูตรเสร็จ</p>
                             <p class="text-2xl font-bold text-sky-700">{{ number_format($completeTeacherCount ?? 0) }}</p>
                             <p class="text-xs text-sky-700/80 mt-1">คน</p>
                         </div>
@@ -189,7 +187,7 @@
                     <div class="flex items-center gap-3 p-3 rounded-2xl bg-amber-50 border border-amber-100">
                         <span class="w-3 h-3 rounded-full bg-amber-500"></span>
                         <div>
-                            <p class="text-xs text-gray-600">ครูที่ยังไม่สร้างหลักสูตร</p>
+                            <p class="text-xs text-gray-600">ครูที่ทำหลักสูตรยังไม่เสร็จ</p>
                             <p class="text-2xl font-bold text-amber-700">{{ number_format($incompleteTeacherCount ?? 0) }}</p>
                             <p class="text-xs text-amber-700/80 mt-1">คน</p>
                         </div>
@@ -272,7 +270,7 @@
                                 <button type="button"
                                         class="text-blue-600 hover:underline"
                                         data-major-toggle="{{ trim($major) }}">
-                                    <span data-i18n-th="ดูรายชื่อครู" data-i18n-en="View teachers">ดูรายชื่อครู</span>
+                                    <span data-i18n-th="รายชื่อครู" data-i18n-en="View teachers">รายชื่อครู</span>
                                 </button>
                             </td>
                         </tr>
@@ -461,7 +459,7 @@
 
         const hideAllDetails = () => {
             detailRows.forEach(row => row.classList.add('hidden'));
-            document.querySelectorAll('[data-major-toggle]').forEach(btn => btn.textContent = 'ดูรายชื่อครู');
+            document.querySelectorAll('[data-major-toggle]').forEach(btn => btn.textContent = 'รายชื่อครู');
         };
 
         const applyFilter = () => {
@@ -591,10 +589,92 @@
             };
         };
 
+        const UNKNOWN_GRADE_LABEL = 'ไม่ระบุชั้น';
+
+        const normalizeGradeLabel = (grade) => {
+            const value = String(grade ?? '').trim();
+            return value !== '' ? value : UNKNOWN_GRADE_LABEL;
+        };
+
+        const uniqueCourses = (courses) => {
+            const seen = new Set();
+            return (courses || []).filter((course) => {
+                const key = `${course?.id ?? ''}|${course?.name ?? ''}|${normalizeGradeLabel(course?.grade)}`;
+                if (seen.has(key)) {
+                    return false;
+                }
+                seen.add(key);
+                return true;
+            });
+        };
+
+        const getTeacherRecords = (statusKey) => {
+            const source = statusKey === 'all'
+                ? [...(teacherStatusData.complete || []), ...(teacherStatusData.incomplete || [])]
+                : (teacherStatusData[statusKey] || []);
+
+            const byTeacher = new Map();
+
+            source.forEach((item, index) => {
+                const teacherInfo = item?.teacher || item || {};
+                const teacherKey = String(
+                    teacherInfo.id ?? teacherInfo.email ?? `${teacherInfo.name ?? 'teacher'}-${index}`
+                );
+
+                const current = byTeacher.get(teacherKey) || {
+                    teacher: teacherInfo,
+                    courses: [],
+                    complete: Boolean(item?.complete),
+                };
+
+                const courses = Array.isArray(item?.courses) ? item.courses : [];
+                current.courses.push(...courses);
+                current.complete = current.complete && Boolean(item?.complete);
+                byTeacher.set(teacherKey, current);
+            });
+
+            return Array.from(byTeacher.values()).map((entry) => {
+                const courses = uniqueCourses(entry.courses || []);
+                return {
+                    teacher: entry.teacher || {},
+                    courses,
+                    complete: courses.length ? courses.every((course) => Boolean(course?.complete)) : false,
+                };
+            });
+        };
+
+        const groupTeachersByGrade = (records) => {
+            const grouped = new Map();
+
+            records.forEach((record) => {
+                const courseList = Array.isArray(record.courses) ? record.courses : [];
+                const gradeList = courseList.length
+                    ? Array.from(new Set(courseList.map((course) => normalizeGradeLabel(course?.grade))))
+                    : [UNKNOWN_GRADE_LABEL];
+
+                gradeList.forEach((grade) => {
+                    if (!grouped.has(grade)) {
+                        grouped.set(grade, []);
+                    }
+
+                    grouped.get(grade).push({
+                        ...record,
+                        courses: courseList.filter((course) => normalizeGradeLabel(course?.grade) === grade),
+                    });
+                });
+            });
+
+            return Array.from(grouped.entries()).sort(([gradeA], [gradeB]) => {
+                if (gradeA === UNKNOWN_GRADE_LABEL) return 1;
+                if (gradeB === UNKNOWN_GRADE_LABEL) return -1;
+                return gradeA.localeCompare(gradeB, 'th');
+            });
+        };
+
         const renderTeacherStatus = (statusKey) => {
             if (!statusModalBody) return;
 
-            const list = teacherStatusData[statusKey] || [];
+            const list = getTeacherRecords(statusKey);
             statusModalBody.innerHTML = '';
 
             if (!list.length) {
@@ -605,96 +685,115 @@
                 return;
             }
 
-            list.forEach((item) => {
-                const teacherInfo = item.teacher || item || {};
-                const card = document.createElement('div');
+            const groupedSections = groupTeachersByGrade(list);
 
-                const isCompleteStatus = statusKey === 'complete';
-                const isIncompleteStatus = statusKey === 'incomplete';
-                const cardColor = isCompleteStatus
-                    ? 'bg-sky-50 border-sky-100'
-                    : isIncompleteStatus
-                        ? 'bg-amber-50 border-amber-100'
-                        : 'bg-slate-50 border-slate-200';
-                card.className = `border rounded-2xl p-4 shadow-sm ${cardColor}`;
+            groupedSections.forEach(([grade, teachers]) => {
+                const section = document.createElement('section');
+                section.className = 'rounded-2xl border border-gray-100 bg-gray-50/40 p-4 space-y-3';
 
-                const showCourses = isCompleteStatus || isIncompleteStatus;
-                const rawCourses = showCourses && Array.isArray(item.courses) ? item.courses : [];
-                const courses = isIncompleteStatus
-                    ? [...rawCourses].sort((a, b) => Number(a.complete) - Number(b.complete))
-                    : rawCourses;
-                const incompleteCourses = courses.filter((course) => !course.complete);
+                const gradeLabel = grade === UNKNOWN_GRADE_LABEL ? UNKNOWN_GRADE_LABEL : `ชั้น ${grade}`;
+                section.innerHTML = `
+                    <div class="flex items-center justify-between gap-3">
+                        <h4 class="text-sm font-semibold text-gray-800">${escapeHtml(gradeLabel)}</h4>
+                        <span class="rounded-full bg-gray-200 px-3 py-1 text-xs font-semibold text-gray-700">
+                            ${teachers.length} คน
+                        </span>
+                    </div>
+                `;
 
-                let incompleteGradeSummary = '';
-                if (isIncompleteStatus) {
-                    if (!courses.length) {
-                        incompleteGradeSummary = `
-                            <div class="mt-3 rounded-xl border border-amber-200 bg-amber-100/70 px-3 py-2 text-xs text-amber-900">
-                                ยังไม่มีรายวิชาที่ได้รับมอบหมาย
-                            </div>
-                        `;
-                    } else if (!incompleteCourses.length) {
-                        incompleteGradeSummary = `
-                            <div class="mt-3 rounded-xl border border-emerald-200 bg-emerald-100/70 px-3 py-2 text-xs text-emerald-800">
-                                รายวิชาทั้งหมดเรียบร้อยแล้ว
-                            </div>
-                        `;
-                    } else {
-                        const grouped = incompleteCourses.reduce((acc, course) => {
-                            const subjectName = String(course?.name || 'ไม่ระบุรายวิชา').trim() || 'ไม่ระบุรายวิชา';
-                            const gradeName = String(course?.grade || 'ไม่ระบุชั้น').trim() || 'ไม่ระบุชั้น';
-                            if (!acc[subjectName]) {
-                                acc[subjectName] = new Set();
-                            }
-                            acc[subjectName].add(gradeName);
-                            return acc;
-                        }, {});
+                const cardsContainer = document.createElement('div');
+                cardsContainer.className = 'space-y-3';
 
-                        const summaryRows = Object.entries(grouped)
-                            .map(([subjectName, grades]) => `
-                                <div>
-                                    <span class="font-semibold">${escapeHtml(subjectName)}</span>:
-                                    ชั้นที่ยังไม่เรียบร้อย ${escapeHtml(Array.from(grades).join(', '))}
+                teachers.forEach((item) => {
+                    const teacherInfo = item.teacher || {};
+                    const card = document.createElement('div');
+
+                    const isCompleteStatus = statusKey === 'complete';
+                    const isIncompleteStatus = statusKey === 'incomplete';
+                    const cardColor = isCompleteStatus
+                        ? 'bg-sky-50 border-sky-100'
+                        : isIncompleteStatus
+                            ? 'bg-amber-50 border-amber-100'
+                            : 'bg-slate-50 border-slate-200';
+                    card.className = `border rounded-2xl p-4 shadow-sm ${cardColor}`;
+
+                    const showCourses = isCompleteStatus || isIncompleteStatus;
+                    const rawCourses = showCourses && Array.isArray(item.courses) ? item.courses : [];
+                    const courses = isIncompleteStatus
+                        ? [...rawCourses].sort((a, b) => Number(a.complete) - Number(b.complete))
+                        : rawCourses;
+                    const incompleteCourses = courses.filter((course) => !course.complete);
+
+                    let incompleteGradeSummary = '';
+                    if (isIncompleteStatus) {
+                        if (!courses.length) {
+                            incompleteGradeSummary = `
+                                <div class="mt-3 rounded-xl border border-amber-200 bg-amber-100/70 px-3 py-2 text-xs text-amber-900">
+                                    ยังไม่มีรายวิชาที่ได้รับมอบหมาย
                                 </div>
-                            `)
-                            .join('');
+                            `;
+                        } else if (!incompleteCourses.length) {
+                            incompleteGradeSummary = `
+                                <div class="mt-3 rounded-xl border border-emerald-200 bg-emerald-100/70 px-3 py-2 text-xs text-emerald-800">
+                                    รายวิชาทั้งหมดเรียบร้อยแล้ว
+                                </div>
+                            `;
+                        } else {
+                            const grouped = incompleteCourses.reduce((acc, course) => {
+                                const subjectName = String(course?.name || 'ไม่ระบุรายวิชา').trim() || 'ไม่ระบุรายวิชา';
+                                const gradeName = normalizeGradeLabel(course?.grade);
+                                if (!acc[subjectName]) {
+                                    acc[subjectName] = new Set();
+                                }
+                                acc[subjectName].add(gradeName);
+                                return acc;
+                            }, {});
 
-                        incompleteGradeSummary = `
-                            <div class="mt-3 rounded-xl border border-amber-200 bg-amber-100/70 px-3 py-2">
-                                <p class="text-xs font-semibold text-amber-900">ชั้นที่ยังไม่เรียบร้อย</p>
-                                <div class="mt-1 space-y-1 text-xs text-amber-900">${summaryRows}</div>
-                            </div>
-                        `;
-                    }
-                }
-
-                const coursesHtml = !showCourses
-                    ? ''
-                    : (courses.map((course) => {
-                        const progress = getCourseProgress(course);
-                        const gradeText = String(course?.grade || '').trim() !== ''
-                            ? `ชั้นเรียน ${course.grade}`
-                            : 'ไม่ระบุชั้นเรียน';
-
-                        return `
-                            <div class="rounded-xl border border-gray-200 bg-white/80 px-3 py-2">
-                                <div class="flex items-start justify-between gap-3">
+                            const summaryRows = Object.entries(grouped)
+                                .map(([subjectName, grades]) => `
                                     <div>
-                                        <div class="font-semibold text-gray-900">${escapeHtml(course?.name || '-')}</div>
-                                        <div class="text-xs text-gray-500">${escapeHtml(gradeText)}</div>
-                                        <div class="text-xs text-gray-600 mt-1">${escapeHtml(progress.detailText)}</div>
+                                        <span class="font-semibold">${escapeHtml(subjectName)}</span>:
+                                        ชั้นที่ยังไม่เรียบร้อย ${escapeHtml(Array.from(grades).join(', '))}
                                     </div>
-                                    <span class="text-xs font-semibold px-3 py-1 rounded-full ${progress.badgeClass}">
-                                        ${escapeHtml(progress.badgeText)}
-                                    </span>
-                                </div>
-                            </div>
-                        `;
-                    }).join('') || '<div class="text-xs text-gray-500">ยังไม่มีรายวิชา</div>');
+                                `)
+                                .join('');
 
-                const coursesSection = coursesHtml
-                    ? `<div class="mt-3 space-y-2">${incompleteGradeSummary}${coursesHtml}</div>`
-                    : incompleteGradeSummary;
+                            incompleteGradeSummary = `
+                                <div class="mt-3 rounded-xl border border-amber-200 bg-amber-100/70 px-3 py-2">
+                                    <p class="text-xs font-semibold text-amber-900">ชั้นที่ยังไม่เรียบร้อย</p>
+                                    <div class="mt-1 space-y-1 text-xs text-amber-900">${summaryRows}</div>
+                                </div>
+                            `;
+                        }
+                    }
+
+                    const coursesHtml = !showCourses
+                        ? ''
+                        : (courses.map((course) => {
+                            const progress = getCourseProgress(course);
+                            const gradeText = String(course?.grade || '').trim() !== ''
+                                ? `ชั้นเรียน ${course.grade}`
+                                : 'ไม่ระบุชั้นเรียน';
+
+                            return `
+                                <div class="rounded-xl border border-gray-200 bg-white/80 px-3 py-2">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div>
+                                            <div class="font-semibold text-gray-900">${escapeHtml(course?.name || '-')}</div>
+                                            <div class="text-xs text-gray-500">${escapeHtml(gradeText)}</div>
+                                            <div class="text-xs text-gray-600 mt-1">${escapeHtml(progress.detailText)}</div>
+                                        </div>
+                                        <span class="text-xs font-semibold px-3 py-1 rounded-full ${progress.badgeClass}">
+                                            ${escapeHtml(progress.badgeText)}
+                                        </span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('') || '<div class="text-xs text-gray-500">ยังไม่มีรายวิชา</div>');
+
+                    const coursesSection = coursesHtml
+                        ? `<div class="mt-3 space-y-2">${incompleteGradeSummary}${coursesHtml}</div>`
+                        : incompleteGradeSummary;
 
                 const headerBadgeClass = isCompleteStatus
                     ? 'bg-sky-100 text-sky-700'
@@ -702,25 +801,29 @@
                         ? 'bg-amber-100 text-amber-700'
                         : 'bg-slate-200 text-slate-700';
                 const headerBadgeText = isCompleteStatus
-                    ? 'สร้างหลักสูตรแล้ว'
+                    ? 'หลักสูตรเสร็จแล้ว'
                     : isIncompleteStatus
-                        ? 'ยังไม่สร้างหลักสูตร'
+                        ? 'หลักสูตรยังไม่เสร็จ'
                         : 'ข้อมูลครู';
 
-                card.innerHTML = `
-                    <div class="flex items-start justify-between gap-3">
-                        <div>
-                            <div class="text-base font-semibold text-gray-900">${escapeHtml(teacherInfo.name || '-')}</div>
-                            <div class="text-xs text-gray-500">${escapeHtml(teacherInfo.email || '')}</div>
+                    card.innerHTML = `
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <div class="text-base font-semibold text-gray-900">${escapeHtml(teacherInfo.name || '-')}</div>
+                                <div class="text-xs text-gray-500">${escapeHtml(teacherInfo.email || '')}</div>
+                            </div>
+                            <span class="text-xs font-semibold px-3 py-1 rounded-full ${headerBadgeClass}">
+                                ${escapeHtml(headerBadgeText)}
+                            </span>
                         </div>
-                        <span class="text-xs font-semibold px-3 py-1 rounded-full ${headerBadgeClass}">
-                            ${escapeHtml(headerBadgeText)}
-                        </span>
-                    </div>
-                    ${coursesSection}
-                `;
+                        ${coursesSection}
+                    `;
 
-                statusModalBody.appendChild(card);
+                    cardsContainer.appendChild(card);
+                });
+
+                section.appendChild(cardsContainer);
+                statusModalBody.appendChild(section);
             });
         };
         const openStatusModal = (statusKey) => {
@@ -729,13 +832,13 @@
             const isComplete = statusKey === 'complete';
             const isIncomplete = statusKey === 'incomplete';
             const isAll = statusKey === 'all';
-            const count = teacherStatusData[statusKey]?.length ?? 0;
+            const count = getTeacherRecords(statusKey).length;
 
             if (statusModalTitle) {
                 statusModalTitle.textContent = statusKey === 'complete'
-                    ? 'ครูที่สร้างหลักสูตรแล้ว'
+                    ? 'คุณครูที่ทำหลักสูตรเสร็จ'
                     : statusKey === 'incomplete'
-                        ? 'ครูที่ยังไม่สร้างหลักสูตร'
+                        ? 'คุณครูที่ทำหลักสูตรยังไม่เสร็จ'
                         : 'ครูทั้งหมด';
 
             statusModalSubtitle.textContent = `ทั้งหมด ${count} คน`;
@@ -864,7 +967,7 @@
                     type: 'doughnut',
                     
                     data: {
-                        labels: ['ครูที่สร้างหลักสูตรแล้ว', 'ครูที่ยังไม่สร้างหลักสูตร'],
+                        labels: ['ครูที่ทำหลักสูตรเสร็จ', 'ครูที่ทำหลักสูตรยังไม่เสร็จ'],
                         datasets: [{
                             data: [completeCount, incompleteCount],
                             backgroundColor: ['#0ea5e9', '#f59e0b'],

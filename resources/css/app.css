@@ -16,7 +16,7 @@
   }
 
   .stat-card__body {
-    @apply flex h-full min-h-[210px] flex-col px-6 pb-6 pt-8 md:px-7 md:pb-7 md:pt-9;
+    @apply flex h-full min-h-[170px] flex-col px-6 pb-6 pt-7 md:px-7 md:pb-7 md:pt-8;
   }
 
   .stat-card__top {
@@ -32,7 +32,7 @@
   }
 
   .stat-card__value {
-    @apply mt-2 text-5xl font-extrabold leading-tight tracking-tight;
+    @apply mt-1 text-4xl font-extrabold leading-tight tracking-tight;
   }
 
   .stat-card__divider {
@@ -45,6 +45,13 @@
 
   .stat-card__icon {
     @apply relative mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border;
+  }
+
+  .stat-card__icon svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    display: block;
+    flex-shrink: 0;
   }
 }
 

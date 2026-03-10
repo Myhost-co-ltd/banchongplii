@@ -8,7 +8,6 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherCourseController;
 
 use App\Http\Controllers\DirectorController;
-=======
 use App\Http\Controllers\ProfileController;
 
 
@@ -144,7 +143,6 @@ Route::middleware(['auth'])->group(function () {
         return view('dashboards.admin');
     })->name('dashboard.admin');
 
-<<<<<<< HEAD
     // TEACHER
     Route::get('/dashboard/teacher', [StudentController::class, 'index'])
         ->name('dashboard.teacher');
@@ -191,7 +189,6 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/director/courses/{course}', [DirectorController::class, 'courseDetail'])
         ->name('director.course-detail');
-=======
     // Admin manage courses for teachers
     Route::middleware('role:superadmin')
         ->prefix('admin')
@@ -212,7 +209,6 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/courses/{course}/hours/{hour}', [AdminCourseController::class, 'destroyTeachingHour'])
                 ->name('courses.hours.destroy');
         });
->>>>>>> 37081f331ff87d6e5f20034349edf8be296c4f97
 });
 
 
