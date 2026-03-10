@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -30,7 +31,7 @@ class TeacherCourseController extends Controller
             ->latest()
             ->get();
 
-        // à¸£à¸§à¸¡à¸£à¸²à¸¢à¸Šà¸·à¹ˆà¸­à¸«à¸¥à¸±à¸à¸ªà¸¹à¸•à¸£à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸” (à¹„à¸¡à¹ˆà¸ˆà¸³à¸à¸±à¸”à¸§à¸´à¸Šà¸²à¹€à¸­à¸) à¹ƒà¸«à¹‰à¹€à¸¥à¸·à¸­à¸à¸«à¸£à¸·à¸­à¹€à¸›à¹‡à¸™à¸•à¸±à¸§à¸­à¸¢à¹ˆà¸²à¸‡à¸„à¹ˆà¸²à¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´
+        // รวมรายชื่อหลักสูตรทั้งหมด (ไม่จำกัดวิชาเอก) ให้เลือกหรือเป็นตัวอย่างค่าอัตโนมัติ
         $localCourseOptions = Course::query()
             ->select('id', 'name', 'grade', 'term', 'year')
             ->orderBy('name')
@@ -109,20 +110,20 @@ class TeacherCourseController extends Controller
 
         return redirect()
             ->route('teacher.course-create')
-            ->with('status', 'à¸ªà¸£à¹‰à¸²à¸‡à¸«à¸¥à¸±à¸à¸ªà¸¹à¸•à¸£à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§');
+            ->with('status', 'สร้างหลักสูตรเรียบร้อยแล้ว');
     }
 
     public function claim(Request $request, Course $course)
     {
         if ($course->user_id) {
-            abort(403, 'à¸«à¸¥à¸±à¸à¸ªà¸¹à¸•à¸£à¸™à¸µà¹‰à¸¡à¸µà¹€à¸ˆà¹‰à¸²à¸‚à¸­à¸‡à¹à¸¥à¹‰à¸§');
+            abort(403, 'หลักสูตรนี้มีเจ้าของแล้ว');
         }
 
         $course->update(['user_id' => Auth::id()]);
 
         return redirect()
             ->route('teacher.course-create')
-            ->with('status', 'à¹€à¸žà¸´à¹ˆà¸¡à¸«à¸¥à¸±à¸à¸ªà¸¹à¸•à¸£à¹€à¸‚à¹‰à¸²à¸šà¸±à¸à¸Šà¸µà¸‚à¸­à¸‡à¸„à¸¸à¸“à¹à¸¥à¹‰à¸§');
+            ->with('status', 'เพิ่มหลักสูตรเข้าบัญชีของคุณแล้ว');
     }
 
     public function show(?int $courseId = null)
@@ -144,7 +145,7 @@ class TeacherCourseController extends Controller
         if (! $course) {
             return redirect()
                 ->route('teacher.course-create')
-                ->with('status', 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸«à¸¥à¸±à¸à¸ªà¸¹à¸•à¸£ à¸à¸£à¸¸à¸“à¸²à¸ªà¸£à¹‰à¸²à¸‡à¸«à¸¥à¸±à¸à¸ªà¸¹à¸•à¸£à¸à¹ˆà¸­à¸™à¹€à¸‚à¹‰à¸²à¸«à¸™à¹‰à¸²à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”');
+                ->with('status', 'ยังไม่มีหลักสูตร กรุณาสร้างหลักสูตรก่อนเข้าหน้ารายละเอียด');
         }
 
         $this->authorizeVisibleCourse($course);
@@ -181,7 +182,7 @@ class TeacherCourseController extends Controller
         if (! $course) {
             return redirect()
                 ->route('teacher.course-create')
-                ->with('status', 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸«à¸¥à¸±à¸à¸ªà¸¹à¸•à¸£ à¸à¸£à¸¸à¸“à¸²à¸ªà¸£à¹‰à¸²à¸‡à¸«à¸¥à¸±à¸à¸ªà¸¹à¸•à¸£à¸à¹ˆà¸­à¸™à¹€à¸‚à¹‰à¸²à¸«à¸™à¹‰à¸²à¸•à¸´à¸”à¸•à¸²à¸¡à¸‡à¸²à¸™');
+                ->with('status', 'ยังไม่มีหลักสูตร กรุณาสร้างหลักสูตรก่อนเข้าหน้าติดตามงาน');
         }
 
         $this->authorizeCourse($course);
@@ -561,7 +562,7 @@ class TeacherCourseController extends Controller
                     'room' => $selectedRoom !== '' ? $selectedRoom : null,
                 ])
                 ->withErrors([
-                    'attendance_date' => 'à¸§à¸±à¸™à¸™à¸µà¹‰à¸–à¸¹à¸à¸à¸³à¸«à¸™à¸”à¹€à¸›à¹‡à¸™à¸§à¸±à¸™à¸«à¸¢à¸¸à¸”à¹‚à¸”à¸¢à¸œà¸¹à¹‰à¸šà¸£à¸´à¸«à¸²à¸£ à¸ˆà¸¶à¸‡à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸šà¸±à¸™à¸—à¸¶à¸à¹€à¸Šà¹‡à¸„à¸Šà¸·à¹ˆà¸­à¹„à¸”à¹‰',
+                    'attendance_date' => 'วันนี้ถูกกำหนดเป็นวันหยุดโดยผู้บริหาร จึงไม่สามารถบันทึกเช็คชื่อได้',
                 ]);
         }
 
@@ -657,7 +658,7 @@ class TeacherCourseController extends Controller
                 'date' => $attendanceDate,
                 'room' => $selectedRoom !== '' ? $selectedRoom : null,
             ])
-            ->with('status', 'à¸šà¸±à¸™à¸—à¸¶à¸à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸à¸²à¸£à¹€à¸Šà¹‡à¸„à¸Šà¸·à¹ˆà¸­à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§');
+            ->with('status', 'บันทึกข้อมูลการเช็คชื่อเรียบร้อยแล้ว');
     }
 
     public function deductions(Request $request, Course $course)
@@ -906,7 +907,7 @@ class TeacherCourseController extends Controller
                 'date' => $data['attendance_date'],
                 'room' => $data['room'] ?? null,
             ])
-            ->with('status', 'à¸šà¸±à¸™à¸—à¸¶à¸à¸à¸²à¸£à¸•à¸±à¸”à¸„à¸°à¹à¸™à¸™à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§');
+            ->with('status', 'บันทึกการตัดคะแนนเรียบร้อยแล้ว');
     }
 
     private function findAttendanceHoliday(int $courseId, string $term, string $attendanceDate): ?CourseAttendanceHoliday
@@ -1028,7 +1029,7 @@ class TeacherCourseController extends Controller
 
         return redirect()
             ->route('course.detail', $course)
-            ->with('status', 'à¸­à¸±à¸›à¹€à¸”à¸•à¸«à¸¥à¸±à¸à¸ªà¸¹à¸•à¸£à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§');
+            ->with('status', 'อัปเดตหลักสูตรเรียบร้อยแล้ว');
     }
 
     public function destroy(Course $course)
@@ -1039,7 +1040,7 @@ class TeacherCourseController extends Controller
 
         return redirect()
             ->route('teacher.course-create')
-            ->with('status', 'à¸¥à¸šà¸«à¸¥à¸±à¸à¸ªà¸¹à¸•à¸£à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§');
+            ->with('status', 'ลบหลักสูตรเรียบร้อยแล้ว');
     }
 
     protected function authorizeCourse(Course $course): void
@@ -1118,6 +1119,17 @@ class TeacherCourseController extends Controller
             'lessonUsedTotal' => $lessonUsedTotal,
             'lessonRemainingTotal' => $lessonRemainingTotal,
         ];
+    }
+
+    private function redirectToCourseDetailSection(Course $course, ?string $term, string $section)
+    {
+        $params = ['course' => $course];
+        $normalizedTerm = in_array((string) $term, ['1', '2', 'summer'], true)
+            ? (string) $term
+            : (string) ($course->term ?? '1');
+        $params['term'] = $normalizedTerm;
+
+        return redirect()->to(route('course.detail', $params) . '#' . ltrim($section, '#'));
     }
 
     private function buildCourseStudentData(Course $course): array
@@ -1243,8 +1255,11 @@ class TeacherCourseController extends Controller
             if ($grade > 0 && $roomNo > 0) {
                 $aliases->push(sprintf('%d%02d', $grade, $roomNo));
                 $aliases->push($grade . '/' . $roomNo);
+                $aliases->push("\u{0E1B}." . $grade . '/' . $roomNo);
                 $aliases->push('P.' . $grade . '/' . $roomNo);
                 $aliases->push('U.' . $grade . '/' . $roomNo);
+                $aliases->push("\u{0E1B}\u{0E23}\u{0E30}\u{0E16}\u{0E21}\u{0E28}\u{0E36}\u{0E01}\u{0E29}\u{0E32} " . $grade . '/' . $roomNo);
+                $aliases->push("\u{0E1B}\u{0E23}\u{0E30}\u{0E16}\u{0E21}\u{0E28}\u{0E36}\u{0E01}\u{0E29}\u{0E32}" . $grade . '/' . $roomNo);
             }
         }
 
@@ -1263,9 +1278,36 @@ class TeacherCourseController extends Controller
             return null;
         }
 
+        $normalizedText = strtr($text, [
+            "\u{0E50}" => '0', "\u{0E51}" => '1', "\u{0E52}" => '2', "\u{0E53}" => '3', "\u{0E54}" => '4',
+            "\u{0E55}" => '5', "\u{0E56}" => '6', "\u{0E57}" => '7', "\u{0E58}" => '8', "\u{0E59}" => '9',
+        ]);
+        $normalizedCompact = preg_replace('/\s+/u', '', $normalizedText) ?? $normalizedText;
+
+        if (preg_match('/^(\d)(\d{2})$/', $normalizedCompact, $matches) === 1) {
+            return [
+                'grade' => (int) $matches[1],
+                'room' => (int) $matches[2],
+            ];
+        }
+
+        $normalizedPatterns = [
+            '/^(?:u|p|\x{0E1B}|\x{0E21})\.?(\d{1,2})\/(\d{1,2})$/iu',
+            '/^\x{0E1B}\x{0E23}\x{0E30}\x{0E16}\x{0E21}\x{0E28}\x{0E36}\x{0E01}\x{0E29}\x{0E32}(\d{1,2})\/(\d{1,2})$/u',
+        ];
+
+        foreach ($normalizedPatterns as $pattern) {
+            if (preg_match($pattern, $normalizedCompact, $matches) === 1) {
+                return [
+                    'grade' => (int) $matches[1],
+                    'room' => (int) $matches[2],
+                ];
+            }
+        }
+
         $text = strtr($text, [
-            'à¹' => '0', 'à¹‘' => '1', 'à¹’' => '2', 'à¹“' => '3', 'à¹”' => '4',
-            'à¹•' => '5', 'à¹–' => '6', 'à¹—' => '7', 'à¹˜' => '8', 'à¹™' => '9',
+            '๐' => '0', '๑' => '1', '๒' => '2', '๓' => '3', '๔' => '4',
+            '๕' => '5', '๖' => '6', '๗' => '7', '๘' => '8', '๙' => '9',
         ]);
         $compact = preg_replace('/\s+/u', '', $text) ?? $text;
 
@@ -1278,8 +1320,8 @@ class TeacherCourseController extends Controller
 
         $patterns = [
             '/^(?:u|p)\.?(\d{1,2})\/(\d{1,2})$/iu',
-            '/^(?:à¸›|à¸¡)\.?(\d{1,2})\/(\d{1,2})$/u',
-            '/^à¸›à¸£à¸°à¸–à¸¡à¸¨à¸¶à¸à¸©à¸²(\d{1,2})\/(\d{1,2})$/u',
+            '/^(?:ป|ม)\.?(\d{1,2})\/(\d{1,2})$/u',
+            '/^ประถมศึกษา(\d{1,2})\/(\d{1,2})$/u',
         ];
 
         foreach ($patterns as $pattern) {
@@ -1302,8 +1344,13 @@ class TeacherCourseController extends Controller
         }
 
         $value = strtr($value, [
-            'à¹' => '0', 'à¹‘' => '1', 'à¹’' => '2', 'à¹“' => '3', 'à¹”' => '4',
-            'à¹•' => '5', 'à¹–' => '6', 'à¹—' => '7', 'à¹˜' => '8', 'à¹™' => '9',
+            "\u{0E50}" => '0', "\u{0E51}" => '1', "\u{0E52}" => '2', "\u{0E53}" => '3', "\u{0E54}" => '4',
+            "\u{0E55}" => '5', "\u{0E56}" => '6', "\u{0E57}" => '7', "\u{0E58}" => '8', "\u{0E59}" => '9',
+        ]);
+
+        $value = strtr($value, [
+            '๐' => '0', '๑' => '1', '๒' => '2', '๓' => '3', '๔' => '4',
+            '๕' => '5', '๖' => '6', '๗' => '7', '๘' => '8', '๙' => '9',
         ]);
         $value = preg_replace('/\s+/u', '', $value) ?? $value;
         $value = str_replace('.', '', $value);
@@ -1584,12 +1631,12 @@ class TeacherCourseController extends Controller
 
             $year = (int) $value;
             if ($year < 2400) {
-                $fail('à¸à¸£à¸¸à¸“à¸²à¸à¸£à¸­à¸à¸›à¸µà¸à¸²à¸£à¸¨à¸¶à¸à¸©à¸²à¹€à¸›à¹‡à¸™ à¸ž.à¸¨. (à¹€à¸Šà¹ˆà¸™ '.$currentYearBe.')');
+                $fail('กรุณากรอกปีการศึกษาเป็น พ.ศ. (เช่น '.$currentYearBe.')');
                 return;
             }
 
             if ($year !== $currentYearBe) {
-                $fail("à¸›à¸µà¸à¸²à¸£à¸¨à¸¶à¸à¸©à¸²à¸•à¹‰à¸­à¸‡à¹€à¸›à¹‡à¸™à¸›à¸µà¸›à¸±à¸ˆà¸ˆà¸¸à¸šà¸±à¸™à¹€à¸—à¹ˆà¸²à¸™à¸±à¹‰à¸™ (à¸ž.à¸¨. {$currentYearBe})");
+                $fail("ปีการศึกษาต้องเป็นปีปัจจุบันเท่านั้น (พ.ศ. {$currentYearBe})");
             }
         };
     }
@@ -1618,7 +1665,7 @@ class TeacherCourseController extends Controller
 
         $course->update(['teaching_hours' => $hours]);
 
-        return back()->with('status', 'à¸šà¸±à¸™à¸—à¸¶à¸à¸Šà¸±à¹ˆà¸§à¹‚à¸¡à¸‡à¸à¸²à¸£à¸ªà¸­à¸™à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§');
+        return back()->with('status', 'บันทึกชั่วโมงการสอนเรียบร้อยแล้ว');
     }
 
     public function updateTeachingHour(Request $request, Course $course, string $hour)
@@ -1651,12 +1698,12 @@ class TeacherCourseController extends Controller
         }
 
         if (! $updated) {
-            return back()->withErrors(['hour' => 'à¹„à¸¡à¹ˆà¸žà¸šà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸Šà¸±à¹ˆà¸§à¹‚à¸¡à¸‡à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸à¸²à¸£à¹à¸à¹‰à¹„à¸‚']);
+            return back()->withErrors(['hour' => 'ไม่พบข้อมูลชั่วโมงที่ต้องการแก้ไข']);
         }
 
         $course->update(['teaching_hours' => $hours]);
 
-        return back()->with('status', 'à¸­à¸±à¸›à¹€à¸”à¸•à¸Šà¸±à¹ˆà¸§à¹‚à¸¡à¸‡à¸ªà¸­à¸™à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§');
+        return back()->with('status', 'อัปเดตชั่วโมงสอนเรียบร้อยแล้ว');
     }
 
     public function destroyTeachingHour(Course $course, string $hour)
@@ -1670,23 +1717,37 @@ class TeacherCourseController extends Controller
 
         $course->update(['teaching_hours' => $hours]);
 
-        return back()->with('status', 'à¸¥à¸šà¸Šà¸±à¹ˆà¸§à¹‚à¸¡à¸‡à¸à¸²à¸£à¸ªà¸­à¸™à¹à¸¥à¹‰à¸§');
+        return back()->with('status', 'ลบชั่วโมงการสอนแล้ว');
     }
 
     public function storeLesson(Request $request, Course $course)
     {
         $this->authorizeCourse($course);
 
-        $data = $request->validate([
+        $validator = Validator::make($request->all(), [
             'term'     => 'required|in:1,2,summer',
-            'category' => 'required|string|in:à¸—à¸¤à¸©à¸Žà¸µ,à¸›à¸à¸´à¸šà¸±à¸•à¸´',
+            'category' => 'required|string|max:255',
             'title'    => 'required|string|max:255',
             'hours'    => 'required|integer|min:1',
             'period'   => 'nullable|string|max:100',
             'details'  => 'nullable|string|max:2000',
         ]);
+        if ($validator->fails()) {
+            return $this->redirectToCourseDetailSection($course, $request->input('term'), 'lessons')
+                ->withErrors($validator)
+                ->withInput()
+                ->with('status_context', 'lessons');
+        }
+        $data = $validator->validated();
 
-        $this->guardLessonHours($course, $data['term'], $data['category'], $data['hours']);
+        try {
+            $this->guardLessonHours($course, $data['term'], $data['category'], $data['hours']);
+        } catch (ValidationException $exception) {
+            return $this->redirectToCourseDetailSection($course, $data['term'], 'lessons')
+                ->withErrors($exception->errors())
+                ->withInput()
+                ->with('status_context', 'lessons');
+        }
 
         $lessons = $course->lessons ?? [];
         $lessons[] = [
@@ -1702,12 +1763,15 @@ class TeacherCourseController extends Controller
 
         $course->update(['lessons' => $lessons]);
 
-        return back()->with('status', 'à¸šà¸±à¸™à¸—à¸¶à¸à¸«à¸±à¸§à¸‚à¹‰à¸­à¹€à¸™à¸·à¹‰à¸­à¸«à¸²à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§');
+        return $this->redirectToCourseDetailSection($course, $data['term'], 'lessons')
+            ->with('status', 'บันทึกหัวข้อเนื้อหาเรียบร้อยแล้ว')
+            ->with('status_context', 'lessons');
     }
 
     public function destroyLesson(Course $course, string $lesson)
     {
         $this->authorizeCourse($course);
+        $term = request('term');
 
         $lessons = collect($course->lessons ?? [])
             ->reject(fn ($item) => ($item['id'] ?? null) === $lesson)
@@ -1716,35 +1780,51 @@ class TeacherCourseController extends Controller
 
         $course->update(['lessons' => $lessons]);
 
-        return back()->with('status', 'à¸¥à¸šà¸«à¸±à¸§à¸‚à¹‰à¸­à¹€à¸™à¸·à¹‰à¸­à¸«à¸²à¹à¸¥à¹‰à¸§');
+        return $this->redirectToCourseDetailSection($course, $term, 'lessons')
+            ->with('status', 'ลบหัวข้อเนื้อหาแล้ว')
+            ->with('status_context', 'lessons');
     }
 
     public function updateLesson(Request $request, Course $course, string $lesson)
     {
         $this->authorizeCourse($course);
 
-        $data = $request->validate([
+        $validator = Validator::make($request->all(), [
             'term'     => 'required|in:1,2,summer',
-            'category' => 'required|string|in:à¸—à¸¤à¸©à¸Žà¸µ,à¸›à¸à¸´à¸šà¸±à¸•à¸´',
+            'category' => 'required|string|max:255',
             'title'    => 'required|string|max:255',
             'hours'    => 'required|integer|min:1',
             'period'   => 'nullable|string|max:100',
             'details'  => 'nullable|string|max:2000',
         ]);
+        if ($validator->fails()) {
+            return $this->redirectToCourseDetailSection($course, $request->input('term'), 'lessons')
+                ->withErrors($validator)
+                ->withInput()
+                ->with('status_context', 'lessons');
+        }
+        $data = $validator->validated();
 
         $lessons = $course->lessons ?? [];
         $updated = false;
 
         foreach ($lessons as $index => $item) {
             if (($item['id'] ?? null) === $lesson) {
-                $this->guardLessonHours(
-                    $course,
-                    $data['term'],
-                    $data['category'],
-                    $data['hours'],
-                    (int) ($item['hours'] ?? 0),
-                    (string) ($item['category'] ?? '')
-                );
+                try {
+                    $this->guardLessonHours(
+                        $course,
+                        $data['term'],
+                        $data['category'],
+                        $data['hours'],
+                        (int) ($item['hours'] ?? 0),
+                        (string) ($item['category'] ?? '')
+                    );
+                } catch (ValidationException $exception) {
+                    return $this->redirectToCourseDetailSection($course, $data['term'], 'lessons')
+                        ->withErrors($exception->errors())
+                        ->withInput()
+                        ->with('status_context', 'lessons');
+                }
 
                 $lessons[$index] = array_merge($item, [
                     'term'     => $data['term'],
@@ -1761,12 +1841,17 @@ class TeacherCourseController extends Controller
         }
 
         if (! $updated) {
-            return back()->withErrors(['lesson' => 'à¹„à¸¡à¹ˆà¸žà¸šà¸«à¸±à¸§à¸‚à¹‰à¸­à¸šà¸—à¹€à¸£à¸µà¸¢à¸™à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸à¸²à¸£à¸­à¸±à¸›à¹€à¸”à¸•']);
+            return $this->redirectToCourseDetailSection($course, $data['term'], 'lessons')
+                ->withErrors(['lesson' => 'ไม่พบหัวข้อบทเรียนที่ต้องการอัปเดต'])
+                ->withInput()
+                ->with('status_context', 'lessons');
         }
 
         $course->update(['lessons' => $lessons]);
 
-        return back()->with('status', 'à¸­à¸±à¸›à¹€à¸”à¸•à¸«à¸±à¸§à¸‚à¹‰à¸­à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§');
+        return $this->redirectToCourseDetailSection($course, $data['term'], 'lessons')
+            ->with('status', 'อัปเดตหัวข้อเรียบร้อยแล้ว')
+            ->with('status_context', 'lessons');
     }
 
     private function guardLessonHours(
@@ -1784,7 +1869,7 @@ class TeacherCourseController extends Controller
 
         if ($targetHours <= 0) {
             throw ValidationException::withMessages([
-                'lesson' => 'à¸Šà¸±à¹ˆà¸§à¹‚à¸¡à¸‡à¸ªà¸­à¸™à¸«à¸¡à¸§à¸”à¸™à¸µà¹‰à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸–à¸¹à¸à¸à¸³à¸«à¸™à¸”à¹ƒà¸™à¸ à¸²à¸„à¹€à¸£à¸µà¸¢à¸™à¸—à¸µà¹ˆà¹€à¸¥à¸·à¸­à¸',
+                'lesson' => 'ชั่วโมงสอนหมวดนี้ยังไม่ถูกกำหนดในภาคเรียนที่เลือก',
             ]);
         }
 
@@ -1800,7 +1885,7 @@ class TeacherCourseController extends Controller
 
         if ($usedHours + $incomingHours > $targetHours) {
             throw ValidationException::withMessages([
-                'lesson' => 'à¸Šà¸±à¹ˆà¸§à¹‚à¸¡à¸‡à¸£à¸§à¸¡à¹€à¸à¸´à¸™à¸à¸§à¹ˆà¸²à¸—à¸µà¹ˆà¸à¸³à¸«à¸™à¸”à¹ƒà¸™à¸«à¸¡à¸§à¸”à¸™à¸µà¹‰',
+                'lesson' => 'ชั่วโมงรวมเกินกว่าที่กำหนดในหมวดนี้',
             ]);
         }
     }
@@ -1809,13 +1894,20 @@ class TeacherCourseController extends Controller
     {
         $this->authorizeCourse($course);
 
-        $data = $request->validate([
+        $validator = Validator::make($request->all(), [
             'term'     => 'required|in:1,2,summer',
             'title'    => 'required|string|max:255',
             'due_date' => 'nullable|date|after_or_equal:today',
             'score'    => 'nullable|integer|min:0',
             'notes'    => 'nullable|string|max:2000',
         ]);
+        if ($validator->fails()) {
+            return $this->redirectToCourseDetailSection($course, $request->input('term'), 'assignments')
+                ->withErrors($validator)
+                ->withInput()
+                ->with('status_context', 'assignments');
+        }
+        $data = $validator->validated();
 
         $assignments = $course->assignments ?? [];
 
@@ -1826,15 +1918,21 @@ class TeacherCourseController extends Controller
         $newScore = isset($data['score']) ? (int) $data['score'] : 0;
         $assignmentCap = (int) ($course->assignment_cap ?? 70);
         if ($currentTotal >= $assignmentCap) {
-            return back()->withErrors([
-                'score' => 'à¸„à¸°à¹à¸™à¸™à¹€à¸•à¹‡à¸¡à¸£à¸§à¸¡à¸„à¸£à¸šà¹à¸¥à¹‰à¸§ (à¹€à¸žà¸”à¸²à¸™ ' . number_format($assignmentCap, 0) . ' | à¸£à¸§à¸¡à¸›à¸±à¸ˆà¸ˆà¸¸à¸šà¸±à¸™ ' . number_format($currentTotal, 0) . ')',
-            ])->withInput();
+            return $this->redirectToCourseDetailSection($course, $data['term'], 'assignments')
+                ->withErrors([
+                    'score' => 'คะแนนเต็มรวมครบแล้ว (เพดาน ' . number_format($assignmentCap, 0) . ' | รวมปัจจุบัน ' . number_format($currentTotal, 0) . ')',
+                ])
+                ->withInput()
+                ->with('status_context', 'assignments');
         }
         if (($currentTotal + $newScore) > $assignmentCap) {
             $remaining = max(0, $assignmentCap - $currentTotal);
-            return back()->withErrors([
-                'score' => 'à¸„à¸°à¹à¸™à¸™à¹€à¸à¸´à¸™à¸à¸³à¸«à¸™à¸”: à¹€à¸«à¸¥à¸·à¸­à¹„à¸”à¹‰à¸­à¸µà¸ ' . number_format($remaining, 0) . ' à¸ˆà¸²à¸à¹€à¸žà¸”à¸²à¸™ ' . number_format($assignmentCap, 0),
-            ])->withInput();
+            return $this->redirectToCourseDetailSection($course, $data['term'], 'assignments')
+                ->withErrors([
+                    'score' => 'คะแนนเกินกำหนด: เหลือได้อีก ' . number_format($remaining, 0) . ' จากเพดาน ' . number_format($assignmentCap, 0),
+                ])
+                ->withInput()
+                ->with('status_context', 'assignments');
         }
 
         $assignments[] = [
@@ -1849,20 +1947,29 @@ class TeacherCourseController extends Controller
 
         $course->update(['assignments' => $assignments]);
 
-        return back()->with('status', 'à¸šà¸±à¸™à¸—à¸¶à¸à¸à¸²à¸£à¸šà¹‰à¸²à¸™à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§');
+        return $this->redirectToCourseDetailSection($course, $data['term'], 'assignments')
+            ->with('status', 'บันทึกการบ้านเรียบร้อยแล้ว')
+            ->with('status_context', 'assignments');
     }
 
     public function updateAssignment(Request $request, Course $course, string $assignment)
     {
         $this->authorizeCourse($course);
 
-        $data = $request->validate([
+        $validator = Validator::make($request->all(), [
             'term'     => 'required|in:1,2,summer',
             'title'    => 'required|string|max:255',
             'due_date' => 'nullable|date|after_or_equal:today',
             'score'    => 'nullable|integer|min:0',
             'notes'    => 'nullable|string|max:2000',
         ]);
+        if ($validator->fails()) {
+            return $this->redirectToCourseDetailSection($course, $request->input('term'), 'assignments')
+                ->withErrors($validator)
+                ->withInput()
+                ->with('status_context', 'assignments');
+        }
+        $data = $validator->validated();
 
         $assignments = $course->assignments ?? [];
         $updated = false;
@@ -1876,14 +1983,17 @@ class TeacherCourseController extends Controller
         }
 
         if (! $targetItem) {
-            return back()->withErrors(['assignment' => 'à¹„à¸¡à¹ˆà¸žà¸šà¸à¸²à¸£à¸šà¹‰à¸²à¸™à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸à¸²à¸£à¹à¸à¹‰à¹„à¸‚']);
+            return $this->redirectToCourseDetailSection($course, $data['term'], 'assignments')
+                ->withErrors(['assignment' => 'ไม่พบการบ้านที่ต้องการแก้ไข'])
+                ->withInput()
+                ->with('status_context', 'assignments');
         }
 
         $currentTotal = collect($assignments)
             ->filter(fn ($item) => ($item['term'] ?? (string) ($course->term ?? '1')) === $data['term'])
             ->sum(fn ($item) => $item['score'] ?? 0);
 
-        // à¸–à¹‰à¸²à¸­à¸¢à¸¹à¹ˆà¸ à¸²à¸„à¹€à¸£à¸µà¸¢à¸™à¹€à¸”à¸´à¸¡ à¹ƒà¸«à¹‰à¸«à¸±à¸à¸„à¸°à¹à¸™à¸™à¹€à¸”à¸´à¸¡à¸­à¸­à¸à¸à¹ˆà¸­à¸™à¸„à¸³à¸™à¸§à¸“
+        // ถ้าอยู่ภาคเรียนเดิม ให้หักคะแนนเดิมออกก่อนคำนวณ
         if (($targetItem['term'] ?? null) === $data['term']) {
             $currentTotal -= $targetItem['score'] ?? 0;
         }
@@ -1891,15 +2001,21 @@ class TeacherCourseController extends Controller
         $newScore = isset($data['score']) ? (int) $data['score'] : 0;
         $assignmentCap = (int) ($course->assignment_cap ?? 70);
         if ($currentTotal >= $assignmentCap) {
-            return back()->withErrors([
-                'score' => 'à¸„à¸°à¹à¸™à¸™à¹€à¸•à¹‡à¸¡à¸£à¸§à¸¡à¸„à¸£à¸šà¹à¸¥à¹‰à¸§ (à¹€à¸žà¸”à¸²à¸™ ' . number_format($assignmentCap, 0) . ' | à¸£à¸§à¸¡à¸›à¸±à¸ˆà¸ˆà¸¸à¸šà¸±à¸™ ' . number_format($currentTotal, 0) . ')',
-            ])->withInput();
+            return $this->redirectToCourseDetailSection($course, $data['term'], 'assignments')
+                ->withErrors([
+                    'score' => 'คะแนนเต็มรวมครบแล้ว (เพดาน ' . number_format($assignmentCap, 0) . ' | รวมปัจจุบัน ' . number_format($currentTotal, 0) . ')',
+                ])
+                ->withInput()
+                ->with('status_context', 'assignments');
         }
         if (($currentTotal + $newScore) > $assignmentCap) {
             $remaining = max(0, $assignmentCap - $currentTotal);
-            return back()->withErrors([
-                'score' => 'à¸„à¸°à¹à¸™à¸™à¹€à¸à¸´à¸™à¸à¸³à¸«à¸™à¸”: à¹€à¸«à¸¥à¸·à¸­à¹„à¸”à¹‰à¸­à¸µà¸ ' . number_format($remaining, 0) . ' à¸ˆà¸²à¸à¹€à¸žà¸”à¸²à¸™ ' . number_format($assignmentCap, 0),
-            ])->withInput();
+            return $this->redirectToCourseDetailSection($course, $data['term'], 'assignments')
+                ->withErrors([
+                    'score' => 'คะแนนเกินกำหนด: เหลือได้อีก ' . number_format($remaining, 0) . ' จากเพดาน ' . number_format($assignmentCap, 0),
+                ])
+                ->withInput()
+                ->with('status_context', 'assignments');
         }
 
         foreach ($assignments as $index => $item) {
@@ -1918,17 +2034,23 @@ class TeacherCourseController extends Controller
         }
 
         if (! $updated) {
-            return back()->withErrors(['assignment' => 'à¹„à¸¡à¹ˆà¸žà¸šà¸à¸²à¸£à¸šà¹‰à¸²à¸™à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸à¸²à¸£à¹à¸à¹‰à¹„à¸‚']);
+            return $this->redirectToCourseDetailSection($course, $data['term'], 'assignments')
+                ->withErrors(['assignment' => 'ไม่พบการบ้านที่ต้องการแก้ไข'])
+                ->withInput()
+                ->with('status_context', 'assignments');
         }
 
         $course->update(['assignments' => $assignments]);
 
-        return back()->with('status', 'à¸­à¸±à¸›à¹€à¸”à¸•à¸à¸²à¸£à¸šà¹‰à¸²à¸™à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§');
+        return $this->redirectToCourseDetailSection($course, $data['term'], 'assignments')
+            ->with('status', 'อัปเดตการบ้านเรียบร้อยแล้ว')
+            ->with('status_context', 'assignments');
     }
 
     public function destroyAssignment(Course $course, string $assignment)
     {
         $this->authorizeCourse($course);
+        $term = request('term');
 
         $assignments = collect($course->assignments ?? [])
             ->reject(fn ($item) => ($item['id'] ?? null) === $assignment)
@@ -1937,7 +2059,9 @@ class TeacherCourseController extends Controller
 
         $course->update(['assignments' => $assignments]);
 
-        return back()->with('status', 'à¸¥à¸šà¸à¸²à¸£à¸šà¹‰à¸²à¸™à¹à¸¥à¹‰à¸§');
+        return $this->redirectToCourseDetailSection($course, $term, 'assignments')
+            ->with('status', 'ลบการบ้านแล้ว')
+            ->with('status_context', 'assignments');
     }
 
     public function updateAssignmentCap(Request $request, Course $course)
@@ -1955,12 +2079,12 @@ class TeacherCourseController extends Controller
 
         if ($data['assignment_cap'] < $currentTotal) {
             return back()->withErrors([
-                'assignment_cap' => 'à¸„à¸°à¹à¸™à¸™à¹€à¸à¹‡à¸šà¸—à¸µà¹ˆà¸•à¸±à¹‰à¸‡à¹„à¸§à¹‰à¸•à¹ˆà¸³à¸à¸§à¹ˆà¸²à¸„à¸°à¹à¸™à¸™à¸£à¸§à¸¡à¸›à¸±à¸ˆà¸ˆà¸¸à¸šà¸±à¸™ (à¸£à¸§à¸¡ ' . number_format($currentTotal, 0) . ')',
+                'assignment_cap' => 'คะแนนเก็บที่ตั้งไว้ต่ำกว่าคะแนนรวมปัจจุบัน (รวม ' . number_format($currentTotal, 0) . ')',
             ]);
         }
 
         $course->update(['assignment_cap' => $data['assignment_cap']]);
 
-        return back()->with('status', 'à¸­à¸±à¸›à¹€à¸”à¸•à¹€à¸žà¸”à¸²à¸™à¸„à¸°à¹à¸™à¸™à¹€à¸à¹‡à¸šà¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§');
+        return back()->with('status', 'อัปเดตเพดานคะแนนเก็บเรียบร้อยแล้ว');
     }
 }

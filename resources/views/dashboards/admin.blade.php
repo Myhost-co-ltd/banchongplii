@@ -196,14 +196,19 @@
         </div>
         <div class="p-6 space-y-4">
             <div>
-                <label for="roomSelect" class="block text-sm font-semibold text-gray-700 mb-2">Select classroom</label>
+                <label for="roomSelect"
+                       class="block text-sm font-semibold text-gray-700 mb-2"
+                       data-i18n-th="เลือกห้องเรียน"
+                       data-i18n-en="Select classroom">เลือกห้องเรียน</label>
                 <select id="roomSelect"
                         class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500"
                         onchange="renderRoomStudents(this.value)">
-                    <option value="">Select classroom</option>
+                    <option value=""
+                            data-i18n-th="เลือกห้องเรียน"
+                            data-i18n-en="Select classroom">เลือกห้องเรียน</option>
                     @foreach(($roomOptions ?? collect()) as $room)
                         <option value="{{ $room }}">
-                            {{ $room }} ({{ number_format(collect($studentsByRoomPayload[$room] ?? [])->count()) }} students)
+                            {{ $room }} ({{ number_format(collect($studentsByRoomPayload[$room] ?? [])->count()) }} คน)
                         </option>
                     @endforeach
                 </select>

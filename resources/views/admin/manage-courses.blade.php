@@ -11,13 +11,23 @@
         <p class="text-gray-600" data-i18n-th="แอดมินสร้างวิชาและชั่วโมงคร่าวๆ แล้วครูจะเข้ามารับและเติมรายละเอียดชั้น/ห้องเอง" data-i18n-en="Admins create subjects and rough hours, then teachers claim them and fill class/room details">แอดมินสร้างวิชาและชั่วโมงคร่าวๆ แล้วครูจะเข้ามารับและเติมรายละเอียดชั้น/ห้องเอง</p>
     </div>
 
-    @if (session('status'))
+    @php
+        $statusContext = session('status_context') ?? ($errors->any() ? old('status_context') : null);
+        $statusCourseIdRaw = session('status_course_id');
+        if ($statusCourseIdRaw === null && $errors->any()) {
+            $statusCourseIdRaw = old('status_course_id');
+        }
+        $statusCourseId = filled($statusCourseIdRaw) ? (int) $statusCourseIdRaw : null;
+        $statusPanel = session('status_panel') ?? ($errors->any() ? old('status_panel') : null);
+    @endphp
+
+    @if (session('status') && $statusContext !== 'course-list')
         <div class="border border-green-200 bg-green-50 text-green-800 rounded-2xl p-4">
             {{ session('status') }}
         </div>
     @endif
 
-    @if ($errors->any())
+    @if ($errors->any() && $statusContext !== 'course-list')
         <div class="border border-red-200 bg-red-50 text-red-700 rounded-2xl p-4">
             <p class="font-semibold mb-2" data-i18n-th="กรุณาตรวจสอบข้อมูลที่กรอก" data-i18n-en="Please review the submitted information">กรุณาตรวจสอบข้อมูลที่กรอก</p>
             <ul class="list-disc list-inside space-y-1 text-sm">
@@ -52,6 +62,7 @@
 
         <form method="POST" action="{{ route('admin.courses.store') }}" class="space-y-6">
             @csrf
+            <input type="hidden" name="status_context" value="course-create">
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -188,6 +199,23 @@
             </div>
         </div>
 
+        @if ($statusContext === 'course-list' && $statusCourseId === null && session('status'))
+            <div class="mb-6 border border-green-200 bg-green-50 text-green-800 rounded-2xl p-4">
+                {{ session('status') }}
+            </div>
+        @endif
+
+        @if ($statusContext === 'course-list' && $statusCourseId === null && $errors->any())
+            <div class="mb-6 border border-red-200 bg-red-50 text-red-700 rounded-2xl p-4">
+                <p class="font-semibold mb-2" data-i18n-th="à¸à¸£à¸¸à¸“à¸²à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸—à¸µà¹ˆà¸à¸£à¸­à¸" data-i18n-en="Please review the submitted information">à¸à¸£à¸¸à¸“à¸²à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸—à¸µà¹ˆà¸à¸£à¸­à¸</p>
+                <ul class="list-disc list-inside space-y-1 text-sm">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         @if($courses->isEmpty())
             <div class="border border-dashed border-gray-200 rounded-2xl p-8 text-center text-gray-500">
                 <span data-i18n-th="ยังไม่มีหลักสูตรในระบบ กรุณาเพิ่มหลักสูตรใหม่ก่อน" data-i18n-en="No courses in the system yet. Please add a new course first.">ยังไม่มีหลักสูตรในระบบ กรุณาเพิ่มหลักสูตรใหม่ก่อน</span>
@@ -202,8 +230,11 @@
                         $effectiveTeacherName = $temporaryActive
                             ? ($course->temporaryTeacher?->name ?? $course->teacher?->name)
                             : ($course->teacher?->name);
+                        $courseHasFeedback = $statusContext === 'course-list' && $statusCourseId === (int) $course->id;
                     @endphp
                     <div class="border border-gray-100 rounded-2xl p-6 shadow-sm bg-gray-50/70 course-card"
+                         id="course-card-{{ $course->id }}"
+                         data-course-id="{{ $course->id }}"
                          data-name="{{ strtolower($course->name) }}"
                          data-year="{{ $course->year ?? '' }}">
                         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
@@ -229,7 +260,7 @@
                             </div>
                             <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3 text-sm text-gray-700">
                                 <div class="flex flex-wrap gap-2 items-center">
-                                    <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700">{{ $course->grade }}</span>
+                                    <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700">{{ filled($course->grade) ? $course->grade : '-' }}</span>
                                     @foreach(($course->rooms ?? []) as $room)
                                         <span class="px-3 py-1 rounded-full bg-white border text-gray-700">{{ $room }}</span>
                                     @endforeach
@@ -259,11 +290,31 @@
                             </div>
                         </div>
 
+                        @if($courseHasFeedback && session('status'))
+                            <div class="mb-4 border border-green-200 bg-green-50 text-green-800 rounded-2xl p-4">
+                                {{ session('status') }}
+                            </div>
+                        @endif
+
+                        @if($courseHasFeedback && $errors->any())
+                            <div class="mb-4 border border-red-200 bg-red-50 text-red-700 rounded-2xl p-4">
+                                <p class="font-semibold mb-2" data-i18n-th="à¸à¸£à¸¸à¸“à¸²à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸—à¸µà¹ˆà¸à¸£à¸­à¸" data-i18n-en="Please review the submitted information">à¸à¸£à¸¸à¸“à¸²à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸—à¸µà¹ˆà¸à¸£à¸­à¸</p>
+                                <ul class="list-disc list-inside space-y-1 text-sm">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
                         <form id="course-edit-{{ $course->id }}" method="POST"
                               action="{{ route('admin.courses.update', $course) }}"
                               class="hidden bg-white border border-gray-100 rounded-xl p-4 mb-4 text-sm">
                             @csrf
                             @method('PUT')
+                            <input type="hidden" name="status_context" value="course-list">
+                            <input type="hidden" name="status_course_id" value="{{ $course->id }}">
+                            <input type="hidden" name="status_panel" value="course-edit">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n-th="ชื่อหลักสูตร" data-i18n-en="Course name">ชื่อหลักสูตร</label>
@@ -421,6 +472,9 @@
                                                                       class="hidden mt-3 grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
                                                                     @csrf
                                                                     @method('PUT')
+                                                                    <input type="hidden" name="status_context" value="course-list">
+                                                                    <input type="hidden" name="status_course_id" value="{{ $course->id }}">
+                                                                    <input type="hidden" name="status_panel" value="hour-edit-{{ $course->id }}-{{ $hourId }}">
                                                                     <select name="term" class="border rounded-lg px-2 py-2" required>
                                                                         <option value="1" @selected(($hour['term'] ?? null) == '1') data-i18n-th="ภาคเรียนที่ 1" data-i18n-en="Term 1">ภาคเรียนที่ 1</option>
                                                                         <option value="2" @selected(($hour['term'] ?? null) == '2') data-i18n-th="ภาคเรียนที่ 2" data-i18n-en="Term 2">ภาคเรียนที่ 2</option>
@@ -462,6 +516,9 @@
                                       action="{{ route('admin.courses.hours.store', $course) }}"
                                       class="space-y-3 text-sm">
                                     @csrf
+                                    <input type="hidden" name="status_context" value="course-list">
+                                    <input type="hidden" name="status_course_id" value="{{ $course->id }}">
+                                    <input type="hidden" name="status_panel" value="course-body">
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                                         <select name="term" class="border rounded-lg px-2 py-2" required>
                                             <option value="1" @selected($defaultTerm == '1') data-i18n-th="ภาคเรียนที่ 1" data-i18n-en="Term 1">ภาคเรียนที่ 1</option>
@@ -515,6 +572,17 @@ function confirmWithLocale(thText, enText) {
     const lang = getAppLocale();
     return confirm(lang === 'en' ? enText : thText);
 }
+
+@php
+    $adminCourseFeedback = [
+        'context' => $statusContext,
+        'courseId' => $statusCourseId,
+        'panel' => $statusPanel,
+        'hasErrors' => $errors->any(),
+    ];
+@endphp
+
+const adminCourseFeedback = @json($adminCourseFeedback);
 
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('courseSearch');
@@ -611,6 +679,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 addCustomSubject();
             }
         });
+    }
+
+    if (adminCourseFeedback.context === 'course-list' && adminCourseFeedback.courseId) {
+        const courseBody = document.getElementById(`course-body-${adminCourseFeedback.courseId}`);
+        const courseEdit = document.getElementById(`course-edit-${adminCourseFeedback.courseId}`);
+
+        if (adminCourseFeedback.panel === 'course-body' && courseBody) {
+            courseBody.classList.remove('hidden');
+        }
+
+        if (adminCourseFeedback.panel === 'course-edit' && courseEdit) {
+            courseEdit.classList.remove('hidden');
+        }
+
+        if (typeof adminCourseFeedback.panel === 'string' && adminCourseFeedback.panel.startsWith('hour-edit-')) {
+            courseBody?.classList.remove('hidden');
+            document.getElementById(adminCourseFeedback.panel)?.classList.remove('hidden');
+        }
     }
 
 });

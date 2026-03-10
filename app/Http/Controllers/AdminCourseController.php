@@ -48,7 +48,7 @@ class AdminCourseController extends Controller
             'description' => 'nullable|string|max:5000',
         ]);
 
-        $grade = $validated['grade'] ?? 'Ã Â¸Â£Ã Â¸Â­Ã Â¸â€žÃ Â¸Â£Ã Â¸Â¹Ã Â¸Â£Ã Â¸Â°Ã Â¸Å¡Ã Â¸Â¸';
+        $grade = array_key_exists('grade', $validated) ? $validated['grade'] : null;
         $rooms = $validated['rooms'] ?? [];
 
         Course::create([
@@ -60,6 +60,14 @@ class AdminCourseController extends Controller
             'year'        => $validated['year'] ?? null,
             'description' => $validated['description'] ?? null,
         ]);
+
+        return $this->redirectToCourseCreate([
+            'status' => 'สร้างหลักสูตรเรียบร้อยแล้ว',
+        ]);
+
+        return redirect()
+            ->route('admin.courses.index')
+            ->with('status', 'สร้างหลักสูตรเรียบร้อยแล้ว');
 
         return redirect()
             ->route('admin.courses.index')
@@ -119,6 +127,14 @@ class AdminCourseController extends Controller
         if ($cancelTemporaryAssignment && $hadTemporaryAssignment) {
             $statusMessage = 'à¸¢à¸à¹€à¸¥à¸´à¸à¸à¸²à¸£à¸¡à¸­à¸šà¸«à¸¡à¸²à¸¢à¸„à¸£à¸¹à¹à¸—à¸™à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§';
         }
+        $statusMessage = 'อัปเดตหลักสูตรเรียบร้อยแล้ว';
+        if ($cancelTemporaryAssignment && $hadTemporaryAssignment) {
+            $statusMessage = 'ยกเลิกการมอบหมายครูแทนเรียบร้อยแล้ว';
+        }
+
+        return $this->redirectToCourseList($course, [
+            'status' => $statusMessage,
+        ]);
 
         return redirect()
             ->route('admin.courses.index')
@@ -128,6 +144,14 @@ class AdminCourseController extends Controller
     public function destroy(Course $course)
     {
         $course->delete();
+
+        return $this->redirectToCourseList(null, [
+            'status' => 'ลบหลักสูตรเรียบร้อยแล้ว',
+        ]);
+
+        return redirect()
+            ->route('admin.courses.index')
+            ->with('status', 'ลบหลักสูตรเรียบร้อยแล้ว');
 
         return redirect()
             ->route('admin.courses.index')
@@ -147,12 +171,31 @@ class AdminCourseController extends Controller
 
         $currentMax = $termTotals->max() ?? 0;
         if ($data['assignment_cap'] < $currentMax) {
+            return $this->redirectToCourseListWithErrors(
+                $request,
+                $course,
+                [
+                    'assignment_cap' => 'เพดานคะแนนต้องไม่น้อยกว่าคะแนนรวมปัจจุบัน (' . $currentMax . ')',
+                ]
+            );
+
+            return back()->withErrors([
+                'assignment_cap' => 'เพดานคะแนนต้องไม่น้อยกว่าคะแนนรวมปัจจุบัน (' . $currentMax . ')',
+            ]);
+
             return back()->withErrors([
                 'assignment_cap' => 'Ã Â¹â‚¬Ã Â¸Å¾Ã Â¸â€Ã Â¸Â²Ã Â¸â„¢Ã Â¸â€”Ã Â¸ÂµÃ Â¹Ë†Ã Â¸â€¢Ã Â¸Â±Ã Â¹â€°Ã Â¸â€¡Ã Â¹â€žÃ Â¸Â§Ã Â¹â€°Ã Â¸â€¢Ã Â¹Ë†Ã Â¸Â³Ã Â¸ÂÃ Â¸Â§Ã Â¹Ë†Ã Â¸Â²Ã Â¸â€žÃ Â¸Â°Ã Â¹ÂÃ Â¸â„¢Ã Â¸â„¢Ã Â¸Â£Ã Â¸Â§Ã Â¸Â¡Ã Â¸â€¡Ã Â¸Â²Ã Â¸â„¢Ã Â¸â€”Ã Â¸ÂµÃ Â¹Ë†Ã Â¸Â¡Ã Â¸ÂµÃ Â¸Â­Ã Â¸Â¢Ã Â¸Â¹Ã Â¹Ë† (Ã Â¸ÂªÃ Â¸Â¹Ã Â¸â€¡Ã Â¸ÂªÃ Â¸Â¸Ã Â¸â€Ã Â¸â€ºÃ Â¸Â±Ã Â¸Ë†Ã Â¸Ë†Ã Â¸Â¸Ã Â¸Å¡Ã Â¸Â±Ã Â¸â„¢ ' . $currentMax . ' Ã Â¸â€žÃ Â¸Â°Ã Â¹ÂÃ Â¸â„¢Ã Â¸â„¢)',
             ]);
         }
 
         $course->update(['assignment_cap' => $data['assignment_cap']]);
+
+        return $this->redirectToCourseList($course, [
+            'status' => 'อัปเดตเพดานคะแนนเรียบร้อยแล้ว',
+            'status_panel' => 'course-body',
+        ]);
+
+        return back()->with('status', 'อัปเดตเพดานคะแนนเรียบร้อยแล้ว');
 
         return back()->with('status', 'Ã Â¸Å¡Ã Â¸Â±Ã Â¸â„¢Ã Â¸â€”Ã Â¸Â¶Ã Â¸ÂÃ Â¹â‚¬Ã Â¸Å¾Ã Â¸â€Ã Â¸Â²Ã Â¸â„¢Ã Â¸â€žÃ Â¸Â°Ã Â¹ÂÃ Â¸â„¢Ã Â¸â„¢Ã Â¹â‚¬Ã Â¸ÂÃ Â¹â€¡Ã Â¸Å¡Ã Â¹â‚¬Ã Â¸Â£Ã Â¸ÂµÃ Â¸Â¢Ã Â¸Å¡Ã Â¸Â£Ã Â¹â€°Ã Â¸Â­Ã Â¸Â¢Ã Â¹ÂÃ Â¸Â¥Ã Â¹â€°Ã Â¸Â§');
     }
@@ -178,6 +221,13 @@ class AdminCourseController extends Controller
         ];
 
         $course->update(['teaching_hours' => $hours]);
+
+        return $this->redirectToCourseList($course, [
+            'status' => 'บันทึกชั่วโมงสอนเรียบร้อยแล้ว',
+            'status_panel' => 'course-body',
+        ]);
+
+        return back()->with('status', 'บันทึกชั่วโมงสอนเรียบร้อยแล้ว');
 
         return back()->with('status', 'Ã Â¸Å¡Ã Â¸Â±Ã Â¸â„¢Ã Â¸â€”Ã Â¸Â¶Ã Â¸ÂÃ Â¸Å Ã Â¸Â±Ã Â¹Ë†Ã Â¸Â§Ã Â¹â€šÃ Â¸Â¡Ã Â¸â€¡Ã Â¸ÂªÃ Â¸Â­Ã Â¸â„¢Ã Â¹â‚¬Ã Â¸Â£Ã Â¸ÂµÃ Â¸Â¢Ã Â¸Å¡Ã Â¸Â£Ã Â¹â€°Ã Â¸Â­Ã Â¸Â¢Ã Â¹ÂÃ Â¸Â¥Ã Â¹â€°Ã Â¸Â§');
     }
@@ -210,10 +260,25 @@ class AdminCourseController extends Controller
         }
 
         if (! $updated) {
+            return $this->redirectToCourseListWithErrors(
+                $request,
+                $course,
+                ['hour' => 'ไม่พบข้อมูลชั่วโมงสอนที่ต้องการแก้ไข'],
+                'course-body'
+            );
+            return back()->withErrors(['hour' => 'ไม่พบข้อมูลชั่วโมงสอนที่ต้องการแก้ไข']);
+
             return back()->withErrors(['hour' => 'Ã Â¹â€žÃ Â¸Â¡Ã Â¹Ë†Ã Â¸Å¾Ã Â¸Å¡Ã Â¸â€šÃ Â¹â€°Ã Â¸Â­Ã Â¸Â¡Ã Â¸Â¹Ã Â¸Â¥Ã Â¸Å Ã Â¸Â±Ã Â¹Ë†Ã Â¸Â§Ã Â¹â€šÃ Â¸Â¡Ã Â¸â€¡Ã Â¸â€”Ã Â¸ÂµÃ Â¹Ë†Ã Â¸â€¢Ã Â¹â€°Ã Â¸Â­Ã Â¸â€¡Ã Â¸ÂÃ Â¸Â²Ã Â¸Â£Ã Â¹ÂÃ Â¸ÂÃ Â¹â€°Ã Â¹â€žÃ Â¸â€š']);
         }
 
         $course->update(['teaching_hours' => $hours]);
+
+        return $this->redirectToCourseList($course, [
+            'status' => 'อัปเดตชั่วโมงสอนเรียบร้อยแล้ว',
+            'status_panel' => 'course-body',
+        ]);
+
+        return back()->with('status', 'อัปเดตชั่วโมงสอนเรียบร้อยแล้ว');
 
         return back()->with('status', 'Ã Â¸Â­Ã Â¸Â±Ã Â¸â€ºÃ Â¹â‚¬Ã Â¸â€Ã Â¸â€¢Ã Â¸Å Ã Â¸Â±Ã Â¹Ë†Ã Â¸Â§Ã Â¹â€šÃ Â¸Â¡Ã Â¸â€¡Ã Â¸ÂªÃ Â¸Â­Ã Â¸â„¢Ã Â¹â‚¬Ã Â¸Â£Ã Â¸ÂµÃ Â¸Â¢Ã Â¸Å¡Ã Â¸Â£Ã Â¹â€°Ã Â¸Â­Ã Â¸Â¢Ã Â¹ÂÃ Â¸Â¥Ã Â¹â€°Ã Â¸Â§');
     }
@@ -227,7 +292,57 @@ class AdminCourseController extends Controller
 
         $course->update(['teaching_hours' => $hours]);
 
+        return $this->redirectToCourseList($course, [
+            'status' => 'ลบชั่วโมงสอนเรียบร้อยแล้ว',
+            'status_panel' => 'course-body',
+        ]);
+
+        return back()->with('status', 'ลบชั่วโมงสอนเรียบร้อยแล้ว');
+
         return back()->with('status', 'Ã Â¸Â¥Ã Â¸Å¡Ã Â¸Å Ã Â¸Â±Ã Â¹Ë†Ã Â¸Â§Ã Â¹â€šÃ Â¸Â¡Ã Â¸â€¡Ã Â¸ÂªÃ Â¸Â­Ã Â¸â„¢Ã Â¹ÂÃ Â¸Â¥Ã Â¹â€°Ã Â¸Â§');
+    }
+
+    private function redirectToCourseCreate(array $flash = [])
+    {
+        return redirect()
+            ->route('admin.courses.index')
+            ->with(array_merge([
+                'status_context' => 'course-create',
+            ], $flash));
+    }
+
+    private function redirectToCourseList(?Course $course = null, array $flash = [])
+    {
+        $payload = array_merge([
+            'status_context' => 'course-list',
+        ], $flash);
+
+        if ($course !== null) {
+            $payload['status_course_id'] = $course->id;
+        }
+
+        return redirect()
+            ->route('admin.courses.index')
+            ->with($payload);
+    }
+
+    private function redirectToCourseListWithErrors(
+        Request $request,
+        Course $course,
+        array $errors,
+        string $panel = 'course-body'
+    ) {
+        return redirect()
+            ->route('admin.courses.index')
+            ->withErrors($errors)
+            ->withInput(array_merge(
+                $request->except(['_token', '_method']),
+                [
+                    'status_context' => 'course-list',
+                    'status_course_id' => (string) $course->id,
+                    'status_panel' => $panel,
+                ]
+            ));
     }
 
     private function yearBeNotPastRule(): \Closure
@@ -241,11 +356,17 @@ class AdminCourseController extends Controller
 
             $year = (int) $value;
             if ($year < 2400) {
+                $fail('กรุณากรอกปีการศึกษาเป็น พ.ศ. เช่น ' . $currentBe);
+                return;
+
                 $fail('Ã Â¸ÂÃ Â¸Â£Ã Â¸Â¸Ã Â¸â€œÃ Â¸Â²Ã Â¸ÂÃ Â¸Â£Ã Â¸Â­Ã Â¸ÂÃ Â¸â€ºÃ Â¸ÂµÃ Â¸ÂÃ Â¸Â²Ã Â¸Â£Ã Â¸Â¨Ã Â¸Â¶Ã Â¸ÂÃ Â¸Â©Ã Â¸Â²Ã Â¹â‚¬Ã Â¸â€ºÃ Â¹â€¡Ã Â¸â„¢ Ã Â¸Å¾.Ã Â¸Â¨. (Ã Â¹â‚¬Ã Â¸Å Ã Â¹Ë†Ã Â¸â„¢ '.$currentBe.')');
                 return;
             }
 
             if ($year !== $currentBe) {
+                $fail('ปีการศึกษาต้องเป็นปีปัจจุบัน (พ.ศ. ' . $currentBe . ')');
+                return;
+
                 $fail("Ã Â¸â€ºÃ Â¸ÂµÃ Â¸ÂÃ Â¸Â²Ã Â¸Â£Ã Â¸Â¨Ã Â¸Â¶Ã Â¸ÂÃ Â¸Â©Ã Â¸Â²Ã Â¸â€¢Ã Â¹â€°Ã Â¸Â­Ã Â¸â€¡Ã Â¹â‚¬Ã Â¸â€ºÃ Â¹â€¡Ã Â¸â„¢Ã Â¸â€ºÃ Â¸ÂµÃ Â¸â€ºÃ Â¸Â±Ã Â¸Ë†Ã Â¸Ë†Ã Â¸Â¸Ã Â¸Å¡Ã Â¸Â±Ã Â¸â„¢Ã Â¹â‚¬Ã Â¸â€”Ã Â¹Ë†Ã Â¸Â²Ã Â¸â„¢Ã Â¸Â±Ã Â¹â€°Ã Â¸â„¢ (Ã Â¸Å¾.Ã Â¸Â¨. {$currentBe})");
             }
         };

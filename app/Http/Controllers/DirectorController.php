@@ -7,6 +7,7 @@ use App\Models\CourseAttendanceHoliday;
 use App\Models\Role;
 use App\Models\Student;
 use App\Models\User;
+use App\Services\TeacherDashboardSummaryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -14,27 +15,13 @@ use Illuminate\Support\Facades\Schema;
 
 class DirectorController extends Controller
 {
-    public function dashboard()
+    public function dashboard(TeacherDashboardSummaryService $teacherDashboardSummary)
     {
         $studentCount = Student::count();
-
-        $teacherDirectoryAll = $this->fetchTeacherDirectoryFromLegacyTable();
-
-        $teacherRoleId = Role::where('name', 'teacher')->value('id');
-        $teacherIds = $teacherRoleId
-            ? User::where('role_id', $teacherRoleId)->pluck('id')
-            : collect();
-        $teacherIdLookup = $teacherIds->flip();
-        $teacherCount = $teacherDirectoryAll->isNotEmpty()
-            ? $teacherDirectoryAll->count()
-            : ($this->countTeachersFromLegacyTable() ?? $teacherIds->count());
-
-        $homeroomTeachers = $teacherRoleId
-            ? User::query()
-                ->where('role_id', $teacherRoleId)
-                ->orderBy('name')
-                ->get(['id', 'name', 'email', 'major'])
-            : collect();
+        $teacherSummary = $teacherDashboardSummary->build();
+        $teacherDirectoryAll = $teacherSummary['teacherDirectoryAll'];
+        $teacherCount = $teacherSummary['teacherCount'];
+        $homeroomTeachers = $teacherSummary['teacherUsers'];
 
         $normalizeRoom = function ($room): ?string {
             if (is_array($room)) {
@@ -181,83 +168,10 @@ class DirectorController extends Controller
             ->flatten(1)
             ->unique('id')
             ->count();
-
-        if ($teacherDirectoryAll->isNotEmpty()) {
-            [$completeTeachers, $incompleteTeachers] = $this->buildTeacherStatusFromLegacyDirectory(
-                $teacherDirectoryAll,
-                $courses
-            );
-        } else {
-            $teacherStatus = $courses
-                ->filter(fn ($course) => $course->teacher && $teacherIdLookup->has((int) $course->teacher->id))
-                ->groupBy(fn ($course) => $course->teacher->id)
-                ->map(function ($teacherCourses) {
-                    $teacher = $teacherCourses->first()->teacher;
-
-                    $courseDetails = $teacherCourses->map(function ($course) {
-                        $hasHours = ! empty($course->teaching_hours);
-                        $hasAssignments = ! empty($course->assignments);
-
-                        return [
-                            'id' => $course->id,
-                            'name' => $course->name,
-                            'grade' => $course->grade,
-                            'complete' => $hasHours && $hasAssignments,
-                            'has_hours' => $hasHours,
-                            'has_assignments' => $hasAssignments,
-                        ];
-                    })->values();
-
-                    $isComplete = $courseDetails->isNotEmpty()
-                        && $courseDetails->every(fn ($detail) => (bool) ($detail['complete'] ?? false));
-
-                    return [
-                        'teacher' => [
-                            'id' => $teacher->id,
-                            'name' => $teacher->name,
-                            'email' => $teacher->email,
-                            'major' => $teacher->major,
-                        ],
-                        'courses' => $courseDetails,
-                        'complete' => $isComplete,
-                    ];
-                })
-                ->toBase();
-
-            $teacherIdsWithCourses = $teacherStatus
-                ->keys()
-                ->map(fn ($teacherId) => (int) $teacherId)
-                ->values();
-
-            $completeTeachers = $teacherStatus->where('complete', true)->values();
-            $incompleteTeachers = $teacherStatus->where('complete', false)->values();
-
-            $teachersWithoutCourses = $teacherRoleId
-                ? User::query()
-                    ->where('role_id', $teacherRoleId)
-                    ->whereNotIn('id', $teacherIdsWithCourses)
-                    ->orderBy('name')
-                    ->get(['id', 'name', 'email', 'major'])
-                : collect();
-
-            $incompleteTeachers = $incompleteTeachers
-                ->merge(
-                    $teachersWithoutCourses->map(fn ($teacher) => [
-                        'teacher' => [
-                            'id' => $teacher->id,
-                            'name' => $teacher->name,
-                            'email' => $teacher->email,
-                            'major' => $teacher->major,
-                        ],
-                        'courses' => [],
-                        'complete' => false,
-                    ])
-                )
-                ->values();
-        }
-
-        $completeTeacherCount = $completeTeachers->count();
-        $incompleteTeacherCount = $incompleteTeachers->count();
+        $completeTeachers = $teacherSummary['completeTeacherStatuses'];
+        $incompleteTeachers = $teacherSummary['incompleteTeacherStatuses'];
+        $completeTeacherCount = $teacherSummary['completeTeacherCount'];
+        $incompleteTeacherCount = $teacherSummary['incompleteTeacherCount'];
 
         return view('dashboards.director', [
             'studentCount' => $studentCount,

@@ -187,6 +187,7 @@
     });
   </script>
 
+  @include('layouts.partials.scroll-restore')
   @include('layouts.partials.localization')
   @stack('scripts')
 </body>

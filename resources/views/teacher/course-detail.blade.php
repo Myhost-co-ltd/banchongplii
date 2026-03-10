@@ -14,9 +14,16 @@
     $lessonsByTerm = collect($lessons ?? []);
     $assignmentsByTerm = collect($assignments ?? []);
     $lessonTitles = $lessonsByTerm->pluck('title')->filter()->values();
-    
+
     // กำหนดคะแนนเก็บสูงสุดเริ่มต้น (เผื่อไม่มีการกำหนดใน $course)
     $assignmentCap = $course->assignment_cap ?? 70;
+    $statusContext = session('status_context');
+    $lessonErrors = $statusContext === 'lessons'
+        ? collect(['lesson', 'category', 'title', 'hours', 'period', 'details'])->flatMap(fn ($key) => $errors->get($key))->unique()->values()
+        : collect();
+    $assignmentErrors = $statusContext === 'assignments'
+        ? collect(['assignment', 'title', 'due_date', 'score', 'notes', 'assignment_cap'])->flatMap(fn ($key) => $errors->get($key))->unique()->values()
+        : collect();
 @endphp
 
 <div class="space-y-8 overflow-y-auto pr-2 pb-10 {{ $canManageCourse ? '' : 'course-readonly' }}">
@@ -291,7 +298,7 @@
             </section>
 
             {{-- ?? รายการบทเรียน --}}
-            <section class="bg-white rounded-3xl shadow-md p-6 border border-gray-100">
+            <section id="lessons" class="bg-white rounded-3xl shadow-md p-6 border border-gray-100">
 
                 <div class="flex justify-between items-center mb-6">
                     <div>
@@ -312,6 +319,22 @@
                             data-i18n-th="เพิ่มบทเรียน"
                             data-i18n-en="Add lesson">เพิ่มบทเรียน</button>
                 </div>
+
+                @if ($statusContext === 'lessons' && session('status'))
+                    <div class="mb-4 border border-green-200 bg-green-50 text-green-800 rounded-2xl p-4 text-sm">
+                        {{ session('status') }}
+                    </div>
+                @endif
+
+                @if ($lessonErrors->isNotEmpty())
+                    <div class="mb-4 border border-red-200 bg-red-50 text-red-700 rounded-2xl p-4 text-sm">
+                        <ul class="list-disc list-inside space-y-1">
+                            @foreach ($lessonErrors as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
 
                 <div class="space-y-4">
                     @forelse($lessonsByTerm as $lesson)
@@ -348,6 +371,7 @@
 
                                         @csrf
                                         @method('DELETE')
+                                        <input type="hidden" name="term" value="{{ $currentTerm }}">
                                         <button class="text-red-600 hover:underline">ลบ</button>
                                     </form>
                                 </div>
@@ -494,6 +518,22 @@
                     </button>
                 </div>
 
+                @if ($statusContext === 'assignments' && session('status'))
+                    <div class="mb-4 border border-green-200 bg-green-50 text-green-800 rounded-2xl p-4 text-sm">
+                        {{ session('status') }}
+                    </div>
+                @endif
+
+                @if ($assignmentErrors->isNotEmpty())
+                    <div class="mb-4 border border-red-200 bg-red-50 text-red-700 rounded-2xl p-4 text-sm">
+                        <ul class="list-disc list-inside space-y-1">
+                            @foreach ($assignmentErrors as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <div class="space-y-4">
                     @forelse($assignmentsByTerm as $assignment)
                         @php($assignmentId = $assignment['id'])
@@ -533,6 +573,7 @@
                                             onsubmit="return confirm('ต้องการลบงานนี้หรือไม่?')">
                                             @csrf
                                             @method('DELETE')
+                                            <input type="hidden" name="term" value="{{ $currentTerm }}">
                                             <button class="text-red-600 hover:underline">ลบ</button>
                                     </form>
                                 </div>
